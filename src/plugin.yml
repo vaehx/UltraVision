@@ -1,0 +1,55 @@
+## ultravision plugin file
+
+name: Ultravision
+version: DEV
+description: Ultravision is a Player Supervision Plugin for highly improved server statistic management.
+author: prosicraft
+website: http://passiweb.bplaced.de
+
+main: com.prosicraft.ultravision.ultravision
+
+commands:
+    ultravision:
+        description: Shows information about UltraVision Plugin.
+        usage: /<command>
+        permission: ultravision.ultravision
+        aliases: [uv, uvis]
+    supervise:
+        description: Enables watching one or all players acitvities independet of saving this data.
+        usage: /<command> [Player] [Player] ...
+        permission: ultravision.visionize
+        aliases: [vis, sv, superv]
+    uvclear:
+        description: Lets the user clear the configuration in runtime.
+        usage: /<command>
+        permission: ultravision.uvclear
+    uvlist:
+        description: Lists all targets, that are visionized from you.
+        usage: /<command>
+        permission: ultravision.uvlist
+        aliases: [uvl]
+    uvdelete:
+        description: Stopps target to be supervised.
+        usage: /<command>
+        aliases: [uvdel, uvrem, uvremove]
+        permission: ultravision.uvdelete
+    uvset:
+        description: Sets flags for targets to filter alerts.
+        usage: /<command>
+        aliases: [uvs]
+        permission: ultravision.uvset
+    uvlogin:
+        description: Loggs you in.
+        usage: /<command>
+        aliases: [login, lgin]
+#        permission: ultravision.login
+    uvregister:
+        description: Registers you in UltraVision login system.
+        usage: /<command>
+        aliases: [register, reg, lreg]
+#        permission: ultravision.lregister
+    uvaunregister:
+        description: (op) Unregisters a user.
+        usage: /<command>
+        aliases: [ureg, unregister]
+        permission: ultravision.admin.unregister
