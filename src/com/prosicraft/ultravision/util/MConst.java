@@ -1,4 +1,4 @@
-package com.prosicraft.mighty.util;
+package com.prosicraft.ultravision.util;
 
 public class MConst {
 	

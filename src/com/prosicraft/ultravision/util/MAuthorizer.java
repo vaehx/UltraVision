@@ -1,7 +1,7 @@
 /*
  * Handles passwords and logins on a bukkit server
  */
-package com.prosicraft.mighty.util;
+package com.prosicraft.ultravision.util;
 
 import com.prosicraft.ultravision.uvPlayer;
 import java.io.File;

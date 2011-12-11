@@ -4,7 +4,7 @@
  */
 package com.prosicraft.ultravision.global;
 
-import com.prosicraft.mighty.util.MAuthorizer;
+import com.prosicraft.ultravision.util.MAuthorizer;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
 import java.sql.Time;
 import java.util.List;

@@ -5,6 +5,7 @@
 package com.prosicraft.ultravision.local;
 
 import com.prosicraft.ultravision.base.UVBan;
+import com.prosicraft.ultravision.base.UVKick;
 import com.prosicraft.ultravision.base.UVWarning;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +24,7 @@ public class UVLocalPlayer extends CraftPlayer {
     List<UVBan>     banHistory  = new ArrayList<UVBan>();
     UVWarning          warning  = null; // only one warning on local    
     List<UVWarning>    notes    = new ArrayList<UVWarning>();    
+    List<UVKick>    kickHistory = new ArrayList<UVKick>();
     
     public UVLocalPlayer ( CraftServer server, EntityPlayer ep ) {
         super (server,ep);
@@ -30,6 +32,6 @@ public class UVLocalPlayer extends CraftPlayer {
     
     public UVLocalPlayer ( Player p ) {
         super ((CraftServer)p.getServer(), ((CraftPlayer)p).getHandle());
-    }
+    }        
     
 }

@@ -4,8 +4,9 @@
  */
 package com.prosicraft.ultravision;
 
-import com.prosicraft.mighty.util.MAuthorizer;
-import com.prosicraft.mighty.util.MLog;
+import com.prosicraft.ultravision.util.MAuthorizer;
+import com.prosicraft.ultravision.util.MLog;
+import com.prosicraft.ultravision.base.UltraVisionAPI;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerChatEvent;
@@ -23,15 +24,28 @@ public class uvPlayerListener extends PlayerListener {
 
     private ultravision parent = null;
     private MAuthorizer auth  = null;
+    private UltraVisionAPI uv = null;
     
     public uvPlayerListener (ultravision parent) {
         this.parent = parent;
         auth = parent.getAuthorizer();        
     }
     
+    public void initUV (UltraVisionAPI uva) {        
+        uv = uva;
+    }
+    
     @Override
     public void onPlayerJoin (PlayerJoinEvent e) {        
         if (e.getPlayer() instanceof Player) {
+            
+            if ( uv == null)
+                MLog.w("UltraVisionAPI not initialized!");
+            else {
+                if ( uv.isBanned(e.getPlayer()) )
+                    e.getPlayer().kickPlayer(uv.getBans(null));
+            }            
+            
                         
             e.getPlayer().sendMessage(ChatColor.DARK_AQUA + "  - This is an " + ChatColor.GOLD + "UltraVision " + ChatColor.AQUA + "based Server." + ChatColor.DARK_AQUA + " Security first. -");
             

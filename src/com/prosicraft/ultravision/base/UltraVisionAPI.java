@@ -4,8 +4,8 @@
  */
 package com.prosicraft.ultravision.base;
 
-import com.prosicraft.mighty.util.MAuthorizer;
-import com.prosicraft.mighty.util.MResult;
+import com.prosicraft.ultravision.util.MAuthorizer;
+import com.prosicraft.ultravision.util.MResult;
 import java.sql.Time;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +48,7 @@ public interface UltraVisionAPI {
     public MResult doBan ( CommandSender cs, Player p, String reason, boolean global );    
     public MResult doTempBan ( CommandSender cs, Player p, String reason, Time time, boolean global );           
     public MResult pardon ( CommandSender cs, Player p, String note );
+    public boolean isBanned ( Player p );
     public List<UVBan> getBans ( Player p );
     public List<UVBan> getBanHistory ( Player p );
     

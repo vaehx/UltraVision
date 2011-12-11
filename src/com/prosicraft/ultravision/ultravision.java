@@ -9,11 +9,11 @@
  */
 package com.prosicraft.ultravision;
 
-import com.prosicraft.mighty.util.MAuthorizer;
-import com.prosicraft.mighty.util.MConfiguration;
-import com.prosicraft.mighty.util.MCrypt;
-import com.prosicraft.mighty.util.MLog;
-import com.prosicraft.mighty.util.MResult;
+import com.prosicraft.ultravision.util.MAuthorizer;
+import com.prosicraft.ultravision.util.MConfiguration;
+import com.prosicraft.ultravision.util.MCrypt;
+import com.prosicraft.ultravision.util.MLog;
+import com.prosicraft.ultravision.util.MResult;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;

@@ -4,13 +4,15 @@
  */
 package com.prosicraft.ultravision.local;
 
-import com.prosicraft.mighty.util.MAuthorizer;
-import com.prosicraft.mighty.util.MConfiguration;
-import com.prosicraft.mighty.util.MLog;
-import com.prosicraft.mighty.util.MResult;
+import com.prosicraft.ultravision.util.MAuthorizer;
+import com.prosicraft.ultravision.util.MConfiguration;
+import com.prosicraft.ultravision.util.MLog;
+import com.prosicraft.ultravision.util.MResult;
 import com.prosicraft.ultravision.base.UVBan;
+import com.prosicraft.ultravision.base.UVKick;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -112,6 +114,58 @@ public class localEngine implements UltraVisionAPI {
         return MResult.RES_SUCCESS;
         
     }
+    
+    /**
+     * This function MANUALLY loads the data. Use this for serverreload
+     * @return Result
+     */
+    public MResult fetchData () {
+        
+        MLog.d("Fetching local data from: " + ((db == null) ? "Not initialized config file." : db.getAbsolutePath()));
+        if ( db == null ) return MResult.RES_NOTINIT;
+        
+        if ( !db.exists() ) {
+            MLog.d ( "(fetchDB) File doesn't exist at " + MConfiguration.normalizePath(db) );
+            try {
+                db.createNewFile();
+                MLog.d("(fetchDB) Created new file at " + MConfiguration.normalizePath(db));
+            } catch (IOException ioex) {
+                MLog.e("(fetchDB) Can't create new file at " + MConfiguration.normalizePath(db));
+                return MResult.RES_ERROR;
+            }
+        }
+        
+        FileInputStream fis;
+        try {
+            fis = new FileInputStream (db);                    
+        } catch (FileNotFoundException fnfex) {
+            MLog.e("(fetchDB) Can't load database: File not found"); return MResult.RES_ERROR;
+        }
+        
+        try {                                    
+            int playercount = fis.read();
+            int chunksize = fis.read();
+            
+            MLog.d("(fetchDB) Start reading " + String.valueOf(playercount) + " players...");            
+            for ( int a=0; a < playercount; a++ ) {                
+                for (int pnt=0;pnt < chunksize; pnt++) {                
+                    int chunk2size = fis.read();
+                    int namechunksize = fis.read();
+                    byte[] namebuffer = new byte[namechunksize];
+                    fis.read(namebuffer);                    
+                    String name = new String(namebuffer);
+                    if (name.equals(""))                         
+                        fis.skip(chunk2size - namechunksize);
+                }           
+            }
+            
+            fis.close();
+        } catch (IOException ex) {
+            MLog.e("Can't read database: " + ex.getMessage());
+            ex.printStackTrace(); return MResult.RES_ERROR;
+        }
+        
+    }
 
     @Override
     public Map<String, String> getAll(Player p) {
@@ -146,7 +200,17 @@ public class localEngine implements UltraVisionAPI {
      * @param p The player which gets banned
      * @param reason The Reason of the ban
      * @return NOTINIT: Authorizer not init OR Player not registered, NOACCESS: Banner not registered
-     */
+     */    
+    @Override
+    public boolean isBanned(Player p) {
+        UVLocalPlayer uP = null;
+        if ( !isAuthInit() || p == null || !authorizer.isRegistered(p) || (uP = getUVPlayer(p)) == null )
+            return false;                           
+        
+        return !(uP.ban == null);   // don't use uP.isBanned() right here, as this would call bukkit methods
+    }
+
+    
     @Override
     public MResult doBan(CommandSender cs, Player p, String reason) {
         return doBan (cs, p, reason, false);
@@ -185,6 +249,9 @@ public class localEngine implements UltraVisionAPI {
                 return MResult.RES_ALREADY;            
         
         uP.ban = new UVBan (reason, uPBanner, global, time);
+        uP.banHistory.add(uP.ban);        
+        
+        uP.kickPlayer("You have been banned " + ((time == null) ? "permanently by " + cs.getName() + "." : "for " + time.toString() + " by " + cs.getName()));
         
         return MResult.RES_SUCCESS;
     }
@@ -218,7 +285,17 @@ public class localEngine implements UltraVisionAPI {
 
     @Override
     public MResult doKick(CommandSender cs, Player p, String reason) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        UVLocalPlayer uP;
+        if ( !isAuthInit() || !authorizer.isRegistered(p) || (uP = getUVPlayer (p)) == null )
+            return MResult.RES_NOTINIT; 
+        
+        /*if ( reason == null || reason.equalsIgnoreCase("") )
+            return MResult.RES_NOTGIVEN;*/
+        
+        uP.kickPlayer(MLog.real(reason));
+        uP.kickHistory.add(new UVKick (reason, (Player)cs)  );
+        
+        return MResult.RES_SUCCESS;
     }
 
     @Override

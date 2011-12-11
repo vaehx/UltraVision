@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.prosicraft.mighty.util;
+package com.prosicraft.ultravision.util;
 
 /**
  *
