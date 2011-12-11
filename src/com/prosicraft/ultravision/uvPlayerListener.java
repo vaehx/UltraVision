@@ -39,12 +39,12 @@ public class uvPlayerListener extends PlayerListener {
     public void onPlayerJoin (PlayerJoinEvent e) {        
         if (e.getPlayer() instanceof Player) {
             
-            if ( uv == null)
+            /*if ( uv == null)
                 MLog.w("UltraVisionAPI not initialized!");
             else {
                 if ( uv.isBanned(e.getPlayer()) )
-                    e.getPlayer().kickPlayer(uv.getBans(null));
-            }            
+                    e.getPlayer().kickPlayer(uv.getBans(e.getPlayer()));                
+            } */           
             
                         
             e.getPlayer().sendMessage(ChatColor.DARK_AQUA + "  - This is an " + ChatColor.GOLD + "UltraVision " + ChatColor.AQUA + "based Server." + ChatColor.DARK_AQUA + " Security first. -");

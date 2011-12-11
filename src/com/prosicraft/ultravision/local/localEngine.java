@@ -154,12 +154,16 @@ public class localEngine implements UltraVisionAPI {
                     byte[] namebuffer = new byte[namechunksize];
                     fis.read(namebuffer);                    
                     String name = new String(namebuffer);
+                    
+                    // TODO!!!
+                    
                     if (name.equals(""))                         
                         fis.skip(chunk2size - namechunksize);
                 }           
             }
             
             fis.close();
+            return MResult.RES_SUCCESS;
         } catch (IOException ex) {
             MLog.e("Can't read database: " + ex.getMessage());
             ex.printStackTrace(); return MResult.RES_ERROR;

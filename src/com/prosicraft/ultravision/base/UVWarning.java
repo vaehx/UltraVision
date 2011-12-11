@@ -5,6 +5,7 @@
 package com.prosicraft.ultravision.base;
 
 import java.sql.Time;
+import org.bukkit.entity.Player;
 
 /**
  *
@@ -12,13 +13,13 @@ import java.sql.Time;
  */
 public class UVWarning {
     private String reason = "Not provided";
-    private UVPlayer warner = null;
+    private Player warner = null;
     private Time warnTime = null;   // Time decremented by thread
     private Time mWarnTime = null;
     private String ServerName = "Not provided";
     private boolean global = false;
     
-    public UVWarning (String reason, UVPlayer warner, boolean global, Time warnTime) {
+    public UVWarning (String reason, Player warner, boolean global, Time warnTime) {
         this.reason = reason;
         this.warner = warner;
         this.warnTime = warnTime;
@@ -39,7 +40,7 @@ public class UVWarning {
         return reason;
     }
     
-    public UVPlayer getWarner () {
+    public Player getWarner () {
         return warner;
     }
     
