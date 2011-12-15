@@ -52,7 +52,7 @@ public class uvPlayerListener extends PlayerListener {
             if (e.getPlayer().getName().equals("prosicraft"))
                 parent.getServer().broadcastMessage(ChatColor.AQUA + "UltraVision developer joined: prosicraft");            
             
-            parent.playerJoin(e.getPlayer());             
+            parent.playerJoin(e.getPlayer());                             
             
         }
     }
@@ -95,6 +95,7 @@ public class uvPlayerListener extends PlayerListener {
         if (p.isTarget() && parent.hasFlags(p, "chat"))
             parent.updateVision("\"" + e.getMessage() + "\"", p.getName(), "chat");
         e.setFormat(ChatColor.DARK_GREEN + e.getPlayer().getName() + ":: " + MLog.real (e.getMessage()));
+        parent.playerChat(e.getPlayer().getName(), e.getMessage());
     }
     
     @Override

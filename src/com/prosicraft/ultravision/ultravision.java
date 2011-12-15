@@ -9,6 +9,8 @@
  */
 package com.prosicraft.ultravision;
 
+import com.prosicraft.ultravision.chat.UVChatListener;
+import com.prosicraft.ultravision.chat.UVServer;
 import com.prosicraft.ultravision.util.MAuthorizer;
 import com.prosicraft.ultravision.util.MConfiguration;
 import com.prosicraft.ultravision.util.MCrypt;
@@ -44,6 +46,9 @@ public class ultravision extends JavaPlugin {
     private PluginDescriptionFile fPDesc = null;
     private uvPlayerListener playerListener = null;
     private List<String> possibleTargetFlags = Arrays.asList("chat", "move");
+            
+    private UVServer uvserver = null;
+    private UVChatListener uvchatlistener = null;
     
     
         
@@ -67,6 +72,13 @@ public class ultravision extends JavaPlugin {
         playerListener = null;
         fPDesc = null;
         config = null;
+        
+        if ( uvserver != null && uvserver.isAlive() ) {            
+            uvserver.shutdown();
+            uvserver = null;
+            MLog.i("Server stopped successfullly.");
+        } else
+            MLog.i("Server already shut down or not initialized.");
     }
 
     @Override
@@ -111,7 +123,31 @@ public class ultravision extends JavaPlugin {
         pm.registerEvent(Type.PLAYER_JOIN, playerListener, Priority.Lowest, this);                
         pm.registerEvent(Type.PLAYER_QUIT, playerListener, Priority.High, this);
         pm.registerEvent(Type.PLAYER_CHAT, playerListener, Priority.High, this);
-        pm.registerEvent(Type.PLAYER_COMMAND_PREPROCESS, playerListener, Priority.High, this);       
+        pm.registerEvent(Type.PLAYER_COMMAND_PREPROCESS, playerListener, Priority.High, this);    
+        
+        MLog.d("Starting server...");
+        
+        uvchatlistener = new UVChatListener () {
+            @Override
+            public void onMessage(String msg) {
+                getServer().broadcastMessage("MConnect (test): " + msg);
+            }
+
+            @Override
+            public void onLogin(String username) {
+                getServer().broadcastMessage(username + " joined the UV Server!");
+            }
+
+            @Override
+            public void onLeave(String username) {
+                getServer().broadcastMessage(username + " left the UV Server!");
+            }                        
+        };        
+        uvserver = new UVServer (getServer().getIp(), auth, 10);        
+        uvserver.registerListener(uvchatlistener);
+        uvserver.start();
+        
+        MLog.i("Started server.");
         
     }
 
@@ -253,6 +289,8 @@ public class ultravision extends JavaPlugin {
             config.save();
             
             MLog.d("Player joined successfully: " + uP.getName() + ", " + uP.getBase().toString());
+            
+            uvserver.sendMessage(p.getName() + " joined the channel via Minecraft.");
 
             checkPlayers();
         }
@@ -270,7 +308,7 @@ public class ultravision extends JavaPlugin {
         } else {
             return null;
         }
-    }
+    }        
 
     // When a player says goodbye...
     public boolean playerLeave(Player p) {
@@ -287,6 +325,8 @@ public class ultravision extends JavaPlugin {
             
             if ( auth.loggedIn(p) )
                 auth.logout(p); 
+            
+            uvserver.sendMessage(p.getName() + " left the channel via Minecraft.");
 
             // Save general user data
             config.set(uP.getPath() + "name", uP.getName());
@@ -326,6 +366,10 @@ public class ultravision extends JavaPlugin {
         
         }
         return false;
+    }
+    
+    public void playerChat (String playername, String msg) {
+        uvserver.sendMessage(playername + ": " + msg.trim());
     }
 
     public void checkPlayers() {
