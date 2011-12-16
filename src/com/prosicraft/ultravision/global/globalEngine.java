@@ -5,6 +5,8 @@
 package com.prosicraft.ultravision.global;
 
 import com.prosicraft.ultravision.base.UVBan;
+import com.prosicraft.ultravision.base.UVKick;
+import com.prosicraft.ultravision.base.UVWarning;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.util.MAuthorizer;
 import com.prosicraft.ultravision.util.MResult;
@@ -81,12 +83,17 @@ public class globalEngine implements UltraVisionAPI {
     }
 
     @Override
-    public List<String> getKickHistory(Player p) {
+    public List<UVKick> getKickHistory(Player p) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public MResult setWarn(CommandSender cs, Player p, String reason) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public MResult setWarn(CommandSender cs, Player p, String reason, Time tdiff) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -111,7 +118,12 @@ public class globalEngine implements UltraVisionAPI {
     }
 
     @Override
-    public List<String> getWarnHistory(Player p) {
+    public UVWarning getWarning(Player p) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public List<UVWarning> getWarnHistory(Player p) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -121,7 +133,7 @@ public class globalEngine implements UltraVisionAPI {
     }
 
     @Override
-    public MResult getPraiseCount(Player p) {
+    public int getPraiseCount(Player p) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -136,7 +148,7 @@ public class globalEngine implements UltraVisionAPI {
     }
 
     @Override
-    public List<String> getNotes(Player p) {
+    public Map<Player, String> getNotes(Player p) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -171,32 +183,27 @@ public class globalEngine implements UltraVisionAPI {
     }
 
     @Override
-    public MResult log(String target, String message) {
+    public MResult log(Player p, String message) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public MResult addLogger(String target) {
+    public MResult clearLog(Player p) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public MResult clearLogger(String target) {
+    public List<String> getLog(Player p, Time timefrom, Time timeto) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public List<String> getLog(String target, Time timediff) {
+    public List<String> getLog(Player p, String pluginfilter) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public List<String> getLog(String target, String pluginfilter) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public List<String> getLog(String target, String pluginfilter, Time timediff) {
+    public List<String> getLog(Player p, String pluginfilter, Time timediff) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -211,7 +218,7 @@ public class globalEngine implements UltraVisionAPI {
     }
 
     @Override
-    public List<String> getFriends(Player p) {
+    public List<Player> getFriends(Player p) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -224,5 +231,6 @@ public class globalEngine implements UltraVisionAPI {
     public List<String> getProperties(Player p) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+    
     
 }

@@ -147,4 +147,11 @@ public class MAuthorizer {
         MCrypt.saveHashes(b.getAbsolutePath(), a);
     }
     
+    public static char[] getCharArray (String s, int i) {
+        char[] res = new char[i];
+        for ( int n=0; n < i; n++ )
+            res[n] = ( (s.length() > n) ? s.charAt(n) : 0 );
+        return res;        
+    }
+    
 }

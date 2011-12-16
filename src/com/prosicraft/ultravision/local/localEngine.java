@@ -10,14 +10,17 @@ import com.prosicraft.ultravision.util.MLog;
 import com.prosicraft.ultravision.util.MResult;
 import com.prosicraft.ultravision.base.UVBan;
 import com.prosicraft.ultravision.base.UVKick;
+import com.prosicraft.ultravision.base.UVWarning;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.Time;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.bukkit.command.CommandSender;
@@ -66,7 +69,7 @@ public class localEngine implements UltraVisionAPI {
             return MResult.RES_ALREADY;
         
         try {
-            UVLocalPlayer p = new UVLocalPlayer (pb);
+            //UVLocalPlayer p = new UVLocalPlayer (pb);
         } catch (Exception ex) {
             MLog.e("Failed to convert Player to UVPlayer: " + ex.getMessage());
             ex.printStackTrace();                    
@@ -93,23 +96,94 @@ public class localEngine implements UltraVisionAPI {
             }
         }
         
-        FileOutputStream fos;
+        PrintWriter fos;
         try {
-            fos = new FileOutputStream(db);
+            fos = new PrintWriter(db);
         } catch (FileNotFoundException fnfex) {
             MLog.e("Can't save database: File not found"); return MResult.RES_ERROR;
         }
         
-        // upcomging here: save all fields, that have to be saved :D                
-        try {
-                
+        // upcomging here: save all fields, that have to be saved :D                                                     
+        fos.write(MAuthorizer.getCharArray("chunk1", 6));  // CHUNK 1 = general Information
+        
+        fos.write(MAuthorizer.getCharArray("chunk2", 6));  // CHUNK 2 = Players
+        
+        for ( int i=0; i < players.size(); i++ ) {
             
+            fos.write(MAuthorizer.getCharArray("player", 6)); // PLAYER = a player            
+            fos.write(MAuthorizer.getCharArray(players.get(i).getName(), 16));  // Write player name                        
+            fos.write(players.get(i).praise);   // Write praise
+            fos.write( players.get(i).isMute ? 1 : 0 ); // Write mute state
+            fos.write( (int)players.get(i).onlineTime.getTime() );
+                        
+            //=== Write bans            
+            fos.write(MAuthorizer.getCharArray("theban", 6));
+            if ( players.get(i).ban != null )
+                players.get(i).ban.write(fos);
+            else
+                UVBan.writeNull(fos);
             
-            fos.close();
-        } catch (IOException ex) {
-            MLog.e("Can't save Database: " + ex.getMessage());
-            ex.printStackTrace(); return MResult.RES_ERROR;            
-        }         
+            if ( !players.get(i).banHistory.isEmpty() ) {
+                for ( UVBan b : players.get(i).banHistory ) {
+                    fos.write(MAuthorizer.getCharArray("oneban", 6));
+                    b.write(fos);
+                }
+            } else {
+                fos.write(MAuthorizer.getCharArray("nooban", 6));
+            }
+            
+            //=== Write Warnings
+            fos.write(MAuthorizer.getCharArray("thwarn", 6));
+            if ( players.get(i).warning != null )
+                players.get(i).warning.write(fos);            
+            else
+                UVWarning.writeNull(fos);
+            
+            if ( !players.get(i).warnHistory.isEmpty() ) {
+                for ( UVWarning b : players.get(i).warnHistory ) {
+                    fos.write(MAuthorizer.getCharArray("onwarn", 6));
+                    b.write(fos);
+                }
+            } else {
+                fos.write(MAuthorizer.getCharArray("nowarn", 6));
+            }
+            
+            //=== Write Kick History
+            if ( !players.get(i).kickHistory.isEmpty() ) {
+                for ( UVKick k : players.get(i).kickHistory ) {
+                    fos.write(MAuthorizer.getCharArray("onkick", 6));
+                    k.write(fos);
+                }
+            } else {
+                fos.write(MAuthorizer.getCharArray("nokick", 6));
+            }
+            
+            //=== Write Friends
+            if ( !players.get(i).friends.isEmpty() ) {
+                for ( Player friend : players.get(i).friends ) {
+                    fos.write(MAuthorizer.getCharArray("friend", 6));
+                    fos.write(MAuthorizer.getCharArray(friend.getName(), 16));
+                }
+            } else {
+                fos.write(MAuthorizer.getCharArray("nofri", 6));
+            }
+            
+            //=== Write notes
+            if ( !players.get(i).notes.isEmpty() ) {
+                for ( Player devil : players.get(i).notes.keySet() ) {
+                    fos.write(MAuthorizer.getCharArray("onnote", 6));
+                    fos.write(MAuthorizer.getCharArray(devil.getName(), 16));
+                    fos.write(MAuthorizer.getCharArray(players.get(i).notes.get(devil), 60));
+                }
+            } else {
+                fos.write(MAuthorizer.getCharArray("nonote", 6));
+            }
+            
+        }                
+        
+        fos.write(MAuthorizer.getCharArray("theend", 6));  // CHUNK 3 = END OF FILE
+        
+        fos.close();                
         
         return MResult.RES_SUCCESS;
         
@@ -291,159 +365,342 @@ public class localEngine implements UltraVisionAPI {
     public MResult doKick(CommandSender cs, Player p, String reason) {
         UVLocalPlayer uP;
         if ( !isAuthInit() || !authorizer.isRegistered(p) || (uP = getUVPlayer (p)) == null )
-            return MResult.RES_NOTINIT; 
+            return MResult.RES_NOTINIT;  // or RES_ALREADY
         
         /*if ( reason == null || reason.equalsIgnoreCase("") )
             return MResult.RES_NOTGIVEN;*/
         
-        uP.kickPlayer(MLog.real(reason));
-        uP.kickHistory.add(new UVKick (reason, (Player)cs)  );
+        uP.kickPlayer(MLog.real(reason));        
+        uP.kickHistory.add( new UVKick (reason, (Player)cs, new Time ((new Date()).getTime()) ) );
         
         return MResult.RES_SUCCESS;
     }
 
     @Override
-    public List<String> getKickHistory(Player p) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public List<UVKick> getKickHistory(Player p) {
+        UVLocalPlayer uP;
+        if ( !isAuthInit() || !authorizer.isRegistered(p) || (uP = getUVPlayer (p)) == null )
+            return null;
+        
+        return ( (uP.kickHistory != null) ? uP.kickHistory : new ArrayList<UVKick>() );
+    }
+    
+    @Override
+    public MResult setWarn (CommandSender cs, Player p, String reason) {
+        return setWarn (cs, p, reason, null);
     }
 
     @Override
-    public MResult setWarn(CommandSender cs, Player p, String reason) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public MResult setWarn(CommandSender cs, Player p, String reason, Time tdiff) {
+        UVLocalPlayer uP;
+        if ( !isAuthInit() || !authorizer.isRegistered(p) || (uP = getUVPlayer (p)) == null )
+            return null;
+        
+        if ( uP.warning != null )
+            return MResult.RES_ALREADY;
+        
+        if ( (uP.warning = new UVWarning ( reason, (Player)cs, false, tdiff )) == null )
+            return MResult.RES_ERROR;                
+        
+        return MResult.RES_SUCCESS;        
     }
 
     @Override
     public MResult setTempWarn(CommandSender cs, Player p, String reason, Time timediff) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return setWarn ( cs, p, reason, timediff );
     }
 
     @Override
-    public MResult unsetWarn(CommandSender cs, Player p) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public MResult unsetWarn(CommandSender cs, Player p) {        
+        UVLocalPlayer uP;
+        if ( (uP = valid (p)) == null )
+            return MResult.RES_NOTGIVEN;
+        
+        if ( valid (cs) == null )
+            return MResult.RES_NOACCESS;
+        
+        if ( uP.warning == null )
+            return MResult.RES_ALREADY;
+        
+        uP.warning = null;
+        
+        return MResult.RES_SUCCESS;        
     }
+    
 
     @Override
     public boolean isWarned(Player p) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        UVLocalPlayer uP;
+        if ( (uP = valid (p)) == null )
+            return false;
+        
+        return (uP.warning != null);
     }
 
     @Override
     public String getWarnReason(Player p) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
+        if ( !isWarned (p) )
+            return "";                        
+        
+        UVLocalPlayer uP = valid (p);
+        
+        return uP.warning.getReason();
+    }        
 
     @Override
-    public List<String> getWarnHistory(Player p) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public UVWarning getWarning(Player p) {
+        UVLocalPlayer uP;
+        if ( (uP = valid (p)) == null )
+            return null;                
+        
+        return uP.warning;        
+    }
+
+
+    @Override
+    public List<UVWarning> getWarnHistory(Player p) {
+        UVLocalPlayer uP;
+        if ( (uP = valid (p)) == null )
+            return null;
+        
+        return ( (uP.warnHistory != null) ? uP.warnHistory : new ArrayList<UVWarning> () );
     }
 
     @Override
     public MResult praise(CommandSender cs, Player p) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        UVLocalPlayer uP;
+        if ( (uP = valid (p)) == null )
+            return MResult.RES_NOTGIVEN;
+        
+        if ( valid (cs) == null )
+            return MResult.RES_NOACCESS;
+        
+        if ( uP.praise == 100 )
+            return MResult.RES_ALREADY;
+        
+        uP.praise++;
+        return MResult.RES_SUCCESS;        
     }
 
     @Override
-    public MResult getPraiseCount(Player p) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public int getPraiseCount(Player p) {
+        UVLocalPlayer uP;
+        if ( (uP = valid (p)) == null )
+            return -1;
+        
+        return uP.praise;
     }
 
     @Override
     public MResult addNote(CommandSender cs, Player p, String note) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        UVLocalPlayer uP; UVLocalPlayer sender;
+        if ( (uP = valid (p)) == null )
+            return MResult.RES_NOTGIVEN;
+        
+        if ( (sender = valid (cs)) == null )
+            return MResult.RES_NOACCESS;
+        
+        uP.notes.put(sender, note);
+        
+        return MResult.RES_SUCCESS;
     }
 
     @Override
     public MResult delNote(CommandSender cs, Player p, int id) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        UVLocalPlayer uP; UVLocalPlayer sender;
+        if ( (uP = valid (p)) == null )
+            return MResult.RES_NOTGIVEN;
+        
+        if ( (sender = valid (cs)) == null )
+            return MResult.RES_NOACCESS;
+        
+        if ( uP.notes.size() <= id )
+            return MResult.RES_NOTINIT;
+        
+        uP.notes.remove(id);
+        
+        return MResult.RES_SUCCESS;
     }
 
     @Override
-    public List<String> getNotes(Player p) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public Map<Player, String> getNotes(Player p) {
+        UVLocalPlayer uP; UVLocalPlayer sender;
+        if ( (uP = valid (p)) == null )
+            return null;
+        
+        if ( uP.notes == null || uP.notes.isEmpty() )
+            return new HashMap<Player, String>();
+        
+        return uP.notes;                
     }
 
     @Override
     public MResult setMute(CommandSender cs, Player p) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        UVLocalPlayer uP; UVLocalPlayer sender;
+        if ( (uP = valid (p)) == null )
+            return MResult.RES_NOTGIVEN;
+        
+        if ( (sender = valid (cs)) == null )
+            return MResult.RES_NOACCESS;
+        
+        if ( uP.isMute )
+            return MResult.RES_ALREADY;
+        
+        uP.isMute = true;
+        
+        return MResult.RES_SUCCESS;
     }
 
     @Override
     public boolean isMute(Player p) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        UVLocalPlayer uP;
+        if ( (uP = valid (p)) == null )
+            return false;
+        
+        return uP.isMute;
     }
 
     @Override
     public MResult setTime(Time time, Player p) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        UVLocalPlayer uP;
+        if ( (uP = valid (p)) == null )
+            return MResult.RES_NOTGIVEN;
+        
+        uP.onlineTime = time;
+        
+        return MResult.RES_SUCCESS;
     }
 
     @Override
     public MResult addTime(Time time, Player p) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        UVLocalPlayer uP;
+        if ( (uP = valid (p)) == null )
+            return MResult.RES_NOTGIVEN;
+        
+        if ( uP.onlineTime == null )
+            return MResult.RES_NOTINIT;
+        
+        uP.onlineTime.setTime( uP.onlineTime.getTime() + time.getTime() );
+        
+        return MResult.RES_SUCCESS;
     }
 
     @Override
     public MResult subTime(Time time, Player p) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        UVLocalPlayer uP;
+        if ( (uP = valid (p)) == null )
+            return MResult.RES_NOTGIVEN;
+        
+        if ( uP.onlineTime == null )
+            return MResult.RES_NOTINIT;
+        
+        uP.onlineTime.setTime( uP.onlineTime.getTime() - time.getTime() );
+        
+        return MResult.RES_SUCCESS;
     }
 
     @Override
     public Time getOnlineTime(Player p) {
+        UVLocalPlayer uP;
+        if ( (uP = valid (p)) == null )
+            return null;
+        
+        return uP.onlineTime;
+    }
+
+    @Override
+    public MResult log(Player p, String message) {
+        UVLocalPlayer uP;
+        if ( (uP = valid (p)) == null )
+            return MResult.RES_NOTGIVEN;      
+        
+        uP.log(message);
+        
+        return MResult.RES_SUCCESS;
+    }   
+
+    @Override
+    public MResult clearLog(Player p) {
+        return MResult.RES_SUCCESS;
+    }
+
+    @Override
+    public List<String> getLog(Player p, Time timefrom, Time timeto) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public MResult log(String target, String message) {
+    public List<String> getLog(Player p, String pluginfilter) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public MResult addLogger(String target) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public MResult clearLogger(String target) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public List<String> getLog(String target, Time timediff) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public List<String> getLog(String target, String pluginfilter) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public List<String> getLog(String target, String pluginfilter, Time timediff) {
+    public List<String> getLog(Player p, String pluginfilter, Time timediff) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public MResult addFriend(Player p, Player p2) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        UVLocalPlayer uP; UVLocalPlayer uT;
+        if ( (uP = valid (p)) == null )
+            return MResult.RES_NOTGIVEN;
+        
+        if ( (uT = valid (p2)) == null )
+            return MResult.RES_NOTGIVEN;
+        
+        if ( uP.friends.contains(uT) )
+            return MResult.RES_ALREADY;
+        
+        uP.friends.add(uT);
+        
+        return MResult.RES_SUCCESS;
     }
 
     @Override
     public MResult delFriend(Player p, Player p2) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        UVLocalPlayer uP; UVLocalPlayer uT;
+        if ( (uP = valid (p)) == null )
+            return MResult.RES_NOTGIVEN;
+        
+        if ( (uT = valid (p2)) == null )
+            return MResult.RES_NOTGIVEN;
+        
+        if ( !uP.friends.contains(uT) )
+            return MResult.RES_ALREADY;
+        
+        uP.friends.remove(uT);
+        
+        return MResult.RES_SUCCESS;
     }
 
     @Override
-    public List<String> getFriends(Player p) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public List<Player> getFriends(Player p) {
+        UVLocalPlayer uP;
+        if ( (uP = valid (p)) == null )
+            return null;
+        
+        return ( (uP.friends == null) ? new ArrayList<Player>() : uP.friends );
     }
 
     @Override
-    public MResult setProperty(Player p, String prop) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public MResult setProperty(Player p, String prop) {        
+        return MResult.RES_SUCCESS;     // Shouldn't we better use notes for this?
     }
 
     @Override
     public List<String> getProperties(Player p) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return new ArrayList<String>(); // Shouldn't we better use notes for this?
+    }
+    
+    public UVLocalPlayer valid ( Player p ) {
+        UVLocalPlayer uP;
+        if ( !isAuthInit() || !authorizer.isRegistered(p) || (uP = getUVPlayer (p)) == null )
+            return null;
+        
+        return uP;
+    }
+    
+    public UVLocalPlayer valid ( CommandSender cs ) {
+        return valid ( (Player) cs );
     }
 }

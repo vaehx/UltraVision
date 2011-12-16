@@ -54,24 +54,26 @@ public interface UltraVisionAPI {
     
     // ====== KICK ======    
     public MResult doKick ( CommandSender cs, Player p, String reason );
-    public List<String> getKickHistory ( Player p );
+    public List<UVKick> getKickHistory ( Player p );
     
     // ====== WARN ======
     public MResult setWarn ( CommandSender cs, Player p, String reason );
+    public MResult setWarn ( CommandSender cs, Player p, String reason, Time tdiff );
     public MResult setTempWarn ( CommandSender cs, Player p, String reason, Time timediff );
     public MResult unsetWarn ( CommandSender cs, Player p );
     public boolean isWarned ( Player p );    
     public String getWarnReason ( Player p );
-    public List<String> getWarnHistory ( Player p );
+    public UVWarning getWarning ( Player p );
+    public List<UVWarning> getWarnHistory ( Player p );
     
     // ======= PRAISE ======
     public MResult praise ( CommandSender cs, Player p );  // one command sender can praise only once
-    public MResult getPraiseCount ( Player p );
+    public int getPraiseCount ( Player p );
     
     // ====== MISC ======
     public MResult addNote ( CommandSender cs, Player p, String note );    
     public MResult delNote ( CommandSender cs, Player p, int id );
-    public List<String> getNotes ( Player p );            
+    public Map<Player, String> getNotes ( Player p );            
     public MResult setMute ( CommandSender cs, Player p );
     public boolean isMute ( Player p );        
     
@@ -90,13 +92,12 @@ public interface UltraVisionAPI {
     // =                    COMMAND LOGGER                          =
     // ==============================================================
     
-    public MResult log ( String target, String message );           
-    
-    public MResult addLogger ( String target );          
-    public MResult clearLogger ( String target );
-    public List<String> getLog ( String target, Time timediff );
-    public List<String> getLog ( String target, String pluginfilter );
-    public List<String> getLog ( String target, String pluginfilter, Time timediff );     
+    public MResult log ( Player p, String message );           
+        
+    public MResult clearLog ( Player p );
+    public List<String> getLog ( Player p, Time timefrom, Time timeto);
+    public List<String> getLog ( Player p, String pluginfilter );
+    public List<String> getLog ( Player p, String pluginfilter, Time timediff );     
     
     // ==============================================================
     // =                  USER PROFILES                             =
@@ -104,7 +105,7 @@ public interface UltraVisionAPI {
     
     public MResult addFriend ( Player p, Player p2 );
     public MResult delFriend ( Player p, Player p2 );
-    public List<String> getFriends ( Player p );    
+    public List<Player> getFriends ( Player p );    
     public MResult setProperty ( Player p, String prop );
     public List<String> getProperties ( Player p );        
     

@@ -4,6 +4,8 @@
  */
 package com.prosicraft.ultravision.base;
 
+import com.prosicraft.ultravision.util.MAuthorizer;
+import java.io.PrintWriter;
 import java.sql.Time;
 import org.bukkit.entity.Player;
 
@@ -46,5 +48,25 @@ public class UVWarning {
     
     public String getFormattedInfo () {
         return ((global) ? "globally " : "") + "warned by " + warner.getName() + ((mWarnTime != null) ? " for " + mWarnTime.toString() : "") + ". Reason: " + reason;                  
+    }
+    
+    public void write ( PrintWriter out ) {
+        
+        out.write(MAuthorizer.getCharArray(warner.getName(), 16));
+        out.write(MAuthorizer.getCharArray(reason, 60));        
+        out.write( (int) warnTime.getTime() );
+        out.write( (int) mWarnTime.getTime() );
+        out.write(MAuthorizer.getCharArray(ServerName, 16));
+        out.write( global ? 1 : 0 );
+        
+        out.flush();
+        
+    }
+    
+    public static void writeNull ( PrintWriter out ) {
+        
+        out.write(MAuthorizer.getCharArray("", 16));        
+        out.flush();
+        
     }
 }

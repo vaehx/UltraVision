@@ -4,6 +4,8 @@
  */
 package com.prosicraft.ultravision.base;
 
+import com.prosicraft.ultravision.util.MAuthorizer;
+import java.io.PrintWriter;
 import java.sql.Time;
 import org.bukkit.entity.Player;
 
@@ -58,6 +60,26 @@ public class UVBan {
     
     public String getFormattedInfo () {
         return ((global) ? "globally " : "") + "banned by " + banner.getName() + ((mTimeDif != null) ? " for " + mTimeDif.toString() : "" ) + ". Reason: " + reason;
+    }
+    
+    public void write ( PrintWriter out ) {
+        
+        out.write(MAuthorizer.getCharArray(banner.getName(), 16));
+        out.write(MAuthorizer.getCharArray(reason, 60));                
+        out.write( global ? 1 : 0 );
+        out.write( (int)timedif.getTime() );
+        out.write( (int)mTimeDif.getTime() );
+        out.write(MAuthorizer.getCharArray(ServerName, 16));
+        
+        out.flush();
+        
+    }
+    
+    public static void writeNull ( PrintWriter out ) {
+        
+        out.write(MAuthorizer.getCharArray("", 16));        
+        out.flush();
+        
     }
     
 }
