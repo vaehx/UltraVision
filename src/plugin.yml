@@ -53,3 +53,90 @@ commands:
         usage: /<command>
         aliases: [ureg, unregister]
         permission: ultravision.admin.unregister
+    uvkick:
+        description: Kicks a player with a given reason.
+        usage: /<command> <playername> [reason]
+        aliases: [kick]
+    uvban:
+        description: Permanent bans a player (local) with reason
+        usage: /<command> <playername> [reason]
+        aliases: [ban]
+    uvtempban:
+        description: Temporarily bans a player (local) with reason
+        usage: /<command> <playername> <time> [reason]
+        aliases: [tban, tempban]
+    uvglobaltempban:
+        description: Temporarily bans a player (global) with reason
+        usage: /<command> <playername> <time> [reason]
+        aliases: [gtban, globaltempban]
+    uvglobalban: 
+        description: Permanent bans a player (global) with reason.
+        usage: /<command> <playername> <reason>
+        aliases: [gban, globalban]
+    uvunban:
+        description: Unbans a banned player (local)
+        usage: /<command> <playername> [reason]
+        aliases: [uban, unban, pardon, free]    
+    uvunbanrequest:
+        description: Sends request for global unban.
+        usage: /<command> <playername> <reason>
+        aliases: [unbanrequest, gunban]
+    uvnote:
+        description: Applies a note to a player.
+        usage: /<command> <playername> <thenote>
+        aliases: [note]
+    uvglobalnote:
+        description: Applies a global note to a player.
+        usage: /<command> <playername> <thenote>
+    uvdelnote:
+        description: Removes a note from a player.
+        usage: /<command> <playername> <id>
+        aliases: [delnote, rmnote]
+    uvdelglobalnote:
+        description: Removes a global note from a player. 
+        usage: /<command> <playername> <id>
+        aliases: [delglobalnote, rmgnote]    
+    uvwarn:
+        description: Warns a player permanently. (local)
+        usage: /<command> <playername> <reason>
+        aliases: [warn]
+    uvunwarn:
+        description: Unwarns a player. (local)
+        usage: /<command> <playername>
+        aliases: [unwarn]    
+    uvglobalwarn:
+        description: Globally warns a player permanent.
+        usage: /<command> <playername> <reason>
+        aliases: [globalwarn, gwarn]
+    uvglobalunwarn:
+        description: Unwarns a player globally.
+        usage: /<command> <playername> <reason>
+        aliases: [gunwarn]
+    uvpraise:
+        description: Praise a player.
+        usage: /<command> <playername>
+        aliases: [praise]
+    uvunpraise:
+        description: Take back your praise of a player.
+        usage: /<command> <playername>
+        aliases: [unpraise]
+    uvmute:
+        description: Mutes a player from chat. (local)
+        usage: /<command> <playername> [reason]
+        aliases: [mute]
+    uvunmute:
+        description: Unmutes a player from chat. (local)
+        usage: /<command> <playername>
+        aliases: [mute]
+    uvaddfriend:
+        description: Adds a friend.
+        usage: /<command> <friendname>
+        aliases: [addfriend]
+    uvdelfriend:
+        description: Removes a friend.
+        usage: /<command> <friendname>
+        aliases: [rmfriend, unfriend, delfriend]
+    uvstat:      
+        description: Shows statistics.
+        usage: /<command> [ban|kick|note|warning|mute|praise|time|friend|all] [playername|all]
+        aliases: [stat]            

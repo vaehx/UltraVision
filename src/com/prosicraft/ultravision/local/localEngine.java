@@ -111,11 +111,21 @@ public class localEngine implements UltraVisionAPI {
         for ( int i=0; i < players.size(); i++ ) {
             
             fos.write(MAuthorizer.getCharArray("player", 6)); // PLAYER = a player            
-            fos.write(MAuthorizer.getCharArray(players.get(i).getName(), 16));  // Write player name                        
-            fos.write(players.get(i).praise);   // Write praise
+            fos.write(MAuthorizer.getCharArray(players.get(i).getName(), 16));  // Write player name                                    
             fos.write( players.get(i).isMute ? 1 : 0 ); // Write mute state
             fos.write( (int)players.get(i).onlineTime.getTime() );
+            fos.write(players.get(i).praise);   // Write praise
                         
+            //=== Write praisers
+            if ( !players.get(i).praiser.isEmpty() ) {
+                for ( String praiser : players.get(i).praiser ) {
+                    fos.write(MAuthorizer.getCharArray("oprais", 6));
+                    fos.write(MAuthorizer.getCharArray(praiser, 16));
+                }
+            } else {
+                fos.write(MAuthorizer.getCharArray("nprais", 6));
+            }
+            
             //=== Write bans            
             fos.write(MAuthorizer.getCharArray("theban", 6));
             if ( players.get(i).ban != null )

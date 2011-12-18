@@ -38,6 +38,7 @@ public class UVLocalPlayer extends CraftPlayer {
     public List<Player>        friends = new ArrayList<Player>();    
     public Map<Player, String> notes   = new HashMap<Player, String>();
     public int             praise      = 0;
+    public List<String>    praiser     = new ArrayList<String>();
     public boolean         isMute      = false;
     public Time            onlineTime  = null;
     public File            logFile     = null;

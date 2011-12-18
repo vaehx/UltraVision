@@ -45,7 +45,7 @@ public class MAuthorizer {
         if ( loaded ) MLog.w("(MAuth) Loading again from Hashmap file... means: Reload without saving!");
         if ( (a = MCrypt.loadHashes(b.getAbsolutePath())) == null )
             a = new HashMap<String,String>();
-        MLog.d("(MAuth) Releasing MAuthorizer.a");
+        //MLog.d("(MAuth) Releasing MAuthorizer.a");
         loaded = true;
     }
     

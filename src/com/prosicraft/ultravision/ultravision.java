@@ -9,8 +9,11 @@
  */
 package com.prosicraft.ultravision;
 
+import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.chat.UVChatListener;
 import com.prosicraft.ultravision.chat.UVServer;
+import com.prosicraft.ultravision.global.globalEngine;
+import com.prosicraft.ultravision.local.localEngine;
 import com.prosicraft.ultravision.util.MAuthorizer;
 import com.prosicraft.ultravision.util.MConfiguration;
 import com.prosicraft.ultravision.util.MCrypt;
@@ -50,6 +53,8 @@ public class ultravision extends JavaPlugin {
     private UVServer uvserver = null;
     private UVChatListener uvchatlistener = null;
     
+    private UltraVisionAPI api = null;
+    private boolean global = false;
     
         
     // ======================== AUTHENTICATION SECTION
@@ -124,6 +129,24 @@ public class ultravision extends JavaPlugin {
         pm.registerEvent(Type.PLAYER_QUIT, playerListener, Priority.High, this);
         pm.registerEvent(Type.PLAYER_CHAT, playerListener, Priority.High, this);
         pm.registerEvent(Type.PLAYER_COMMAND_PREPROCESS, playerListener, Priority.High, this);    
+        
+        
+        MLog.d("Starting engine...");
+        
+        config.set( "useGlobalAPI", (global = config.getBoolean("useGlobalAPI", false)));
+        
+        if ( !global ) {
+            
+            MLog.i("Using Local Engine.");
+            api = new localEngine ();                                    
+            
+        } else  {
+            
+            MLog.i("Using global Engine.");
+            MLog.w("Global Engine isn't supported yet.");
+            api = new globalEngine ();
+            
+        }                                    
         
         MLog.d("Starting server...");
         

@@ -13,12 +13,12 @@ import org.bukkit.entity.Player;
  *
  * @author prosicraft
  */
-public class UVBan {
+public class UVBan {       
     private String reason = "Not provided.";
-    private Player banner = null;
-    private boolean global = false;
+    private Player banner = null; // if player == banner --> unban
+    private boolean global = false;    
     private Time timedif = null;
-    private Time mTimeDif = null;
+    private Time mTimeDif = null;    
     private String ServerName = "Not provided";
     
     public UVBan (String reason, Player banner, boolean global, Time timedif) {
@@ -28,7 +28,7 @@ public class UVBan {
         this.timedif = timedif;
         this.mTimeDif = timedif;
         this.ServerName = ((banner != null) ? banner.getServer().getName() : ServerName);
-    }
+    }       
     
     public boolean isTempBan () {
         return timedif != null;
@@ -66,7 +66,7 @@ public class UVBan {
         
         out.write(MAuthorizer.getCharArray(banner.getName(), 16));
         out.write(MAuthorizer.getCharArray(reason, 60));                
-        out.write( global ? 1 : 0 );
+        out.write( global ? 1 : 0 );        
         out.write( (int)timedif.getTime() );
         out.write( (int)mTimeDif.getTime() );
         out.write(MAuthorizer.getCharArray(ServerName, 16));
