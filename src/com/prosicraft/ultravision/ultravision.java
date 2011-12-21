@@ -44,11 +44,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class ultravision extends JavaPlugin {
 
     private MConfiguration config = null;
-    private List<uvPlayer> players = new ArrayList<uvPlayer>();
-    private List<uvManager> managers = new ArrayList<uvManager>();
+    //private List<uvPlayer> players = new ArrayList<uvPlayer>();
+    //private List<uvManager> managers = new ArrayList<uvManager>();
     private PluginDescriptionFile fPDesc = null;
     private uvPlayerListener playerListener = null;
-    private List<String> possibleTargetFlags = Arrays.asList("chat", "move");
+    //private List<String> possibleTargetFlags = Arrays.asList("chat", "move");
             
     private UVServer uvserver = null;
     private UVChatListener uvchatlistener = null;
@@ -58,33 +58,7 @@ public class ultravision extends JavaPlugin {
     
         
     // ======================== AUTHENTICATION SECTION
-    private MAuthorizer auth = null;    
-    
-    @Override
-    public void onDisable() {
-        MLog.i("Ultravision is being shutdown. (Updating Config...)");
-
-        auth.save();
-        
-        config.set("general.savestats", config.getBoolean("general.savestats", true));
-
-        updateConfig();
-
-        config.save();
-
-        players = null;
-        managers = null;
-        playerListener = null;
-        fPDesc = null;
-        config = null;
-        
-        if ( uvserver != null && uvserver.isAlive() ) {            
-            uvserver.shutdown();
-            uvserver = null;
-            MLog.i("Server stopped successfullly.");
-        } else
-            MLog.i("Server already shut down or not initialized.");
-    }
+    private MAuthorizer auth = null;           
 
     @Override
     public void onEnable() {
@@ -111,9 +85,9 @@ public class ultravision extends JavaPlugin {
         // if wanted load saved stats now       
         try {
             initConfig();
-            if (config.getBoolean("general.savestats", true)) {
-                this.initSaves();
-            }
+            //if (config.getBoolean("general.savestats", true)) {
+                //this.initSaves();
+            //}
         } catch (Exception ex) {
             MLog.e("FATAL: " + ex.toString());
             ex.printStackTrace();
@@ -126,9 +100,9 @@ public class ultravision extends JavaPlugin {
         PluginManager pm = this.getServer().getPluginManager();
 
         pm.registerEvent(Type.PLAYER_JOIN, playerListener, Priority.Lowest, this);                
-        pm.registerEvent(Type.PLAYER_QUIT, playerListener, Priority.High, this);
+        pm.registerEvent(Type.PLAYER_QUIT, playerListener, Priority.Lowest, this);
         pm.registerEvent(Type.PLAYER_CHAT, playerListener, Priority.High, this);
-        pm.registerEvent(Type.PLAYER_COMMAND_PREPROCESS, playerListener, Priority.High, this);    
+        pm.registerEvent(Type.PLAYER_COMMAND_PREPROCESS, playerListener, Priority.Low, this);    
         
         
         MLog.d("Starting engine...");
@@ -137,14 +111,26 @@ public class ultravision extends JavaPlugin {
         
         if ( !global ) {
             
-            MLog.i("Using Local Engine.");
-            api = new localEngine ();                                    
+            api = new localEngine ( this.getDataFolder().getAbsolutePath() );            
+            MLog.i("Using Local Engine. Version: " + api.version);                                                
+            
+            MResult tr = MResult.RES_UNKNOWN;
+            if ( (tr = api.registerAuthorizer(auth)) == MResult.RES_SUCCESS )
+                MLog.i("Authorizer hooked into Engine.");
+            else 
+                MLog.e("Authorizer can't hook into Engine: " + tr.toString());
             
         } else  {
             
-            MLog.i("Using global Engine.");
-            MLog.w("Global Engine isn't supported yet.");
             api = new globalEngine ();
+            MLog.i("Using global Engine. Version: " + api.version);
+            MLog.w("Global Engine isn't supported yet.");
+            
+            MResult tr = MResult.RES_UNKNOWN;
+            if ( (tr = api.registerAuthorizer(auth)) == MResult.RES_SUCCESS )
+                MLog.i("Authorizer hooked into Engine.");
+            else 
+                MLog.e("Authorizer can't hook into Engine: " + tr.toString());
             
         }                                    
         
@@ -173,6 +159,38 @@ public class ultravision extends JavaPlugin {
         MLog.i("Started server.");
         
     }
+    
+    @Override
+    public void onDisable() {
+        MLog.i("Ultravision is being shutdown. (Updating Config...)");
+
+        auth.save();                
+        
+        config.set("general.savestats", config.getBoolean("general.savestats", true));
+
+        updateConfig();
+        
+        if ( api != null ) {
+            MResult r;
+            if ( (r = api.flush()) == MResult.RES_SUCCESS )
+                MLog.i("Shut down engine (" + ((global) ? "global" : "local") + ")");
+            else 
+                MLog.e("Can't shut down engine ("+ ((global) ? "global" : "local") + "): " + r.toString());
+        }
+
+        config.save();
+               
+        playerListener = null;
+        fPDesc = null;
+        config = null;
+        
+        if ( uvserver != null && uvserver.isAlive() ) {            
+            uvserver.shutdown();
+            uvserver = null;
+            MLog.i("Server stopped successfullly.");
+        } else
+            MLog.i("Server already shut down or not initialized.");
+    }
 
     private void initConfig() {
 
@@ -197,21 +215,23 @@ public class ultravision extends JavaPlugin {
         
         config.load();
 
-        Set<String> pMap = config.getKeys("users");
-        if (pMap != null) {
-            for ( String s1: pMap ) {
-                //log("Found key: " + pMap.get(i));
-                registerPlayer(s1);
-            }
-        }
+        return;
+        
+//        Set<String> pMap = config.getKeys("users");
+//        if (pMap != null) {
+//            for ( String s1: pMap ) {
+//                //log("Found key: " + pMap.get(i));
+//                registerPlayer(s1);
+//            }
+//        }
     }
 
     private void updateConfig() {
-        if (config.getBoolean("general.savestats", true)) {
-            for (int i = 0; i < players.size(); i++) {
-                if (players.get(i).isOnline) playerLeave(players.get(i).getBase());
-            }
-        }
+//        if (config.getBoolean("general.savestats", true)) {
+//            for (int i = 0; i < players.size(); i++) {
+//                if (players.get(i).isOnline) playerLeave(players.get(i).getBase());
+//            }
+//        }
     }
 
     public boolean clearConfig() {
@@ -219,9 +239,7 @@ public class ultravision extends JavaPlugin {
         try {
             config.clear();
             config = null;
-            players.clear();
-            managers.clear();
-
+            
             File cfg = new File(this.getDataFolder(), "config.yml");
 
             if (cfg.exists() && cfg.isFile()) {
@@ -242,10 +260,10 @@ public class ultravision extends JavaPlugin {
             config.set("general.savestats", true);
 
             // Reload already joined players
-            Player[] p = getServer().getOnlinePlayers();
-            for (int i = 0; i < p.length; i++) {
-                playerJoin(p[i]);
-            }
+//            Player[] p = getServer().getOnlinePlayers();
+//            for (int i = 0; i < p.length; i++) {
+//                playerJoin(p[i]);
+//            }
             
             config.save();
 
@@ -258,134 +276,93 @@ public class ultravision extends JavaPlugin {
 
     // When a player joins the game...
     public void playerJoin(Player p) {
-        if (config.getBoolean("general.savestats", true)) {                        
-            
-            uvPlayer uP = getUvPlayer(p.getName());                        
-            
-            if (uP == null) {
-                uP = new uvPlayer(p);
-                players.add(uP);
-            }
-            else uP.setBase(p);
-            
-            uP.join();
+        
+        if ( p == null )
+            return;
             
             if ( !auth.isRegistered(p) )
-                uP.sendMessage (ChatColor.YELLOW + "Warning: You're not registered in the login system yet!");
-                        
-            // Load Properties, if User is a Manager
-            if (config.getBoolean(uP.getPath() + "isManager", false)) {
-                
-                uvManager uM = new uvManager(p, config.getStringList(uP.getPath() + "targets", null));
-                uM.setPlayerInstance(uP);                
-                managers.add(uM);                 
-                
-            }
-
-            // Load Supervising Flags if User is a Target of a manager
-            if (config.getBoolean(uP.getPath() + "isTarget", false)) {                                                
-                
-                uP.setAsTarget(true);
-                
-                // Get all Manager keys and load flags per Manager
-                Set<String> lKeys = config.getKeys(uP.getPath() + "flags");                
-                
-                //log ("Load " + lKeys.size() + " Manager Keys for Player " + uP.getName());
-                
-                for ( String s1 : lKeys ) {                                        
-
-                    uP.appendManager(s1, getuvManager(getUvPlayer(s1)));
-                    
-                    List<String> lFlags = config.getStringList(uP.getPath() + "flags." + s1, null);                                        
-                    
-                    if (lFlags != null) {                        
-                        for (int n = 0; n < lFlags.size(); n++)
-                            if (this.possibleTargetFlags.contains(lFlags.get(n)))
-                                uP.setFlag(this.possibleTargetFlags.indexOf(lFlags.get(n)), s1);                                                    
-                    }
-                }
-                
-            }                                    
+                p.sendMessage (ChatColor.YELLOW + "Warning: You're not registered in the login system yet!");                                    
             
-            config.set(uP.getPath() + "jointime", uP.getJoinTime());
+            if ( api.isBanned(p) )
+                p.kickPlayer( api.getBan(p, getServer().getServerName()).getFormattedInfo() );
+            
+//            // Load Supervising Flags if User is a Target of a manager
+//            if (config.getBoolean(uP.getPath() + "isTarget", false)) {                                                                                
+//                
+//                // Get all Manager keys and load flags per Manager
+//                Set<String> lKeys = config.getKeys(uP.getPath() + "flags");                
+//                
+//                //log ("Load " + lKeys.size() + " Manager Keys for Player " + uP.getName());
+//                
+//                for ( String s1 : lKeys ) {                                        
+//
+//                    uP.appendManager(s1, getuvManager(getUvPlayer(s1)));
+//                    
+//                    List<String> lFlags = config.getStringList(uP.getPath() + "flags." + s1, null);                                        
+//                    
+//                    if (lFlags != null) {                        
+//                        for (int n = 0; n < lFlags.size(); n++)
+//                            if (this.possibleTargetFlags.contains(lFlags.get(n)))
+//                                uP.setFlag(this.possibleTargetFlags.indexOf(lFlags.get(n)), s1);                                                    
+//                    }
+//                }
+//                
+//            }                                    
+            
+            //config.set(uP.getPath() + "jointime", uP.getJoinTime());
 
             config.save();
             
-            MLog.d("Player joined successfully: " + uP.getName() + ", " + uP.getBase().toString());
+            MLog.d("Player joined successfully: " + p.getName() );
             
-            uvserver.sendMessage(p.getName() + " joined the channel via Minecraft.");
+            uvserver.sendMessage(p.getName() + " joined the server via Minecraft.");
 
             checkPlayers();
-        }
+            
     }
 
     // Register a user without being logged in
     public uvPlayer registerPlayer(String name) {
-        if (config.getBoolean("general.savestats", true)) {
-
-            uvPlayer uP = new uvPlayer(null);
-            uP.name = name;
-            players.add(uP);
-            return uP;
-
-        } else {
-            return null;
-        }
+        return null;
+        //        if (config.getBoolean("general.savestats", true)) {
+//
+//            uvPlayer uP = new uvPlayer(null);
+//            uP.name = name;
+//            players.add(uP);
+//            return uP;
+//
+//        } else {
+//            return null;
+//        }
     }        
 
     // When a player says goodbye...
     public boolean playerLeave(Player p) {
-        if (config.getBoolean("general.savestats", true)) {
-            
-            uvPlayer uP = getUvPlayer(p);            
-            
-            if (uP == null || !uP.base.equals(p)) {
-                MLog.e("Failure: " + p.getName() + " logged out without being logged in.");
-                return false;
-            }
-            
-            uP.leave();
+        if (p != null) {                                                                               
             
             if ( auth.loggedIn(p) )
-                auth.logout(p); 
+                auth.logout(p);                         
             
-            uvserver.sendMessage(p.getName() + " left the channel via Minecraft.");
+            uvserver.sendMessage(p.getName() + " left the channel via Minecraft.");                        
 
-            // Save general user data
-            config.set(uP.getPath() + "name", uP.getName());
-            config.set(uP.getPath() + "leavetime", uP.getLeaveTime());
-            long onlineTime = config.getLong(uP.getPath() + "onlineTime", 0) + uP.getOnlineTime();
-            config.set(uP.getPath() + "onlineTime", onlineTime);
+//            // Save target flags
+//            if (p.isTarget() && uP.numManagers() > 0) {                                                               
+//                for (int m=0; m < uP.numManagers(); m++) {
+//                    List<String> lFlags = new ArrayList<String>();
+//                    uvManager uM = uP.getManager(m);                    
+//                    if (uP.numTrueFlags(uM.getName()) > 0) {                        
+//                        for (int f=0;f<this.possibleTargetFlags.size(); f++) {
+//                            if (uP.getFlag(f, uM.getName())) {
+//                                lFlags.add(this.possibleTargetFlags.get(f));                                
+//                            }
+//                        }
+//                    }                                        
+//                    config.set(uP.getPath() + "flags." + uM.getName(), lFlags);                                        
+//                }                                                    
+//            }
 
-            config.set(uP.getPath() + "isTarget", uP.isTarget());
-
-            // Save Manager Status
-            if (uP.isManager) {
-                config.set(uP.getPath() + "isManager", true);
-                uvManager uM = this.getuvManager(uP);                 
-                if (uM != null && uM.numVisionTargets() > 0) {
-                    config.set(uP.getPath() + "targets", uM.getVisionTargets());
-                }
-            }
-
-            // Save target flags
-            if (uP.isTarget() && uP.numManagers() > 0) {                                                               
-                for (int m=0; m < uP.numManagers(); m++) {
-                    List<String> lFlags = new ArrayList<String>();
-                    uvManager uM = uP.getManager(m);                    
-                    if (uP.numTrueFlags(uM.getName()) > 0) {                        
-                        for (int f=0;f<this.possibleTargetFlags.size(); f++) {
-                            if (uP.getFlag(f, uM.getName())) {
-                                lFlags.add(this.possibleTargetFlags.get(f));                                
-                            }
-                        }
-                    }                                        
-                    config.set(uP.getPath() + "flags." + uM.getName(), lFlags);                                        
-                }                                                    
-            }
-
-            if (uP.isManager) managers.remove(this.getuvManager(uP));
-            players.remove(uP);            
+//            if (uP.isManager) managers.remove(this.getuvManager(uP));
+//            players.remove(uP);            
         
         }
         return false;
@@ -403,65 +380,65 @@ public class ultravision extends JavaPlugin {
         }*/
     }
 
-    public uvPlayer getUvPlayer(Player p) {
-        try
-        {
-            for (int i = 0; i < players.size(); i++) {
-                if (players.get(i).getName().equalsIgnoreCase(p.getName())) {
-                    return players.get(i);
-                }
-            }
-            return null;
-        }
-        catch (Exception ex) { 
-            MLog.e("Failure: User " + p.getName() + " wasn't found in players");
-            return null;
-        }
-    }
+//    public uvPlayer getUvPlayer(Player p) {
+//        try
+//        {
+//            for (int i = 0; i < players.size(); i++) {
+//                if (players.get(i).getName().equalsIgnoreCase(p.getName())) {
+//                    return players.get(i);
+//                }
+//            }
+//            return null;
+//        }
+//        catch (Exception ex) { 
+//            MLog.e("Failure: User " + p.getName() + " wasn't found in players");
+//            return null;
+//        }
+//    }
 
-    public uvPlayer getUvPlayer(String name) {                
-        for (int i = 0; i < players.size(); i++) {
-            if (players.get(i).getName().equalsIgnoreCase(name)) {
-                return players.get(i);
-            }
-        }
-        return null;
-    }
+//    public uvPlayer getUvPlayer(String name) {                
+//        for (int i = 0; i < players.size(); i++) {
+//            if (players.get(i).getName().equalsIgnoreCase(name)) {
+//                return players.get(i);
+//            }
+//        }
+//        return null;
+//    }
     
-    public uvManager getuvManager (uvPlayer base) {
-        if (managers != null && managers.size() > 0) {
-            for (int i=0;i<managers.size();i++) {
-                if (managers.get(i).getPlayerInstance().equals(base))
-                    return managers.get(i);
-            }
-            return null;
-        }
-        else return null;
-    }
+//    public uvManager getuvManager (uvPlayer base) {
+//        if (managers != null && managers.size() > 0) {
+//            for (int i=0;i<managers.size();i++) {
+//                if (managers.get(i).getPlayerInstance().equals(base))
+//                    return managers.get(i);
+//            }
+//            return null;
+//        }
+//        else return null;
+//    }
 
     // Check if this Flag is set to true
-    public boolean hasFlags(uvPlayer p, String flag) {        
-        if (this.possibleTargetFlags.contains(flag) && p.numManagers() > 0) {
-            int fID = this.possibleTargetFlags.indexOf(flag);   // the Flag ID
-            for (int i=0;i<p.numManagers();i++) {
-                if (p.getFlag(fID, p.getManager(i).getName()))
-                    return true;
-            }
-            return false;
-        } else return false;
-    }
+//    public boolean hasFlags(uvPlayer p, String flag) {        
+//        if (this.possibleTargetFlags.contains(flag) && p.numManagers() > 0) {
+//            int fID = this.possibleTargetFlags.indexOf(flag);   // the Flag ID
+//            for (int i=0;i<p.numManagers();i++) {
+//                if (p.getFlag(fID, p.getManager(i).getName()))
+//                    return true;
+//            }
+//            return false;
+//        } else return false;
+//    }
 
-    public void updateVision(String msg, String pName, String flag) {
-        uvPlayer uP = getUvPlayer(pName);
-        if (uP != null && uP.numManagers() > 0 && this.possibleTargetFlags.contains(flag)) {
-            for (int m=0;m<uP.numManagers();m++) {
-                if (uP.getFlag(possibleTargetFlags.indexOf(flag), uP.getManager(m).getName()))
-                    uP.getManager(m).sendMessage(ChatColor.GRAY + "[UV] " + ChatColor.WHITE + pName + " - " + ChatColor.GOLD + msg);
-            }            
-        }       
-    }
+//    public void updateVision(String msg, String pName, String flag) {
+//        uvPlayer uP = getUvPlayer(pName);
+//        if (uP != null && uP.numManagers() > 0 && this.possibleTargetFlags.contains(flag)) {
+//            for (int m=0;m<uP.numManagers();m++) {
+//                if (uP.getFlag(possibleTargetFlags.indexOf(flag), uP.getManager(m).getName()))
+//                    uP.getManager(m).sendMessage(ChatColor.GRAY + "[UV] " + ChatColor.WHITE + pName + " - " + ChatColor.GOLD + msg);
+//            }            
+//        }       
+//    }
 
-    private boolean initSaves() {
+    private boolean rejoin() {
 
         // Get all Players and hook into count thread
         //    ONLY IF SOME STUPID KIDS JOINED BEFORE SERVER IS READY ;P
@@ -482,10 +459,9 @@ public class ultravision extends JavaPlugin {
             return false;
         }
 
-        Player pBase = (Player) sender;
-        uvPlayer p = getUvPlayer(pBase);
+        Player p = (Player) sender;        
 
-        if (p == null) {
+        if ( !auth.loggedIn(p) ) {
             p.sendMessage(ChatColor.RED + "You are not authorized.");
             return true;
         }
@@ -498,92 +474,40 @@ public class ultravision extends JavaPlugin {
         }
         
         if ( cmd.getLabel().equalsIgnoreCase("uvlogin") ) {
-            if ( !auth.isRegistered(pBase) ) {
+            if ( !auth.isRegistered(p) ) {
                 p.sendMessage(ChatColor.GOLD + "You're not registered in the login system.");
                 return true;
             }                
-            if ( auth.loggedIn(pBase) ) {
+            if ( auth.loggedIn(p) ) {
                 p.sendMessage(ChatColor.RED + "You're already logged in."); return true;                
             }
             // kick on wrong, or not set password
             if ( args.length != 1 ) {
-                p.base.kickPlayer(MLog.real(ChatColor.RED + "Wrong password!")); return true;               
+                p.kickPlayer(MLog.real(ChatColor.RED + "Wrong password!")); return true;               
             }            
-            if ( auth.login(p.getBase(), args[0]) == MResult.RES_NOACCESS ) {
-                p.base.kickPlayer(MLog.real(ChatColor.RED + "Wrong password!")); return true;
+            if ( auth.login(p, args[0]) == MResult.RES_NOACCESS ) {
+                p.kickPlayer(MLog.real(ChatColor.RED + "Wrong password!")); return true;
             } else {
                 p.sendMessage(ChatColor.GREEN + "Logged in successfully."); return true;
             }
         }
         
         if ( cmd.getLabel().equalsIgnoreCase("uvregister") ) {
-            if ( auth.isRegistered(pBase) ) {
+            if ( auth.isRegistered(p) ) {
                 p.sendMessage(ChatColor.GOLD + "You're already registered in the login system."); return true;               
             }
             if ( args.length != 1 ) {
                 p.sendMessage(ChatColor.RED + "Please specify a password."); return true;               
             }
             MResult res = null;
-            if ( (res =auth.register(pBase, args[0])) == MResult.RES_SUCCESS ) {
-                p.sendMessage(ChatColor.GREEN + "Registered successfully in login system as " + pBase.getName() + ".");
-            } else MLog.e("Couldn't register new player in login system (player=" + pBase.getName() + "): " + String.valueOf(res));                                     
+            if ( (res =auth.register(p, args[0])) == MResult.RES_SUCCESS ) {
+                p.sendMessage(ChatColor.GREEN + "Registered successfully in login system as " + p.getName() + ".");
+            } else MLog.e("Couldn't register new player in login system (player=" + p.getName() + "): " + String.valueOf(res));                                     
             return true;
         }
 
         if (cmd.getName().equalsIgnoreCase("supervise")) {
-            // check for args
-            int cnt = 0;
-            uvPlayer uP;
-            if (args.length > 0) { // visionize only the given Player list
-                
-                uvManager uM = new uvManager (p.getBase(), Arrays.asList(args));
-                uM.setPlayerInstance(p);
-                managers.add(uM);                
-                
-                cnt = 0;
-                for (int i = 0; i < args.length; i++) {                     
-                    uP = getUvPlayer(getServer().getPlayer(args[i]));                                                            
-                    if ((uP instanceof uvPlayer) && uP != null) {                                                                            
-                            uP.setAsTarget(true);
-                            uP.appendManager(uM.getName(), uM); 
-                            MLog.d("Trying to add Vision target (" + uP.getName() + ") to " + uM.getName());                       
-                            uM.addVisionTarget(uP.getName());
-                            cnt++;                        
-                    }
-                }
-                
-                if (cnt > 0)
-                    p.sendMessage(ChatColor.GREEN + "You're now supervising " + cnt + " more user" + ((args.length == 1) ? "." : "s."));
-
-                if (cnt != args.length) {
-                    int offset = args.length - cnt;
-                    p.sendMessage(ChatColor.RED + String.valueOf(offset) + " players aren't logged in, where never on the server or you're already supervising.");
-                }
-            } else {            // actually supervise every online Player
-                List<String> pNames = getAllPlayerNames();
-                
-                uvManager uM = new uvManager (p.getBase(), pNames);
-                uM.setPlayerInstance(p);
-                managers.add(uM);
-
-                cnt = 0;
-                for (int i = 0; i < pNames.size(); i++) {
-                    uP = getUvPlayer(getServer().getPlayer(pNames.get(i)));
-                    if ((uP instanceof uvPlayer) && uP != null) {                        
-                            cnt++;
-                            uP.setAsTarget(true);
-                            uP.appendManager(uM.getName(), uM);
-                            uM.addVisionTarget(uP.getName());                        
-                    }
-                }
-
-                p.sendMessage(ChatColor.GREEN + "You're now supervising " + cnt + " user" + ((args.length == 1) ? "." : "s."));
-
-                if (cnt != pNames.size()) {
-                    int offset = pNames.size() - cnt;
-                    p.sendMessage(ChatColor.RED + String.valueOf(offset) + " players aren't logged in, where never on the server or you're already supervising.");
-                }
-            }
+            p.sendMessage(ChatColor.GOLD + "This command is not longer supported.");
             return true;
         }
 
@@ -598,96 +522,17 @@ public class ultravision extends JavaPlugin {
         }
 
         if (cmd.getName().equalsIgnoreCase("uvlist")) {
-            if (p.isManager) {
-                uvManager uM = getuvManager (p);
-                p.sendMessage(ChatColor.GOLD + "You're supervising " + uM.numVisionTargets() + " users:");
-                for (int i = 0; i < uM.numVisionTargets(); i++) {
-                    uvPlayer uP = getUvPlayer(uM.getVisionTarget(i));
-                    if (uP != null) {
-                        String lFlags = (uP.numTrueFlags(uM.getName()) > 0) ? "" : "No Flags";                    
-                        for (int n=0;n<this.possibleTargetFlags.size(); n++)
-                            if (uP.getFlag(n,uM.getName()))
-                                lFlags += this.possibleTargetFlags.get(n) + ", ";
-                        lFlags = lFlags.trim();
-                        if (lFlags.endsWith(","))
-                            lFlags = lFlags.substring(0, lFlags.length() - 1);
-                        p.sendMessage(ChatColor.WHITE + " - " + uM.getVisionTarget(i) + " # " + lFlags);
-                    }
-                    else {
-                        p.sendMessage(ChatColor.WHITE + " - ! Fixed nullpointer entry: " + uM.getVisionTarget(i));
-                        uM.removeVisionTarget(uM.getVisionTarget(i));
-                    }
-                }
-            } else {
-                p.sendMessage(ChatColor.GOLD + "You are not supervise any user.");
-            }
+            p.sendMessage(ChatColor.GOLD + "This feature is not longer supported.");
             return true;
         }
 
         if (cmd.getName().equalsIgnoreCase("uvdel") || cmd.getName().equalsIgnoreCase("uvremove") || cmd.getName().equalsIgnoreCase("uvdelete")) {
-            if (p.isManager) {
-                if (args.length == 0) {
-                    p.sendMessage(ChatColor.RED + "Please define username, you don't want to supervise anymore.");
-                    return false;
-                }
-                int cnt = 0;
-                uvManager uM = getuvManager(p);
-                for (int i = 0; i < args.length; i++) {
-                    if (getServer().getPlayer(args[i]) instanceof Player) {
-                        uvPlayer uP = getUvPlayer(getServer().getPlayer(args[i]));
-                        if (uP != null) {
-                            // Player is available, but isn't logged in
-                            uP = this.registerPlayer(args[i]);
-                        }
-                        uM.removeVisionTarget(args[i]);
-                        uP.setAsTarget(false);
-                        uP.removeManager(uM.getName(), uM);
-                        if (config.getBoolean("general.savestats", true)) {
-                            config.set(uP.getPath() + "isTarget", false);
-                        }
-                        cnt++;
-                    }
-                }
-                p.sendMessage(ChatColor.GOLD + "You stopped supervising of " + cnt + " users.");
-
-                if (cnt != args.length) {
-                    p.sendMessage(ChatColor.RED + String.valueOf(args.length - cnt) + " users where not found.");
-                }
-
-                if (uM.numVisionTargets() <= 0) {                    
-                    uM.getPlayerInstance().isManager = false;
-                    managers.remove(uM);
-                    config.set(uM.getPath() + "isManager", false);
-                    p.sendMessage(ChatColor.GOLD + "You are not supervising any users anymore.");
-                }
-
-            } else {
-                p.sendMessage(ChatColor.RED + "You are not supervising any user.");
-            }
+            p.sendMessage(ChatColor.GOLD + "This feature is not longer supported.");
             return true;
         }
 
         if (cmd.getName().equalsIgnoreCase("uvset")) {
-            if (args.length == 0) {
-                p.sendMessage(ChatColor.RED + "Not enough Paramters.");
-                return false;
-            }
-            if (!p.isManager) {
-                p.sendMessage(ChatColor.RED + "You are not supervising any user.");
-                return true;
-            }
-            Player sp = getServer().getPlayer(args[0]);
-            uvManager uM = getuvManager (p);
-            if (!(sp instanceof Player) || sp == null || !uM.hasAsTarget(args[0])) {
-                p.sendMessage(ChatColor.RED + "You are not supervising this user or can't find it.");
-                return true;
-            }
-            if (!this.possibleTargetFlags.contains(args[1])) {
-                p.sendMessage(ChatColor.RED + "Given flags were not recognized.");
-                return true;
-            }
-            boolean now = getUvPlayer(sp).setFlag(possibleTargetFlags.indexOf(args[1]), uM.getName());
-            p.sendMessage(ChatColor.GREEN + "Set Target flag for " + args[0] + ": " + args[1] + " => " + now);
+            p.sendMessage(ChatColor.GOLD + "This feature is not longer supported.");
             return true;
         }
         
@@ -702,21 +547,97 @@ public class ultravision extends JavaPlugin {
                 p.sendMessage(ChatColor.RED + "Couldn't unregister player " + args[0] + ": " + String.valueOf(res));                            
             return true;
         }
+        
+        if (cmd.getName().equalsIgnoreCase("uvkick") ) {
+            if ( args.length < 1 )
+                { p.sendMessage ( ChatColor.RED + "Too few arguments."); return true; }
+            List<Player> mayKick = getServer().matchPlayer(args[0]);
+            
+            if ( mayKick == null || mayKick.isEmpty() ) {
+                p.sendMessage(ChatColor.RED + "Theres no player called '" + args[0] + "'."); return true;
+            }
+            
+            if ( mayKick.size() > 1 ) {
+                p.sendMessage(ChatColor.DARK_AQUA + "There are some players matching '" + args[0] + "'");
+                String plist = "";
+                for ( Player toKick : mayKick ) {                        
+                    plist += ChatColor.GRAY + toKick.getName() + ( (mayKick.indexOf(toKick) != (mayKick.size() -1)) ? ChatColor.DARK_GRAY + ", " : "" );
+                }
+                p.sendMessage(plist);
+                return true;
+            } else {    // Got ONE player
+                String reason = "";
+                for ( int i = 1; i < args.length; i++ )
+                    reason += args[i].trim();
+                MResult res;
+                if ( (res = api.doKick(p, mayKick.get(0), ( (args.length >= 2) ? reason : "No reason provided." ))) == MResult.RES_SUCCESS) {
+                    int c = ownBroadcast(ChatColor.GOLD + "UV: " + ChatColor.AQUA + mayKick.get(0).getName() + ChatColor.DARK_AQUA + " kicked by " + ChatColor.AQUA + p.getName() + ChatColor.DARK_AQUA + ". Reason: " + ChatColor.AQUA + ( (args.length >= 2) ? reason : "No reason." ));
+                    p.sendMessage("sent to " + c + " receivers");
+                } else {
+                    p.sendMessage(ChatColor.RED + "Can't kick player: " + res.toString());
+                }
+                return true;
+            }            
+        }
+        
+        if (cmd.getName().equalsIgnoreCase("uvpraise")) {
+            if ( args.length < 1 ) {
+                p.sendMessage(ChatColor.RED + "Too few arguments."); return true;
+            }            
+            List<Player> mayPraise = getServer().matchPlayer(args[0]);
+            
+            if ( mayPraise == null || mayPraise.isEmpty() ) {
+                p.sendMessage(ChatColor.RED + "Theres no player called '" + args[0] + "'."); return true;
+            }
+            
+            if ( mayPraise.size() > 1 ) {
+                p.sendMessage(ChatColor.DARK_AQUA + "There are some players matching '" + args[0] + "'");
+                String plist = "";
+                for ( Player toPraise : mayPraise ) {                        
+                    plist += ChatColor.GRAY + toPraise.getName() + ( (mayPraise.indexOf(toPraise) == (mayPraise.size() -1)) ? ChatColor.DARK_GRAY + ", " : "" );
+                }
+                p.sendMessage(plist);
+                return true;
+            } else {    // Got ONE player
+                String reason = "";
+                for ( int i = 1; i < args.length; i++ )
+                    reason += args[i].trim();
+                MResult res;
+                if ( (res = api.doKick(p, mayPraise.get(0), ( (args.length >= 2) ? reason : "No reason provided." ))) == MResult.RES_SUCCESS) {
+                    ownBroadcast(ChatColor.AQUA + "Player " + mayPraise.get(0).getName() + " has been kicked." );                    
+                } else {
+                    p.sendMessage(ChatColor.RED + "Can't kick player: " + res.toString());
+                }
+                return true;
+            }  
+        }
 
         return false;
     }
 
-    public List<String> getAllPlayerNames() {
-        List<String> res = new ArrayList<String>();
-        for (int i = 0; i < players.size(); i++) {
-            res.add(players.get(i).getName());
-        }
-        
-        return res;                
-    }
+//    public List<String> getAllPlayerNames() {
+//        List<String> res = new ArrayList<String>();
+//        for (int i = 0; i < players.size(); i++) {
+//            res.add(players.get(i).getName());
+//        }
+//        
+//        return res;                
+//    }
     
     public MAuthorizer getAuthorizer () {
         return auth;
+    }
+    
+    public int ownBroadcast (String message) {
+        Player[] ps = getServer().getOnlinePlayers();                
+        int cnt = 0;
+        for ( Player p : ps ) {
+            p.sendMessage(message);
+            cnt++;
+        }
+        getServer().getConsoleSender().sendMessage(message);
+        cnt++;
+        return cnt;
     }
 
 // ------------ HELP FUNCTIONS ---------------

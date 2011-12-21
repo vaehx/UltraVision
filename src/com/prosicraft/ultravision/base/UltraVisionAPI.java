@@ -22,12 +22,15 @@ public interface UltraVisionAPI {
     // =                    M A I N                                 =
     // ==============================================================
     
+    public String version = "v0.1";
+    
     /**
      * Collect all informations about a Player
      * @param p The Player
      * @return Map of informations
      */
     public Map<String, String> getAll ( Player p );
+    public MResult flush ();
     
     // ==============================================================
     // =                   AUTHENTICATION IMPLEMENT                 =
@@ -50,6 +53,7 @@ public interface UltraVisionAPI {
     public MResult pardon ( CommandSender cs, Player p, String note );
     public boolean isBanned ( Player p );
     public List<UVBan> getBans ( Player p );
+    public UVBan getBan ( Player p, String servername );
     public List<UVBan> getBanHistory ( Player p );
     
     // ====== KICK ======    

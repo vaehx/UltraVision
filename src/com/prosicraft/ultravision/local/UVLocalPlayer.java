@@ -50,7 +50,7 @@ public class UVLocalPlayer extends CraftPlayer {
         logFile = new File ( logpath, ep.name + ".usr" );
         if ( !logFile.exists() ) {
             try {
-                logFile.mkdirs();
+                //logFile.mkdirs();
                 logFile.createNewFile();
                 
                 logOut = new PrintWriter (logFile);
@@ -66,7 +66,7 @@ public class UVLocalPlayer extends CraftPlayer {
         logFile = new File ( logpath, p.getName() + ".usr" );
         if ( !logFile.exists() ) {
             try {
-                logFile.mkdirs();
+                //logFile.mkdirs();
                 logFile.createNewFile();
                 
                 logOut = new PrintWriter (logFile);

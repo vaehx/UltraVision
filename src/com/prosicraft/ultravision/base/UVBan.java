@@ -52,7 +52,12 @@ public class UVBan {
     
     public String getReason () {
         return reason;
-    }       
+    }               
+
+    public String getServerName() {
+        return ServerName;
+    }
+
     
     public void setReason (String reason) {
         this.reason = reason;

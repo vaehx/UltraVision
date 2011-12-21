@@ -71,37 +71,37 @@ public class uvPlayerListener extends PlayerListener {
             event.setCancelled(true);
         }                
         
-        if (event.getMessage().contains("/m") || event.getMessage().contains("/msg")) {
-            uvPlayer p = this.parent.getUvPlayer(event.getPlayer());        
-            if (p.isTarget() && parent.hasFlags(p, "chat")) {
-                String msg = event.getMessage().replace("/msg", "").replace("/m", "").trim();
-                try {
-                    String nm = msg.substring(0, msg.indexOf(" "));                    
-                    if (parent.getUvPlayer(nm) != null || nm.equalsIgnoreCase("console")) {
-                        msg = msg.replace(nm, "").trim();
-                        msg = ChatColor.GRAY + "to " + nm + ": " + ChatColor.GOLD + "\"" + msg + "\"";
-                    }
-                } catch (Exception ex) { System.out.println("[UltraVisionPlayerListener] Error.");/* There is no name, found in this String */ }                
-                
-                parent.updateVision(msg, p.getName(), "chat");                
-            }
-        }
+//        if (event.getMessage().contains("/m") || event.getMessage().contains("/msg")) {
+//            uvPlayer p = this.parent.getUvPlayer(event.getPlayer());        
+//            if (p.isTarget() && parent.hasFlags(p, "chat")) {
+//                String msg = event.getMessage().replace("/msg", "").replace("/m", "").trim();
+//                try {
+//                    String nm = msg.substring(0, msg.indexOf(" "));                    
+//                    if (parent.getUvPlayer(nm) != null || nm.equalsIgnoreCase("console")) {
+//                        msg = msg.replace(nm, "").trim();
+//                        msg = ChatColor.GRAY + "to " + nm + ": " + ChatColor.GOLD + "\"" + msg + "\"";
+//                    }
+//                } catch (Exception ex) { System.out.println("[UltraVisionPlayerListener] Error.");/* There is no name, found in this String */ }                
+//                
+//                parent.updateVision(msg, p.getName(), "chat");                
+//            }
+//        }
     }
 
     
     @Override
     public void onPlayerChat (PlayerChatEvent e) {
-        uvPlayer p = this.parent.getUvPlayer(e.getPlayer());        
-        if (p.isTarget() && parent.hasFlags(p, "chat"))
-            parent.updateVision("\"" + e.getMessage() + "\"", p.getName(), "chat");
+//        uvPlayer p = this.parent.getUvPlayer(e.getPlayer());        
+//        if (p.isTarget() && parent.hasFlags(p, "chat"))
+//            parent.updateVision("\"" + e.getMessage() + "\"", p.getName(), "chat");
         e.setFormat(ChatColor.DARK_GREEN + e.getPlayer().getName() + ":: " + MLog.real (e.getMessage()));
         parent.playerChat(e.getPlayer().getName(), e.getMessage());
     }
     
     @Override
     public void onPlayerVelocity (PlayerVelocityEvent e) {
-        uvPlayer p = this.parent.getUvPlayer(e.getPlayer());
-        if (p.isTarget() && parent.hasFlags(p, "move"))
-            parent.updateVision("Moving at velocity of " + e.getVelocity().toString(), p.getName(), "move");
+//        uvPlayer p = this.parent.getUvPlayer(e.getPlayer());
+//        if (p.isTarget() && parent.hasFlags(p, "move"))
+//            parent.updateVision("Moving at velocity of " + e.getVelocity().toString(), p.getName(), "move");
     }                    
 }

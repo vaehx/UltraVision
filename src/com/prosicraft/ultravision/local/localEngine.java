@@ -23,7 +23,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.server.Packet255KickDisconnect;
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.craftbukkit.CraftServer;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 /**
@@ -35,7 +39,13 @@ public class localEngine implements UltraVisionAPI {
     // using uv-files here
     private File db = null;
     private MAuthorizer authorizer = null;        
-    private List<UVLocalPlayer> players = null;       
+    private List<UVLocalPlayer> players = null;
+    private String plugDir = "";
+    
+    public localEngine (String pluginDir) {
+        this.players = new ArrayList<UVLocalPlayer>();        
+        this.plugDir = pluginDir;
+    }
     
     
     // ============================================================
@@ -82,7 +92,7 @@ public class localEngine implements UltraVisionAPI {
     //                 MAIN Section
     // ============================================================
     
-    public MResult saveDB () {
+    public MResult flush () {
         
         if ( db == null ) return MResult.RES_NOTINIT;
         if ( !db.exists() ) {
@@ -292,7 +302,7 @@ public class localEngine implements UltraVisionAPI {
     @Override
     public boolean isBanned(Player p) {
         UVLocalPlayer uP = null;
-        if ( !isAuthInit() || p == null || !authorizer.isRegistered(p) || (uP = getUVPlayer(p)) == null )
+        if ( (uP = valid(p)) == null )
             return false;                           
         
         return !(uP.ban == null);   // don't use uP.isBanned() right here, as this would call bukkit methods
@@ -347,12 +357,23 @@ public class localEngine implements UltraVisionAPI {
     @Override
     public MResult pardon(CommandSender cs, Player p, String note) {
         throw new UnsupportedOperationException("Not supported yet.");
+    }        
+
+    @Override
+    public UVBan getBan(Player p, String servername) {
+        List<UVBan> bs = getBans ( p );
+        for ( UVBan b : bs ) {
+            if ( b.getServerName().equalsIgnoreCase(servername) )
+                return b;
+        }        
+        return null;
     }
+
 
     @Override
     public List<UVBan> getBans(Player p) {
         UVLocalPlayer uP;
-        if ( !isAuthInit() || !authorizer.isRegistered(p) || (uP = getUVPlayer (p)) == null )
+        if ( (uP = valid(p)) == null )
             return null;
         
         List<UVBan> res = new ArrayList<UVBan>();
@@ -365,7 +386,7 @@ public class localEngine implements UltraVisionAPI {
     @Override
     public List<UVBan> getBanHistory(Player p) {
         UVLocalPlayer uP;
-        if ( !isAuthInit() || !authorizer.isRegistered(p) || (uP = getUVPlayer (p)) == null )
+        if ( (uP = valid(p)) == null )
             return null;               
         
         return ((uP.banHistory != null) ? uP.banHistory : new ArrayList<UVBan>() );        
@@ -374,13 +395,17 @@ public class localEngine implements UltraVisionAPI {
     @Override
     public MResult doKick(CommandSender cs, Player p, String reason) {
         UVLocalPlayer uP;
-        if ( !isAuthInit() || !authorizer.isRegistered(p) || (uP = getUVPlayer (p)) == null )
-            return MResult.RES_NOTINIT;  // or RES_ALREADY
+        if ( (uP = valid(p)) == null )
+            return MResult.RES_NOTINIT;  // or RES_ALREADY                
         
         /*if ( reason == null || reason.equalsIgnoreCase("") )
             return MResult.RES_NOTGIVEN;*/
-        
-        uP.kickPlayer(MLog.real(reason));        
+        ((CraftPlayer)p).getHandle().netServerHandler.player.E();
+        ((CraftPlayer)p).getHandle().netServerHandler.sendPacket(new Packet255KickDisconnect(MLog.real(ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + reason)));        
+        ((CraftPlayer)p).getHandle().netServerHandler.networkManager.d();
+        ((CraftServer)((CraftPlayer)p).getServer()).getHandle().server.serverConfigurationManager.disconnect(((CraftPlayer)p).getHandle());
+        ((CraftPlayer)p).getHandle().netServerHandler.disconnected = true;
+        //uP.kickPlayer(ChatColor.AQUA + "Kick: " + reason);        
         uP.kickHistory.add( new UVKick (reason, (Player)cs, new Time ((new Date()).getTime()) ) );
         
         return MResult.RES_SUCCESS;
@@ -389,7 +414,7 @@ public class localEngine implements UltraVisionAPI {
     @Override
     public List<UVKick> getKickHistory(Player p) {
         UVLocalPlayer uP;
-        if ( !isAuthInit() || !authorizer.isRegistered(p) || (uP = getUVPlayer (p)) == null )
+        if ( (uP = valid(p)) == null )
             return null;
         
         return ( (uP.kickHistory != null) ? uP.kickHistory : new ArrayList<UVKick>() );
@@ -403,7 +428,7 @@ public class localEngine implements UltraVisionAPI {
     @Override
     public MResult setWarn(CommandSender cs, Player p, String reason, Time tdiff) {
         UVLocalPlayer uP;
-        if ( !isAuthInit() || !authorizer.isRegistered(p) || (uP = getUVPlayer (p)) == null )
+        if ( (uP = valid(p)) == null )
             return null;
         
         if ( uP.warning != null )
@@ -704,8 +729,13 @@ public class localEngine implements UltraVisionAPI {
     
     public UVLocalPlayer valid ( Player p ) {
         UVLocalPlayer uP;
-        if ( !isAuthInit() || !authorizer.isRegistered(p) || (uP = getUVPlayer (p)) == null )
+        if ( !isAuthInit() )
             return null;
+        
+        if ( (uP = this.getUVPlayer(p)) == null ) {
+            this.players.add( new UVLocalPlayer (p, plugDir) );
+            MLog.i("Registered new player '" + p.getName() + "'.");
+        }
         
         return uP;
     }

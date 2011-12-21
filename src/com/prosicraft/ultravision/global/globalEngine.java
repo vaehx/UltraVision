@@ -231,6 +231,16 @@ public class globalEngine implements UltraVisionAPI {
     public List<String> getProperties(Player p) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+
+    @Override
+    public MResult flush() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public UVBan getBan(Player p, String servername) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
     
     
 }
