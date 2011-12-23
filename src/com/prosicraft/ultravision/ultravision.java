@@ -465,8 +465,8 @@ public class ultravision extends JavaPlugin {
 
         Player p = (Player) sender;        
 
-        if ( !auth.loggedIn(p) ) {
-            p.sendMessage(ChatColor.RED + "You are not authorized.");
+        if ( !auth.loggedIn(p) && !cmd.getLabel().equalsIgnoreCase("uvlogin") ) {
+            p.sendMessage(ChatColor.RED + "You are not logged in.");
             return true;
         }
 

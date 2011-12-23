@@ -6,11 +6,10 @@ package com.prosicraft.ultravision.base;
 
 import com.prosicraft.ultravision.util.MAuthorizer;
 import com.prosicraft.ultravision.util.MStream;
-import java.io.FileInputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.sql.Time;
-import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 /**
@@ -74,7 +73,7 @@ public class UVBan {
         return ((global) ? "globally " : "") + "banned by " + banner + ((mTimeDif != null) ? " for " + mTimeDif.toString() : "" ) + ". Reason: " + reason;
     }
     
-    public boolean read ( FileInputStream in ) throws IOException {                
+    public boolean read ( DataInputStream in ) throws IOException {                
         
         this.banner = MStream.readString(in, 16);        
         if ( this.banner.trim().equalsIgnoreCase("") )
@@ -88,22 +87,20 @@ public class UVBan {
         return true;
     }
     
-    public void write ( PrintWriter out ) {
-        
-        out.write(MAuthorizer.getCharArray(banner, 16));
-        out.write(MAuthorizer.getCharArray(reason, 60));                
+    public void write ( DataOutputStream out ) throws IOException {        
+        out.write(MAuthorizer.getCharArrayB(banner, 16));
+        out.write(MAuthorizer.getCharArrayB(reason, 60));                
         out.write( global ? 1 : 0 );        
         out.write( (int)timedif.getTime() );
         out.write( (int)mTimeDif.getTime() );
-        out.write(MAuthorizer.getCharArray(ServerName, 16));
-        
-        out.flush();
-        
+        out.write(MAuthorizer.getCharArrayB(ServerName, 16));
+
+        out.flush();       
     }
     
-    public static void writeNull ( PrintWriter out ) {
+    public static void writeNull ( DataOutputStream out ) throws IOException {
         
-        out.write(MAuthorizer.getCharArray("", 16));        
+        out.write(MAuthorizer.getCharArrayB("", 16));        
         out.flush();
         
     }

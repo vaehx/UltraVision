@@ -154,4 +154,11 @@ public class MAuthorizer {
         return res;        
     }
     
+    public static byte[] getCharArrayB (String s, int i) {
+        byte[] res = new byte[i];
+        for ( int n=0; n < i; n++ )
+            res[n] = (byte)( (s.length() > n) ? s.charAt(n) : 0 );
+        return res;        
+    }
+    
 }

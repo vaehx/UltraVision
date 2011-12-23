@@ -6,7 +6,8 @@ package com.prosicraft.ultravision.base;
 
 import com.prosicraft.ultravision.util.MAuthorizer;
 import com.prosicraft.ultravision.util.MStream;
-import java.io.FileInputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Time;
@@ -56,7 +57,7 @@ public class UVWarning {
         return ((global) ? "globally " : "") + "warned by " + warner + ((mWarnTime != null) ? " for " + mWarnTime.toString() : "") + ". Reason: " + reason;                  
     }
     
-    public boolean read ( FileInputStream in ) throws IOException {
+    public boolean read ( DataInputStream in ) throws IOException {
         
         if ( (this.warner = MStream.readString(in, 16)).trim().equalsIgnoreCase("") )
             return false;
@@ -70,22 +71,22 @@ public class UVWarning {
         
     }
     
-    public void write ( PrintWriter out ) {
+    public void write ( DataOutputStream out ) throws IOException {
         
-        out.write(MAuthorizer.getCharArray(warner, 16));
-        out.write(MAuthorizer.getCharArray(reason, 60));        
+        out.write(MAuthorizer.getCharArrayB(warner, 16));
+        out.write(MAuthorizer.getCharArrayB(reason, 60));        
         out.write( (int) warnTime.getTime() );
         out.write( (int) mWarnTime.getTime() );
-        out.write(MAuthorizer.getCharArray(ServerName, 16));
+        out.write(MAuthorizer.getCharArrayB(ServerName, 16));
         out.write( global ? 1 : 0 );
         
         out.flush();
         
     }
     
-    public static void writeNull ( PrintWriter out ) {
+    public static void writeNull ( DataOutputStream out ) throws IOException {
         
-        out.write(MAuthorizer.getCharArray("", 16));        
+        out.write(MAuthorizer.getCharArrayB("", 16));        
         out.flush();
         
     }

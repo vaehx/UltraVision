@@ -6,9 +6,9 @@ package com.prosicraft.ultravision.base;
 
 import com.prosicraft.ultravision.util.MAuthorizer;
 import com.prosicraft.ultravision.util.MStream;
-import java.io.FileInputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.sql.Time;
 import org.bukkit.entity.Player;
 
@@ -45,7 +45,7 @@ public class UVKick {
         return servername;
     }       
     
-    public boolean read ( FileInputStream in ) throws IOException {
+    public boolean read ( DataInputStream in ) throws IOException {
         
         if ( (this.kicker = MStream.readString(in, 16)).trim().equalsIgnoreCase("") )
             return false;
@@ -57,20 +57,20 @@ public class UVKick {
         
     }
     
-    public void write ( PrintWriter out ) {
+    public void write ( DataOutputStream out ) throws IOException {
         
-        out.write(MAuthorizer.getCharArray(kicker, 16));
-        out.write(MAuthorizer.getCharArray(reason, 60));
-        out.write(MAuthorizer.getCharArray(servername, 16));
+        out.write(MAuthorizer.getCharArrayB(kicker, 16));
+        out.write(MAuthorizer.getCharArrayB(reason, 60));
+        out.write(MAuthorizer.getCharArrayB(servername, 16));
         out.write( (int)timestamp.getTime() );
         
         out.flush();
         
     }
     
-    public static void writeNull ( PrintWriter out ) {
+    public static void writeNull ( DataOutputStream out ) throws IOException {
         
-        out.write(MAuthorizer.getCharArray("", 16));
+        out.write(MAuthorizer.getCharArrayB("", 16));
         out.flush();
         
     }

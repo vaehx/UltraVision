@@ -13,9 +13,12 @@ import com.prosicraft.ultravision.base.UVKick;
 import com.prosicraft.ultravision.base.UVWarning;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.util.MStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Time;
@@ -25,6 +28,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import net.minecraft.server.Packet255KickDisconnect;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -95,141 +100,170 @@ public class localEngine implements UltraVisionAPI {
     //                 MAIN Section
     // ============================================================
     
+    public static byte[] intToByteArray(int value) {
+        return new byte[] {
+                (byte)(value >>> 24),
+                (byte)(value >>> 16),
+                (byte)(value >>> 8),
+                (byte)value};
+    }
+    
+    public static int byteArrayToInt(byte [] b) {
+        return (b[0] << 24)
+                + ((b[1] & 0xFF) << 16)
+                + ((b[2] & 0xFF) << 8)
+                + (b[3] & 0xFF);
+    }
+    
     @Override
     public MResult flush () {
-        
-        if ( db == null ) return MResult.RES_NOTINIT;
-        if ( !db.exists() ) {
-            MLog.d ( "(saveDB) File doesn't exist at " + MConfiguration.normalizePath(db) );
-            try {
-                db.createNewFile();
-                MLog.d("(saveDB) Created new file at " + MConfiguration.normalizePath(db));
-            } catch (IOException ioex) {
-                MLog.d("(saveDB) Can't create new file at " + MConfiguration.normalizePath(db));
-                return MResult.RES_ERROR;
-            }
-        }
-        
-        PrintWriter fos;
         try {
-            fos = new PrintWriter(db);
-        } catch (FileNotFoundException fnfex) {
-            MLog.e("Can't save database: File not found"); return MResult.RES_ERROR;
+            if ( db == null ) return MResult.RES_NOTINIT;
+            if ( !db.exists() ) {
+                MLog.d ( "(saveDB) File doesn't exist at " + MConfiguration.normalizePath(db) );
+                try {
+                    db.createNewFile();                
+                    MLog.d("(saveDB) Created new file at " + MConfiguration.normalizePath(db));
+                } catch (IOException ioex) {
+                    MLog.d("(saveDB) Can't create new file at " + MConfiguration.normalizePath(db));
+                    return MResult.RES_ERROR;
+                }
+            }
+                    
+            DataOutputStream fod = null;
+            try {            
+                fod = new DataOutputStream ( new FileOutputStream(db) );
+            } catch (FileNotFoundException fnfex) {
+                MLog.e("Can't save database: File not found"); return MResult.RES_ERROR;
+            }/* catch (UnsupportedEncodingException ueex) {
+                MLog.e("Bad Char Encoding: " + ueex.getMessage());
+                ueex.printStackTrace(); return MResult.RES_ERROR;
+            }*/
+            
+            MLog.d("Start writing Chunks to " + MConfiguration.normalizePath(db));
+            
+            // upcomging here: save all fields, that have to be saved :D                                                     
+            fod.write(MAuthorizer.getCharArrayB("chunk1", 6));  // CHUNK 1 = general Information
+            
+            fod.write(MAuthorizer.getCharArrayB("chunk2", 6));  // CHUNK 2 = Players
+            
+            for ( int i=0; i < players.size(); i++ ) {
+                
+                fod.write(MAuthorizer.getCharArrayB("player", 6)); // PLAYER = a player                          
+                fod.write(MAuthorizer.getCharArrayB(players.get(i).getName(), 16));  // Write player name                                    
+                fod.write( players.get(i).isMute ? 1 : 0 ); // Write mute state            
+                try {
+                    fod.writeLong( players.get(i).onlineTime.getTime() );
+                } catch (IOException ex) {
+                    MLog.d("Can't write time to database!");
+                }
+                fod.write(players.get(i).praise);   // Write praise
+                            
+                //=== Write praisers
+                if ( !players.get(i).praiser.isEmpty() ) {
+                    for ( String praiser : players.get(i).praiser ) {
+                        fod.write(MAuthorizer.getCharArrayB("oprais", 6));
+                        fod.write(MAuthorizer.getCharArrayB(praiser, 16));
+                    }
+                } else {
+                    fod.write(MAuthorizer.getCharArrayB("nprais", 6));
+                }
+                
+                //=== Write bans            
+                fod.write(MAuthorizer.getCharArrayB("theban", 6));
+                if ( players.get(i).ban != null )
+                    players.get(i).ban.write(fod);
+                else
+                    UVBan.writeNull(fod);
+                
+                if ( !players.get(i).banHistory.isEmpty() ) {
+                    for ( UVBan b : players.get(i).banHistory ) {
+                        fod.write(MAuthorizer.getCharArrayB("oneban", 6));
+                        b.write(fod);
+                    }
+                } else {
+                    fod.write(MAuthorizer.getCharArrayB("nooban", 6));
+                }
+                
+                //=== Write Warnings
+                fod.write(MAuthorizer.getCharArrayB("thwarn", 6));
+                if ( players.get(i).warning != null )
+                    players.get(i).warning.write(fod);            
+                else
+                    UVWarning.writeNull(fod);
+                
+                if ( !players.get(i).warnHistory.isEmpty() ) {
+                    for ( UVWarning b : players.get(i).warnHistory ) {
+                        fod.write(MAuthorizer.getCharArrayB("onwarn", 6));
+                        b.write(fod);
+                    }
+                } else {
+                    fod.write(MAuthorizer.getCharArrayB("nowarn", 6));
+                }
+                
+                //=== Write Kick History
+                if ( !players.get(i).kickHistory.isEmpty() ) {
+                    for ( UVKick k : players.get(i).kickHistory ) {
+                        fod.write(MAuthorizer.getCharArrayB("onkick", 6));
+                        k.write(fod);
+                    }
+                } else {
+                    fod.write(MAuthorizer.getCharArrayB("nokick", 6));
+                }
+                
+                //=== Write Friends
+                if ( !players.get(i).friends.isEmpty() ) {
+                    for ( String friend : players.get(i).friends ) {
+                        fod.write(MAuthorizer.getCharArrayB("friend", 6));
+                        fod.write(MAuthorizer.getCharArrayB(friend, 16));
+                    }
+                } else {
+                    fod.write(MAuthorizer.getCharArrayB("nofrie", 6));
+                }
+                
+                //=== Write notes
+                if ( !players.get(i).notes.isEmpty() ) {
+                    for ( String devil : players.get(i).notes.keySet() ) {
+                        fod.write(MAuthorizer.getCharArrayB("onnote", 6));
+                        fod.write(MAuthorizer.getCharArrayB(devil, 16));
+                        fod.write(MAuthorizer.getCharArrayB(players.get(i).notes.get(devil), 60));
+                    }
+                } else {
+                    fod.write(MAuthorizer.getCharArrayB("nonote", 6));
+                }
+                
+                //=== Write Player end
+                fod.write(MAuthorizer.getCharArrayB("plrend", 6));
+                
+            }                
+            
+            fod.write(MAuthorizer.getCharArrayB("theend", 6));  // CHUNK 3 = END OF FILE
+            
+            fod.close();
+            try {
+                fod.close();
+            } catch (IOException ioex) {
+                MLog.d("can't close fod");
+            }
+            
+            return MResult.RES_SUCCESS;
+        } catch (IOException ex) {
+            MLog.e("Error reading from Database.");
+            ex.printStackTrace();
+            return MResult.RES_ERROR;
         }
-        
-        MLog.d("Start writing Chunks to " + MConfiguration.normalizePath(db));
-        
-        // upcomging here: save all fields, that have to be saved :D                                                     
-        fos.write(MAuthorizer.getCharArray("chunk1", 6));  // CHUNK 1 = general Information
-        
-        fos.write(MAuthorizer.getCharArray("chunk2", 6));  // CHUNK 2 = Players
-        
-        for ( int i=0; i < players.size(); i++ ) {
-            
-            fos.write(MAuthorizer.getCharArray("player", 6)); // PLAYER = a player            
-            fos.write(MAuthorizer.getCharArray(players.get(i).getName(), 16));  // Write player name                                    
-            fos.write( players.get(i).isMute ? 1 : 0 ); // Write mute state
-            MLog.d("players = " + String.valueOf(players));
-            MLog.d("Player(" + i + ") = " + String.valueOf(players.get(i)));
-            MLog.d("Player.onlineTime = " + String.valueOf(players.get(i).onlineTime));
-            fos.write( (int)players.get(i).onlineTime.getTime() );
-            fos.write(players.get(i).praise);   // Write praise
-                        
-            //=== Write praisers
-            if ( !players.get(i).praiser.isEmpty() ) {
-                for ( String praiser : players.get(i).praiser ) {
-                    fos.write(MAuthorizer.getCharArray("oprais", 6));
-                    fos.write(MAuthorizer.getCharArray(praiser, 16));
-                }
-            } else {
-                fos.write(MAuthorizer.getCharArray("nprais", 6));
-            }
-            
-            //=== Write bans            
-            fos.write(MAuthorizer.getCharArray("theban", 6));
-            if ( players.get(i).ban != null )
-                players.get(i).ban.write(fos);
-            else
-                UVBan.writeNull(fos);
-            
-            if ( !players.get(i).banHistory.isEmpty() ) {
-                for ( UVBan b : players.get(i).banHistory ) {
-                    fos.write(MAuthorizer.getCharArray("oneban", 6));
-                    b.write(fos);
-                }
-            } else {
-                fos.write(MAuthorizer.getCharArray("nooban", 6));
-            }
-            
-            //=== Write Warnings
-            fos.write(MAuthorizer.getCharArray("thwarn", 6));
-            if ( players.get(i).warning != null )
-                players.get(i).warning.write(fos);            
-            else
-                UVWarning.writeNull(fos);
-            
-            if ( !players.get(i).warnHistory.isEmpty() ) {
-                for ( UVWarning b : players.get(i).warnHistory ) {
-                    fos.write(MAuthorizer.getCharArray("onwarn", 6));
-                    b.write(fos);
-                }
-            } else {
-                fos.write(MAuthorizer.getCharArray("nowarn", 6));
-            }
-            
-            //=== Write Kick History
-            if ( !players.get(i).kickHistory.isEmpty() ) {
-                for ( UVKick k : players.get(i).kickHistory ) {
-                    fos.write(MAuthorizer.getCharArray("onkick", 6));
-                    k.write(fos);
-                }
-            } else {
-                fos.write(MAuthorizer.getCharArray("nokick", 6));
-            }
-            
-            //=== Write Friends
-            if ( !players.get(i).friends.isEmpty() ) {
-                for ( String friend : players.get(i).friends ) {
-                    fos.write(MAuthorizer.getCharArray("friend", 6));
-                    fos.write(MAuthorizer.getCharArray(friend, 16));
-                }
-            } else {
-                fos.write(MAuthorizer.getCharArray("nofrie", 6));
-            }
-            
-            //=== Write notes
-            if ( !players.get(i).notes.isEmpty() ) {
-                for ( String devil : players.get(i).notes.keySet() ) {
-                    fos.write(MAuthorizer.getCharArray("onnote", 6));
-                    fos.write(MAuthorizer.getCharArray(devil, 16));
-                    fos.write(MAuthorizer.getCharArray(players.get(i).notes.get(devil), 60));
-                }
-            } else {
-                fos.write(MAuthorizer.getCharArray("nonote", 6));
-            }
-            
-            //=== Write Player end
-            fos.write(MAuthorizer.getCharArray("plrend", 6));
-            
-        }                
-        
-        fos.write(MAuthorizer.getCharArray("theend", 6));  // CHUNK 3 = END OF FILE
-        
-        fos.close();                
-        
-        return MResult.RES_SUCCESS;
         
     }
     
-    private String rch ( FileInputStream in ) {
+    private String rch ( DataInputStream in ) {
         return readChunkHead (in);
     }
     
-    private String readChunkHead ( FileInputStream in ) {
+    private String readChunkHead ( DataInputStream in ) {
         return readString ( in, 6 );              
     }
     
-    private String readString ( FileInputStream in, int bytes ) {
+    private String readString ( DataInputStream in, int bytes ) {
         byte[] buf = new byte[bytes];
         try {
             in.read(buf);            
@@ -265,10 +299,10 @@ public class localEngine implements UltraVisionAPI {
             MLog.i("Database is empty.");
             return MResult.RES_SUCCESS;
         }            
-        
-        FileInputStream fis;
-        try {
-            fis = new FileInputStream (db);                    
+                
+        DataInputStream fid = null;
+        try {            
+            fid = new DataInputStream ( new FileInputStream ( db ) );                   
         } catch (FileNotFoundException fnfex) {
             MLog.e("(fetchDB) Can't load database: File not found"); return MResult.RES_ERROR;
         }
@@ -277,7 +311,7 @@ public class localEngine implements UltraVisionAPI {
             
             String ch = "nochnk";
             while ( !ch.equalsIgnoreCase("theend") ) {
-                ch = readChunkHead ( fis );
+                ch = readChunkHead ( fid );
                 if ( ch.equals("chunk2") ) {
                     
                     MLog.d("(fetchDB) Start reading player chunk...");
@@ -285,63 +319,75 @@ public class localEngine implements UltraVisionAPI {
                 } else if ( ch.equals("player") ) {                                        
                     
                     boolean isGood = false;
+                    String nm = "";
                     
-                    isGood =  readString(fis, 16).trim().equalsIgnoreCase(p.getName());
+                    isGood = (nm = readString(fid, 16).trim()).equalsIgnoreCase(p.getName());
+                    MLog.d("name = '" + nm + "'");
                     
                     UVLocalPlayer pl = new UVLocalPlayer (p, plugDir);
-                    pl.isMute = ((fis.read() == 0) ? false : true);
-                    pl.onlineTime = new Time ((long)fis.read());
-                    pl.praise = fis.read();                                        
+                    int isMute = fid.read();
+                    pl.isMute = ((isMute == 0) ? false : true);  
+                    byte[] buf = new byte[4];
+                    //fis.read (buf);
+                    //int t = byteArrayToInt( buf );                    
+                    pl.onlineTime = new Time(fid.readLong());
+                    pl.praise = fid.read();                                             
                     
                     // Now read chunks
                     boolean isPlayerChunk = true;
-                    while ( isPlayerChunk ) {
-                        if ( (ch = rch ( fis )).equalsIgnoreCase("theend") )
+                    int to = 0;
+                    while ( isPlayerChunk && to < 1000 ) {
+                        to++;
+                        if ( (ch = rch ( fid )).equalsIgnoreCase("theend") )
                             { isPlayerChunk = false; continue; }
                         
                         MLog.d("Read ch (" + ch + ")");
                         
                         if ( ch.equalsIgnoreCase("oprais") ) {                        
-                            pl.praiser.add( readString (fis, 16) );
+                            pl.praiser.add( readString (fid, 16) );
                         } else if ( ch.equalsIgnoreCase("nprais") ) {
                             continue;
                         } else if ( ch.equalsIgnoreCase("theban") ) {
                             pl.ban = new UVBan ();
-                            if ( !pl.ban.read(fis) )
+                            if ( !pl.ban.read(fid) )
                                 pl.ban = null;
                         } else if ( ch.equalsIgnoreCase("oneban") ) {
                             UVBan b = new UVBan ();
-                            b.read(fis);
+                            b.read(fid);
                             pl.banHistory.add(b);
                         } else if ( ch.equalsIgnoreCase("nooban") ) {
                             continue;
                         } else if ( ch.equalsIgnoreCase("thwarn") ) {
                             pl.warning = new UVWarning ();
-                            if ( !pl.warning.read(fis) )
+                            if ( !pl.warning.read(fid) )
                                 pl.warning = null;
                         } else if ( ch.equalsIgnoreCase("onwarn") ) {
                             UVWarning w = new UVWarning();
-                            w.read(fis);
+                            w.read(fid);
                             pl.warnHistory.add(w);
                         } else if ( ch.equalsIgnoreCase("nowarn") ) {
                             continue;
                         } else if ( ch.equalsIgnoreCase("onkick") ) {
                             UVKick k = new UVKick();
-                            k.read(fis);
+                            k.read(fid);
                             pl.kickHistory.add(k);
                         } else if ( ch.equalsIgnoreCase("nokick") ) {
                             continue;
                         } else if ( ch.equalsIgnoreCase("friend") ) {
-                            pl.friends.add(MStream.readString(fis, 16));
+                            pl.friends.add(MStream.readString(fid, 16));
                         } else if ( ch.equalsIgnoreCase("nofrie") ) {
                             continue;
                         } else if ( ch.equalsIgnoreCase("onnote") ) {
-                            pl.notes.put(MStream.readString(fis, 16), MStream.readString(fis, 60));
+                            pl.notes.put(MStream.readString(fid, 16), MStream.readString(fid, 60));
                         } else if ( ch.equalsIgnoreCase("nonote") ) {
                             continue;
                         } else {
                             isPlayerChunk = false;
                         }                                                    
+                    }
+                    
+                    if ( to >= 1000 ) {
+                        MLog.d("Whoops there was too much data in the base lol.");
                     }
                     
                     if ( isGood )
@@ -350,7 +396,7 @@ public class localEngine implements UltraVisionAPI {
                 }
             }
             
-            fis.close();
+            fid.close();            
             return MResult.RES_SUCCESS;
         } catch (IOException ex) {
             MLog.e("Can't read database: " + ex.getMessage());
