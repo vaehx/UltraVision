@@ -5,6 +5,9 @@
 package com.prosicraft.ultravision.base;
 
 import com.prosicraft.ultravision.util.MAuthorizer;
+import com.prosicraft.ultravision.util.MStream;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Time;
 import org.bukkit.entity.Player;
@@ -15,15 +18,18 @@ import org.bukkit.entity.Player;
  */
 public class UVWarning {
     private String reason = "Not provided";
-    private Player warner = null;
+    private String warner = null;
     private Time warnTime = null;   // Time decremented by thread
     private Time mWarnTime = null;
     private String ServerName = "Not provided";
     private boolean global = false;
     
+    public UVWarning () {        
+    }    
+    
     public UVWarning (String reason, Player warner, boolean global, Time warnTime) {
         this.reason = reason;
-        this.warner = warner;
+        this.warner = warner.getName();
         this.warnTime = warnTime;
         this.mWarnTime = warnTime;
         this.ServerName = ((warner != null) ? warner.getServer().getName() : ServerName);
@@ -42,17 +48,31 @@ public class UVWarning {
         return reason;
     }
     
-    public Player getWarner () {
+    public String getWarner () {
         return warner;
     }
     
     public String getFormattedInfo () {
-        return ((global) ? "globally " : "") + "warned by " + warner.getName() + ((mWarnTime != null) ? " for " + mWarnTime.toString() : "") + ". Reason: " + reason;                  
+        return ((global) ? "globally " : "") + "warned by " + warner + ((mWarnTime != null) ? " for " + mWarnTime.toString() : "") + ". Reason: " + reason;                  
+    }
+    
+    public boolean read ( FileInputStream in ) throws IOException {
+        
+        if ( (this.warner = MStream.readString(in, 16)).trim().equalsIgnoreCase("") )
+            return false;
+        this.reason = MStream.readString(in, 60);
+        this.warnTime = new Time ( (long)in.read() );
+        this.mWarnTime = new Time ( (long)in.read() );
+        this.ServerName = MStream.readString(in, 16);
+        this.global = MStream.readBool(in);
+        
+        return true;
+        
     }
     
     public void write ( PrintWriter out ) {
         
-        out.write(MAuthorizer.getCharArray(warner.getName(), 16));
+        out.write(MAuthorizer.getCharArray(warner, 16));
         out.write(MAuthorizer.getCharArray(reason, 60));        
         out.write( (int) warnTime.getTime() );
         out.write( (int) mWarnTime.getTime() );

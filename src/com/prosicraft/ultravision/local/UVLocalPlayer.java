@@ -35,14 +35,16 @@ public class UVLocalPlayer extends CraftPlayer {
     public UVWarning          warning  = null; // only one warning on local    
     public List<UVWarning> warnHistory = new ArrayList<UVWarning>();    
     public List<UVKick>    kickHistory = new ArrayList<UVKick>();
-    public List<Player>        friends = new ArrayList<Player>();    
-    public Map<Player, String> notes   = new HashMap<Player, String>();
+    public List<String>    friends     = new ArrayList<String>();    
+    public Map<String, String> notes   = new HashMap<String, String>();
     public int             praise      = 0;
     public List<String>    praiser     = new ArrayList<String>();
     public boolean         isMute      = false;
-    public Time            onlineTime  = null;
+    public Time            onlineTime  = new Time (0);
+    public Time            lastLogin   = null;    
     public File            logFile     = null;
-    public PrintWriter     logOut      = null;    
+    public PrintWriter     logOut      = null;
+    public boolean         offline     = true;
     
     
     public UVLocalPlayer ( CraftServer server, EntityPlayer ep, String logpath ) {
@@ -61,7 +63,7 @@ public class UVLocalPlayer extends CraftPlayer {
         }                                
     }
     
-    public UVLocalPlayer ( Player p, String logpath ) {
+    public UVLocalPlayer ( Player p, String logpath ) {        
         super ((CraftServer)p.getServer(), ((CraftPlayer)p).getHandle());
         logFile = new File ( logpath, p.getName() + ".usr" );
         if ( !logFile.exists() ) {
@@ -75,7 +77,7 @@ public class UVLocalPlayer extends CraftPlayer {
                 ioex.printStackTrace();                
             }
         } 
-    }        
+    }           
     
     public void log (String txt) {
         if ( logOut != null ) {

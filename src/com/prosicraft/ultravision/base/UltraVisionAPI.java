@@ -36,6 +36,8 @@ public interface UltraVisionAPI {
     // =                   AUTHENTICATION IMPLEMENT                 =
     // ==============================================================
     
+    public void playerJoin ( Player p );
+    public void playerLeave ( Player p );
     public MResult registerAuthorizer ( MAuthorizer authorizer );    
     public MAuthorizer getAuthorizer ();       
     public boolean isAuthInit ();
@@ -77,7 +79,7 @@ public interface UltraVisionAPI {
     // ====== MISC ======
     public MResult addNote ( CommandSender cs, Player p, String note );    
     public MResult delNote ( CommandSender cs, Player p, int id );
-    public Map<Player, String> getNotes ( Player p );            
+    public Map<String, String> getNotes ( Player p );            
     public MResult setMute ( CommandSender cs, Player p );
     public boolean isMute ( Player p );        
     
@@ -109,7 +111,7 @@ public interface UltraVisionAPI {
     
     public MResult addFriend ( Player p, Player p2 );
     public MResult delFriend ( Player p, Player p2 );
-    public List<Player> getFriends ( Player p );    
+    public List<String> getFriends ( Player p );    
     public MResult setProperty ( Player p, String prop );
     public List<String> getProperties ( Player p );        
     

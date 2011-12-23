@@ -12,6 +12,7 @@ import com.prosicraft.ultravision.base.UVBan;
 import com.prosicraft.ultravision.base.UVKick;
 import com.prosicraft.ultravision.base.UVWarning;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
+import com.prosicraft.ultravision.util.MStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Time;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -45,6 +47,7 @@ public class localEngine implements UltraVisionAPI {
     public localEngine (String pluginDir) {
         this.players = new ArrayList<UVLocalPlayer>();        
         this.plugDir = pluginDir;
+        this.db = new File ( pluginDir, "data.db" );
     }
     
     
@@ -92,6 +95,7 @@ public class localEngine implements UltraVisionAPI {
     //                 MAIN Section
     // ============================================================
     
+    @Override
     public MResult flush () {
         
         if ( db == null ) return MResult.RES_NOTINIT;
@@ -113,6 +117,8 @@ public class localEngine implements UltraVisionAPI {
             MLog.e("Can't save database: File not found"); return MResult.RES_ERROR;
         }
         
+        MLog.d("Start writing Chunks to " + MConfiguration.normalizePath(db));
+        
         // upcomging here: save all fields, that have to be saved :D                                                     
         fos.write(MAuthorizer.getCharArray("chunk1", 6));  // CHUNK 1 = general Information
         
@@ -123,6 +129,9 @@ public class localEngine implements UltraVisionAPI {
             fos.write(MAuthorizer.getCharArray("player", 6)); // PLAYER = a player            
             fos.write(MAuthorizer.getCharArray(players.get(i).getName(), 16));  // Write player name                                    
             fos.write( players.get(i).isMute ? 1 : 0 ); // Write mute state
+            MLog.d("players = " + String.valueOf(players));
+            MLog.d("Player(" + i + ") = " + String.valueOf(players.get(i)));
+            MLog.d("Player.onlineTime = " + String.valueOf(players.get(i).onlineTime));
             fos.write( (int)players.get(i).onlineTime.getTime() );
             fos.write(players.get(i).praise);   // Write praise
                         
@@ -180,24 +189,27 @@ public class localEngine implements UltraVisionAPI {
             
             //=== Write Friends
             if ( !players.get(i).friends.isEmpty() ) {
-                for ( Player friend : players.get(i).friends ) {
+                for ( String friend : players.get(i).friends ) {
                     fos.write(MAuthorizer.getCharArray("friend", 6));
-                    fos.write(MAuthorizer.getCharArray(friend.getName(), 16));
+                    fos.write(MAuthorizer.getCharArray(friend, 16));
                 }
             } else {
-                fos.write(MAuthorizer.getCharArray("nofri", 6));
+                fos.write(MAuthorizer.getCharArray("nofrie", 6));
             }
             
             //=== Write notes
             if ( !players.get(i).notes.isEmpty() ) {
-                for ( Player devil : players.get(i).notes.keySet() ) {
+                for ( String devil : players.get(i).notes.keySet() ) {
                     fos.write(MAuthorizer.getCharArray("onnote", 6));
-                    fos.write(MAuthorizer.getCharArray(devil.getName(), 16));
+                    fos.write(MAuthorizer.getCharArray(devil, 16));
                     fos.write(MAuthorizer.getCharArray(players.get(i).notes.get(devil), 60));
                 }
             } else {
                 fos.write(MAuthorizer.getCharArray("nonote", 6));
             }
+            
+            //=== Write Player end
+            fos.write(MAuthorizer.getCharArray("plrend", 6));
             
         }                
         
@@ -209,11 +221,31 @@ public class localEngine implements UltraVisionAPI {
         
     }
     
+    private String rch ( FileInputStream in ) {
+        return readChunkHead (in);
+    }
+    
+    private String readChunkHead ( FileInputStream in ) {
+        return readString ( in, 6 );              
+    }
+    
+    private String readString ( FileInputStream in, int bytes ) {
+        byte[] buf = new byte[bytes];
+        try {
+            in.read(buf);            
+            return new String (buf);
+        } catch ( IOException ioex ) {
+            MLog.e("(fetchDB) Error while reading chars: " + ioex.getMessage());
+            ioex.printStackTrace();
+            return "";
+        }  
+    }
+    
     /**
      * This function MANUALLY loads the data. Use this for serverreload
      * @return Result
      */
-    public MResult fetchData () {
+    public MResult fetchData (Player p) {
         
         MLog.d("Fetching local data from: " + ((db == null) ? "Not initialized config file." : db.getAbsolutePath()));
         if ( db == null ) return MResult.RES_NOTINIT;
@@ -222,12 +254,17 @@ public class localEngine implements UltraVisionAPI {
             MLog.d ( "(fetchDB) File doesn't exist at " + MConfiguration.normalizePath(db) );
             try {
                 db.createNewFile();
-                MLog.d("(fetchDB) Created new file at " + MConfiguration.normalizePath(db));
+                MLog.d("(fetchDB) Created new file at " + MConfiguration.normalizePath(db));                
             } catch (IOException ioex) {
                 MLog.e("(fetchDB) Can't create new file at " + MConfiguration.normalizePath(db));
                 return MResult.RES_ERROR;
             }
         }
+        
+        if ( db.length() == 0 ) {
+            MLog.i("Database is empty.");
+            return MResult.RES_SUCCESS;
+        }            
         
         FileInputStream fis;
         try {
@@ -237,23 +274,80 @@ public class localEngine implements UltraVisionAPI {
         }
         
         try {                                    
-            int playercount = fis.read();
-            int chunksize = fis.read();
             
-            MLog.d("(fetchDB) Start reading " + String.valueOf(playercount) + " players...");            
-            for ( int a=0; a < playercount; a++ ) {                
-                for (int pnt=0;pnt < chunksize; pnt++) {                
-                    int chunk2size = fis.read();
-                    int namechunksize = fis.read();
-                    byte[] namebuffer = new byte[namechunksize];
-                    fis.read(namebuffer);                    
-                    String name = new String(namebuffer);
+            String ch = "nochnk";
+            while ( !ch.equalsIgnoreCase("theend") ) {
+                ch = readChunkHead ( fis );
+                if ( ch.equals("chunk2") ) {
                     
-                    // TODO!!!
+                    MLog.d("(fetchDB) Start reading player chunk...");
                     
-                    if (name.equals(""))                         
-                        fis.skip(chunk2size - namechunksize);
-                }           
+                } else if ( ch.equals("player") ) {                                        
+                    
+                    boolean isGood = false;
+                    
+                    isGood =  readString(fis, 16).trim().equalsIgnoreCase(p.getName());
+                    
+                    UVLocalPlayer pl = new UVLocalPlayer (p, plugDir);
+                    pl.isMute = ((fis.read() == 0) ? false : true);
+                    pl.onlineTime = new Time ((long)fis.read());
+                    pl.praise = fis.read();                                        
+                    
+                    // Now read chunks
+                    boolean isPlayerChunk = true;
+                    while ( isPlayerChunk ) {
+                        if ( (ch = rch ( fis )).equalsIgnoreCase("theend") )
+                            { isPlayerChunk = false; continue; }
+                        
+                        MLog.d("Read ch (" + ch + ")");
+                        
+                        if ( ch.equalsIgnoreCase("oprais") ) {                        
+                            pl.praiser.add( readString (fis, 16) );
+                        } else if ( ch.equalsIgnoreCase("nprais") ) {
+                            continue;
+                        } else if ( ch.equalsIgnoreCase("theban") ) {
+                            pl.ban = new UVBan ();
+                            if ( !pl.ban.read(fis) )
+                                pl.ban = null;
+                        } else if ( ch.equalsIgnoreCase("oneban") ) {
+                            UVBan b = new UVBan ();
+                            b.read(fis);
+                            pl.banHistory.add(b);
+                        } else if ( ch.equalsIgnoreCase("nooban") ) {
+                            continue;
+                        } else if ( ch.equalsIgnoreCase("thwarn") ) {
+                            pl.warning = new UVWarning ();
+                            if ( !pl.warning.read(fis) )
+                                pl.warning = null;
+                        } else if ( ch.equalsIgnoreCase("onwarn") ) {
+                            UVWarning w = new UVWarning();
+                            w.read(fis);
+                            pl.warnHistory.add(w);
+                        } else if ( ch.equalsIgnoreCase("nowarn") ) {
+                            continue;
+                        } else if ( ch.equalsIgnoreCase("onkick") ) {
+                            UVKick k = new UVKick();
+                            k.read(fis);
+                            pl.kickHistory.add(k);
+                        } else if ( ch.equalsIgnoreCase("nokick") ) {
+                            continue;
+                        } else if ( ch.equalsIgnoreCase("friend") ) {
+                            pl.friends.add(MStream.readString(fis, 16));
+                        } else if ( ch.equalsIgnoreCase("nofrie") ) {
+                            continue;
+                        } else if ( ch.equalsIgnoreCase("onnote") ) {
+                            pl.notes.put(MStream.readString(fis, 16), MStream.readString(fis, 60));
+                        } else if ( ch.equalsIgnoreCase("nonote") ) {
+                            continue;
+                        } else {
+                            isPlayerChunk = false;
+                        }                                                    
+                    }
+                    
+                    if ( isGood )
+                        players.add(pl);
+                    
+                }
             }
             
             fis.close();
@@ -263,7 +357,86 @@ public class localEngine implements UltraVisionAPI {
             ex.printStackTrace(); return MResult.RES_ERROR;
         }
         
-    }
+    }            
+
+    @Override
+    public void playerJoin(Player p) {
+        if ( p == null ) {
+            MLog.d("p is null!");
+            return;
+        }        
+        UVLocalPlayer thePlayer = null;
+        if ( (valid (p)) == null ) {
+            MLog.d("Creating new Player instance...");
+            
+            MResult tr = MResult.RES_UNKNOWN;
+            if ( (tr = fetchData(p)) == MResult.RES_SUCCESS )
+                MLog.d("Successfully read player from database.");
+            else
+                MLog.d("Player not in database or other error: " + tr.toString());
+            
+            for ( UVLocalPlayer uP : players ) {
+                if ( uP.getName().equalsIgnoreCase(p.getName()) ) {                    
+                    UVLocalPlayer back = uP;
+                    players.remove(uP);
+                    uP = new UVLocalPlayer ( p, this.plugDir );
+                    uP.ban = back.ban;
+                    uP.banHistory = back.banHistory;
+                    uP.friends = back.friends;
+                    uP.isMute = back.isMute;
+                    uP.kickHistory = back.kickHistory;
+                    uP.logFile = back.logFile;
+                    uP.logOut = back.logOut;
+                    uP.notes = back.notes;
+                    uP.onlineTime = back.onlineTime;
+                    uP.praise = back.praise;
+                    uP.praiser = back.praiser;
+                    uP.warnHistory = back.warnHistory;
+                    uP.warning = back.warning;
+                    players.add(uP);
+                    thePlayer = uP;
+                }
+            }
+            
+            if ( thePlayer == null ) {                                                                                                                               
+                    thePlayer = new UVLocalPlayer (p, plugDir);
+                    thePlayer.onlineTime = new Time (0);                
+                    players.add(thePlayer);
+                    MLog.d("Added new player.");
+            }     
+            
+            thePlayer.lastLogin =
+                    new Time (Calendar.getInstance().getTime().getTime());            
+            
+            thePlayer.offline = false;                        
+            
+        } else if ( (thePlayer = valid (p)).offline ) {
+            thePlayer.offline = false; 
+            thePlayer.lastLogin =
+                    new Time (Calendar.getInstance().getTime().getTime()); 
+            MLog.d("Player already added but offline. Now online.");
+        } else {
+            MLog.d ("Player already joined: " + p.getName());
+        }
+    }        
+
+    @Override
+    public void playerLeave(Player p) {
+        if ( p == null ) return;        
+        UVLocalPlayer uP = null;
+        if ( (uP = valid (p)) != null ) {   
+            Time t = new Time ( Calendar.getInstance().getTime().getTime() );
+            uP.offline = true;            
+            MResult res = MResult.RES_UNKNOWN;            
+            if ( (res = addTime(new Time(t.getTime() - uP.lastLogin.getTime()), p)) == MResult.RES_SUCCESS ) {
+                uP.log( "**** Left successfully." );
+            } else {
+                uP.log( "[ERROR] ***** Left with error: " + res.toString() );
+            }                            
+        } else {
+            MLog.d("Player never joined: " + p.getName());
+        }
+    }           
 
     @Override
     public Map<String, String> getAll(Player p) {
@@ -535,7 +708,7 @@ public class localEngine implements UltraVisionAPI {
         if ( (sender = valid (cs)) == null )
             return MResult.RES_NOACCESS;
         
-        uP.notes.put(sender, note);
+        uP.notes.put(sender.getName(), note);
         
         return MResult.RES_SUCCESS;
     }
@@ -552,19 +725,19 @@ public class localEngine implements UltraVisionAPI {
         if ( uP.notes.size() <= id )
             return MResult.RES_NOTINIT;
         
-        uP.notes.remove(id);
+        uP.notes.remove (String.valueOf(uP.notes.keySet().toArray()[id]));
         
         return MResult.RES_SUCCESS;
     }
 
     @Override
-    public Map<Player, String> getNotes(Player p) {
+    public Map<String, String> getNotes(Player p) {
         UVLocalPlayer uP; UVLocalPlayer sender;
         if ( (uP = valid (p)) == null )
             return null;
         
         if ( uP.notes == null || uP.notes.isEmpty() )
-            return new HashMap<Player, String>();
+            return new HashMap<String, String>();
         
         return uP.notes;                
     }
@@ -683,10 +856,10 @@ public class localEngine implements UltraVisionAPI {
         if ( (uT = valid (p2)) == null )
             return MResult.RES_NOTGIVEN;
         
-        if ( uP.friends.contains(uT) )
+        if ( uP.friends.contains(uT.getName()) )
             return MResult.RES_ALREADY;
         
-        uP.friends.add(uT);
+        uP.friends.add(uT.getName());
         
         return MResult.RES_SUCCESS;
     }
@@ -700,21 +873,21 @@ public class localEngine implements UltraVisionAPI {
         if ( (uT = valid (p2)) == null )
             return MResult.RES_NOTGIVEN;
         
-        if ( !uP.friends.contains(uT) )
+        if ( !uP.friends.contains(uT.getName()) )
             return MResult.RES_ALREADY;
         
-        uP.friends.remove(uT);
+        uP.friends.remove(uT.getName());
         
         return MResult.RES_SUCCESS;
     }
 
     @Override
-    public List<Player> getFriends(Player p) {
+    public List<String> getFriends(Player p) {
         UVLocalPlayer uP;
         if ( (uP = valid (p)) == null )
             return null;
         
-        return ( (uP.friends == null) ? new ArrayList<Player>() : uP.friends );
+        return ( (uP.friends == null) ? new ArrayList<String>() : uP.friends );
     }
 
     @Override
@@ -730,11 +903,11 @@ public class localEngine implements UltraVisionAPI {
     public UVLocalPlayer valid ( Player p ) {
         UVLocalPlayer uP;
         if ( !isAuthInit() )
-            return null;
+            return null;               
         
         if ( (uP = this.getUVPlayer(p)) == null ) {
-            this.players.add( new UVLocalPlayer (p, plugDir) );
-            MLog.i("Registered new player '" + p.getName() + "'.");
+            //this.players.add( new UVLocalPlayer (p, plugDir) );
+            //MLog.i("Registered new player '" + p.getName() + "'.");
         }
         
         return uP;

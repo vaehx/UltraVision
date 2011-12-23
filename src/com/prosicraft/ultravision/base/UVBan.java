@@ -5,8 +5,12 @@
 package com.prosicraft.ultravision.base;
 
 import com.prosicraft.ultravision.util.MAuthorizer;
+import com.prosicraft.ultravision.util.MStream;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Time;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 /**
@@ -15,15 +19,18 @@ import org.bukkit.entity.Player;
  */
 public class UVBan {       
     private String reason = "Not provided.";
-    private Player banner = null; // if player == banner --> unban
+    private String banner = null; // if player == banner --> unban
     private boolean global = false;    
     private Time timedif = null;
     private Time mTimeDif = null;    
     private String ServerName = "Not provided";
     
+    public UVBan () {        
+    }
+    
     public UVBan (String reason, Player banner, boolean global, Time timedif) {
         this.reason = reason;
-        this.banner = banner;
+        this.banner = banner.getName();
         this.global = global;
         this.timedif = timedif;
         this.mTimeDif = timedif;
@@ -46,7 +53,7 @@ public class UVBan {
         return global;
     }                
     
-    public Player getBanner () {
+    public String getBanner () {
         return banner;
     }
     
@@ -64,12 +71,26 @@ public class UVBan {
     }
     
     public String getFormattedInfo () {
-        return ((global) ? "globally " : "") + "banned by " + banner.getName() + ((mTimeDif != null) ? " for " + mTimeDif.toString() : "" ) + ". Reason: " + reason;
+        return ((global) ? "globally " : "") + "banned by " + banner + ((mTimeDif != null) ? " for " + mTimeDif.toString() : "" ) + ". Reason: " + reason;
+    }
+    
+    public boolean read ( FileInputStream in ) throws IOException {                
+        
+        this.banner = MStream.readString(in, 16);        
+        if ( this.banner.trim().equalsIgnoreCase("") )
+            return false;
+        this.reason = MStream.readString(in, 60);
+        this.global = MStream.readBool(in);
+        this.timedif = new Time ( (long)in.read() );
+        this.mTimeDif = new Time ( (long)in.read() );
+        this.ServerName = MStream.readString(in, 16);
+        
+        return true;
     }
     
     public void write ( PrintWriter out ) {
         
-        out.write(MAuthorizer.getCharArray(banner.getName(), 16));
+        out.write(MAuthorizer.getCharArray(banner, 16));
         out.write(MAuthorizer.getCharArray(reason, 60));                
         out.write( global ? 1 : 0 );        
         out.write( (int)timedif.getTime() );

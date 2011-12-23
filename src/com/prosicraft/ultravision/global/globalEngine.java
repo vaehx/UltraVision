@@ -148,7 +148,7 @@ public class globalEngine implements UltraVisionAPI {
     }
 
     @Override
-    public Map<Player, String> getNotes(Player p) {
+    public Map<String, String> getNotes(Player p) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -218,7 +218,7 @@ public class globalEngine implements UltraVisionAPI {
     }
 
     @Override
-    public List<Player> getFriends(Player p) {
+    public List<String> getFriends(Player p) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -239,6 +239,16 @@ public class globalEngine implements UltraVisionAPI {
 
     @Override
     public UVBan getBan(Player p, String servername) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void playerJoin(Player p) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void playerLeave(Player p) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
     

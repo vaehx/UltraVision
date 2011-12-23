@@ -4,13 +4,11 @@
  */
 package com.prosicraft.ultravision.chat;
 
-import com.prosicraft.ultravision.packet.Packet1Login;
 import com.prosicraft.ultravision.util.MAuthorizer;
 import com.prosicraft.ultravision.util.MLog;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.StringStack;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;

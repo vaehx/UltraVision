@@ -2,8 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  * 
- *          21.08.2011: Flag system is working now... so never forget to set the dots in the Config Pathes!!! ;P
- *          seems to be ready now :) 
+ *      TODO: Look at github. 
  * 
  * 
  */
@@ -21,11 +20,8 @@ import com.prosicraft.ultravision.util.MLog;
 import com.prosicraft.ultravision.util.MResult;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.Set;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -120,6 +116,8 @@ public class ultravision extends JavaPlugin {
             else 
                 MLog.e("Authorizer can't hook into Engine: " + tr.toString());
             
+            //tr = MResult.RES_UNKNOWN;           
+            
         } else  {
             
             api = new globalEngine ();
@@ -169,6 +167,10 @@ public class ultravision extends JavaPlugin {
         config.set("general.savestats", config.getBoolean("general.savestats", true));
 
         updateConfig();
+        
+        for ( Player p : getServer().getOnlinePlayers() ) {
+            api.playerLeave(p);
+        }
         
         if ( api != null ) {
             MResult r;
@@ -286,6 +288,8 @@ public class ultravision extends JavaPlugin {
             if ( api.isBanned(p) )
                 p.kickPlayer( api.getBan(p, getServer().getServerName()).getFormattedInfo() );
             
+            api.playerJoin(p);                        
+            
 //            // Load Supervising Flags if User is a Target of a manager
 //            if (config.getBoolean(uP.getPath() + "isTarget", false)) {                                                                                
 //                
@@ -308,8 +312,6 @@ public class ultravision extends JavaPlugin {
 //                }
 //                
 //            }                                    
-            
-            //config.set(uP.getPath() + "jointime", uP.getJoinTime());
 
             config.save();
             
@@ -340,8 +342,10 @@ public class ultravision extends JavaPlugin {
     public boolean playerLeave(Player p) {
         if (p != null) {                                                                               
             
+            api.playerLeave(p);
+            
             if ( auth.loggedIn(p) )
-                auth.logout(p);                         
+                auth.logout(p);                                                 
             
             uvserver.sendMessage(p.getName() + " left the channel via Minecraft.");                        
 
@@ -578,6 +582,70 @@ public class ultravision extends JavaPlugin {
                 }
                 return true;
             }            
+        }
+        
+        if (cmd.getName().equalsIgnoreCase("uvwarn")) {
+            if ( args.length < 2 ) {
+                p.sendMessage(ChatColor.RED + "Too few arguments."); return true;
+            }
+            List<Player> mayWarn = getServer().matchPlayer(args[0]);
+            
+            if ( mayWarn == null || mayWarn.isEmpty() ) {
+                p.sendMessage(ChatColor.RED + "Theres no player called '" + args[0] + "'."); return true;
+            }
+            
+            if ( mayWarn.size() > 1 ) {
+                p.sendMessage(ChatColor.DARK_AQUA + "There are some players matching '" + args[0] + "'");
+                String plist = "";
+                for ( Player toWarn : mayWarn ) {                        
+                    plist += ChatColor.GRAY + toWarn.getName() + ( (mayWarn.indexOf(toWarn) != (mayWarn.size() -1)) ? ChatColor.DARK_GRAY + ", " : "" );
+                }
+                p.sendMessage(plist);
+                return true;
+            } else {    // Got ONE player
+                String reason = "";
+                for ( int i = 1; i < args.length; i++ )
+                    reason += args[i].trim();
+                MResult res;
+                if ( (res = api.setWarn(p, mayWarn.get(0), ( (args.length >= 2) ? reason : "No reason provided." ))) == MResult.RES_SUCCESS) {
+                    ownBroadcast(ChatColor.AQUA + "Player " + mayWarn.get(0).getName() + " has been warned successfully." );                    
+                } else {
+                    p.sendMessage(ChatColor.RED + "Can't warn player: " + res.toString());
+                }
+                return true;
+            }  
+        }
+        
+        if (cmd.getName().equalsIgnoreCase("uvunwarn")) {
+            if ( args.length < 2 ) {
+                p.sendMessage(ChatColor.RED + "Too few arguments."); return true;
+            }
+            List<Player> mayWarn = getServer().matchPlayer(args[0]);
+            
+            if ( mayWarn == null || mayWarn.isEmpty() ) {
+                p.sendMessage(ChatColor.RED + "Theres no player called '" + args[0] + "'."); return true;
+            }
+            
+            if ( mayWarn.size() > 1 ) {
+                p.sendMessage(ChatColor.DARK_AQUA + "There are some players matching '" + args[0] + "'");
+                String plist = "";
+                for ( Player toWarn : mayWarn ) {                        
+                    plist += ChatColor.GRAY + toWarn.getName() + ( (mayWarn.indexOf(toWarn) != (mayWarn.size() -1)) ? ChatColor.DARK_GRAY + ", " : "" );
+                }
+                p.sendMessage(plist);
+                return true;
+            } else {    // Got ONE player
+                String reason = "";
+                for ( int i = 1; i < args.length; i++ )
+                    reason += args[i].trim();
+                MResult res;
+                if ( (res = api.unsetWarn(p, mayWarn.get(0))) == MResult.RES_SUCCESS) {
+                    ownBroadcast(ChatColor.AQUA + "Player " + mayWarn.get(0).getName() + " has been unwarned successfully." );                    
+                } else {
+                    p.sendMessage(ChatColor.RED + "Can't unwarn player: " + res.toString());
+                }
+                return true;
+            }  
         }
         
         if (cmd.getName().equalsIgnoreCase("uvpraise")) {
