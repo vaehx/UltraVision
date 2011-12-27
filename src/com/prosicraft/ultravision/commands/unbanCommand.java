@@ -16,9 +16,9 @@ import org.bukkit.entity.Player;
  *
  * @author passi
  */
-public class kickCommand extends extendedCommand {
+public class unbanCommand extends extendedCommand {
     
-    public kickCommand ( ultravision uv, String[] args ) {
+    public unbanCommand ( ultravision uv, String[] args ) {
         super ( uv, args );
     }
 
@@ -27,7 +27,7 @@ public class kickCommand extends extendedCommand {
         
         try {
             
-            // /kick <player> [reason]
+            // /ban <player> [reason]   --> localban
             if ( this.hasArgs(1) || this.hasArgs(2) ) {
                 
                 this.ev(p);
@@ -51,12 +51,12 @@ public class kickCommand extends extendedCommand {
                         reason += this.getArg(i).trim();
                     MResult res;
                     UltraVisionAPI api = ((ultravision)this.getParent()).getAPI();
-                    if ( (res = api.doKick(p, mayKick.get(0), ( (getArgs().length >= 2) ? reason : "No reason provided." ))) == MResult.RES_SUCCESS) {
-                        int c = ((ultravision)getParent()).ownBroadcast(ChatColor.AQUA + mayKick.get(0).getName() + ChatColor.DARK_AQUA + " kicked by " + ChatColor.AQUA + p.getName() + ChatColor.DARK_AQUA + ". Reason: " + ChatColor.AQUA + ( (numArgs() >= 2) ? reason : "No reason." ));                    
+                    if ( (res = api.pardon(p, mayKick.get(0), ( (getArgs().length >= 2) ? reason : "No reason provided." ))) == MResult.RES_SUCCESS) {
+                        int c = ((ultravision)getParent()).ownBroadcast(ChatColor.AQUA + mayKick.get(0).getName() + ChatColor.DARK_AQUA + " pardoned by " + ChatColor.AQUA + p.getName() + ChatColor.DARK_AQUA + " (local). Reason: " + ChatColor.AQUA + ( (numArgs() >= 2) ? reason : "No reason." ));                    
                     } else {
-                        p.sendMessage(ChatColor.RED + "Can't kick player: " + res.toString());
+                        p.sendMessage(ChatColor.RED + "Can't ban player: " + res.toString());
                     }
-                    return suc (p, "Kicked player successfully.");
+                    return suc (p, "Unbanned player. (local)");
                 } 
                 
             } else {
@@ -64,7 +64,7 @@ public class kickCommand extends extendedCommand {
             }
             
         } catch ( Exception ex ) {
-            MLog.e("[KICKCMD] " + ex.getMessage());
+            MLog.e("[UNBANCMD] " + ex.getMessage());
             return err ( p, "Failed to execute command." );
         } 
         

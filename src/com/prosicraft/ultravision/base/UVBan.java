@@ -33,7 +33,7 @@ public class UVBan {
         this.global = global;
         this.timedif = timedif;
         this.mTimeDif = timedif;
-        this.ServerName = ((banner != null) ? banner.getServer().getName() : ServerName);
+        this.ServerName = ((banner != null) ? banner.getServer().getServerName() : ServerName);
     }       
     
     public boolean isTempBan () {
@@ -46,6 +46,10 @@ public class UVBan {
     
     public Time getTimeRemain () {
         return timedif;
+    }
+    
+    public String getFormattedTimeRemain () {
+        return ((timedif != null && timedif.getTime() != 0) ? timedif.toString() : "" );
     }
     
     public boolean isGlobal () {
@@ -75,14 +79,14 @@ public class UVBan {
     
     public boolean read ( DataInputStream in ) throws IOException {                
         
-        this.banner = MStream.readString(in, 16);        
+        this.banner = MStream.readString(in, 16).trim();        
         if ( this.banner.trim().equalsIgnoreCase("") )
             return false;
-        this.reason = MStream.readString(in, 60);
+        this.reason = MStream.readString(in, 60).trim();
         this.global = MStream.readBool(in);
         this.timedif = new Time ( (long)in.read() );
         this.mTimeDif = new Time ( (long)in.read() );
-        this.ServerName = MStream.readString(in, 16);
+        this.ServerName = MStream.readString(in, 16).trim();
         
         return true;
     }
@@ -91,8 +95,8 @@ public class UVBan {
         out.write(MAuthorizer.getCharArrayB(banner, 16));
         out.write(MAuthorizer.getCharArrayB(reason, 60));                
         out.write( global ? 1 : 0 );        
-        out.write( (int)timedif.getTime() );
-        out.write( (int)mTimeDif.getTime() );
+        out.write( (int)((timedif == null) ? 0 : timedif.getTime()) );
+        out.write( (int)((mTimeDif == null) ? 0 : mTimeDif.getTime()) );
         out.write(MAuthorizer.getCharArrayB(ServerName, 16));
 
         out.flush();       

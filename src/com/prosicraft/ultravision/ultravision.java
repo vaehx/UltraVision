@@ -11,6 +11,13 @@ package com.prosicraft.ultravision;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.chat.UVChatListener;
 import com.prosicraft.ultravision.chat.UVServer;
+import com.prosicraft.ultravision.commands.banCommand;
+import com.prosicraft.ultravision.commands.commandResult;
+import com.prosicraft.ultravision.commands.kickCommand;
+import com.prosicraft.ultravision.commands.praiseCommand;
+import com.prosicraft.ultravision.commands.unbanCommand;
+import com.prosicraft.ultravision.commands.unwarnCommand;
+import com.prosicraft.ultravision.commands.warnCommand;
 import com.prosicraft.ultravision.global.globalEngine;
 import com.prosicraft.ultravision.local.localEngine;
 import com.prosicraft.ultravision.util.MAuthorizer;
@@ -20,7 +27,6 @@ import com.prosicraft.ultravision.util.MLog;
 import com.prosicraft.ultravision.util.MResult;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.ResourceBundle;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -96,6 +102,7 @@ public class ultravision extends JavaPlugin {
         PluginManager pm = this.getServer().getPluginManager();
 
         pm.registerEvent(Type.PLAYER_JOIN, playerListener, Priority.Lowest, this);                
+        pm.registerEvent(Type.PLAYER_LOGIN, playerListener, Priority.Lowest, this);
         pm.registerEvent(Type.PLAYER_QUIT, playerListener, Priority.Lowest, this);
         pm.registerEvent(Type.PLAYER_CHAT, playerListener, Priority.High, this);
         pm.registerEvent(Type.PLAYER_COMMAND_PREPROCESS, playerListener, Priority.Low, this);    
@@ -130,7 +137,9 @@ public class ultravision extends JavaPlugin {
             else 
                 MLog.e("Authorizer can't hook into Engine: " + tr.toString());
             
-        }                                    
+        }   
+        
+        playerListener.initUV(api);
         
         MLog.d("Starting server...");
         
@@ -277,18 +286,21 @@ public class ultravision extends JavaPlugin {
     }
 
     // When a player joins the game...
-    public void playerJoin(Player p) {
+    public boolean playerJoin(Player p) {
+        
+        boolean res = true;
         
         if ( p == null )
-            return;
+            return true;    // not false, otherwise it would crash
             
             if ( !auth.isRegistered(p) )
                 p.sendMessage (ChatColor.YELLOW + "Warning: You're not registered in the login system yet!");                                    
             
-            if ( api.isBanned(p) )
-                p.kickPlayer( api.getBan(p, getServer().getServerName()).getFormattedInfo() );
+            api.playerJoin(p);
             
-            api.playerJoin(p);                        
+            if ( api.isBanned(p) ) {                
+                return false;       
+            }
             
 //            // Load Supervising Flags if User is a Target of a manager
 //            if (config.getBoolean(uP.getPath() + "isTarget", false)) {                                                                                
@@ -320,6 +332,8 @@ public class ultravision extends JavaPlugin {
             uvserver.sendMessage(p.getName() + " joined the server via Minecraft.");
 
             checkPlayers();
+            
+            return res;
             
     }
 
@@ -553,68 +567,28 @@ public class ultravision extends JavaPlugin {
         }
         
         if (cmd.getName().equalsIgnoreCase("uvkick") ) {
-            if ( args.length < 1 )
-                { p.sendMessage ( ChatColor.RED + "Too few arguments."); return true; }
-            List<Player> mayKick = getServer().matchPlayer(args[0]);
-            
-            if ( mayKick == null || mayKick.isEmpty() ) {
-                p.sendMessage(ChatColor.RED + "Theres no player called '" + args[0] + "'."); return true;
-            }
-            
-            if ( mayKick.size() > 1 ) {
-                p.sendMessage(ChatColor.DARK_AQUA + "There are some players matching '" + args[0] + "'");
-                String plist = "";
-                for ( Player toKick : mayKick ) {                        
-                    plist += ChatColor.GRAY + toKick.getName() + ( (mayKick.indexOf(toKick) != (mayKick.size() -1)) ? ChatColor.DARK_GRAY + ", " : "" );
-                }
-                p.sendMessage(plist);
+            if ( (new kickCommand(this, args)).run(p) == commandResult.RES_SUCCESS )                
                 return true;
-            } else {    // Got ONE player
-                String reason = "";
-                for ( int i = 1; i < args.length; i++ )
-                    reason += args[i].trim();
-                MResult res;
-                if ( (res = api.doKick(p, mayKick.get(0), ( (args.length >= 2) ? reason : "No reason provided." ))) == MResult.RES_SUCCESS) {
-                    int c = ownBroadcast(ChatColor.GOLD + "UV: " + ChatColor.AQUA + mayKick.get(0).getName() + ChatColor.DARK_AQUA + " kicked by " + ChatColor.AQUA + p.getName() + ChatColor.DARK_AQUA + ". Reason: " + ChatColor.AQUA + ( (args.length >= 2) ? reason : "No reason." ));
-                    p.sendMessage("sent to " + c + " receivers");
-                } else {
-                    p.sendMessage(ChatColor.RED + "Can't kick player: " + res.toString());
-                }
+        } else if ( cmd.getName().equalsIgnoreCase("uvwarn") ){
+            if ( (new warnCommand(this, args)).run(p) == commandResult.RES_SUCCESS )
                 return true;
-            }            
+        } else if ( cmd.getName().equalsIgnoreCase("uvunwarn") ){
+            if ( (new unwarnCommand(this, args)).run(p) == commandResult.RES_SUCCESS )
+                return true;
+        } else if ( cmd.getName().equalsIgnoreCase("uvpraise") ) {
+            if ( (new praiseCommand(this, args)).run(p) == commandResult.RES_SUCCESS )
+                return true;
+        } else if ( cmd.getName().equalsIgnoreCase("uvban") ) {
+            if ( (new banCommand(this, args)).run(p) == commandResult.RES_SUCCESS )
+                return true;
+        } else if ( cmd.getName().equalsIgnoreCase("uvunban") ) {
+            if ( (new unbanCommand(this, args)).run(p) == commandResult.RES_SUCCESS )
+                return true;
         }
         
-        if (cmd.getName().equalsIgnoreCase("uvwarn")) {
-            if ( args.length < 2 ) {
-                p.sendMessage(ChatColor.RED + "Too few arguments."); return true;
-            }
-            List<Player> mayWarn = getServer().matchPlayer(args[0]);
-            
-            if ( mayWarn == null || mayWarn.isEmpty() ) {
-                p.sendMessage(ChatColor.RED + "Theres no player called '" + args[0] + "'."); return true;
-            }
-            
-            if ( mayWarn.size() > 1 ) {
-                p.sendMessage(ChatColor.DARK_AQUA + "There are some players matching '" + args[0] + "'");
-                String plist = "";
-                for ( Player toWarn : mayWarn ) {                        
-                    plist += ChatColor.GRAY + toWarn.getName() + ( (mayWarn.indexOf(toWarn) != (mayWarn.size() -1)) ? ChatColor.DARK_GRAY + ", " : "" );
-                }
-                p.sendMessage(plist);
-                return true;
-            } else {    // Got ONE player
-                String reason = "";
-                for ( int i = 1; i < args.length; i++ )
-                    reason += args[i].trim();
-                MResult res;
-                if ( (res = api.setWarn(p, mayWarn.get(0), ( (args.length >= 2) ? reason : "No reason provided." ))) == MResult.RES_SUCCESS) {
-                    ownBroadcast(ChatColor.AQUA + "Player " + mayWarn.get(0).getName() + " has been warned successfully." );                    
-                } else {
-                    p.sendMessage(ChatColor.RED + "Can't warn player: " + res.toString());
-                }
-                return true;
-            }  
-        }
+        return false;
+        
+        /*// ===========================================                
         
         if (cmd.getName().equalsIgnoreCase("uvunwarn")) {
             if ( args.length < 2 ) {
@@ -680,7 +654,7 @@ public class ultravision extends JavaPlugin {
             }  
         }
 
-        return false;
+        return false;*/
     }
 
 //    public List<String> getAllPlayerNames() {
@@ -696,6 +670,10 @@ public class ultravision extends JavaPlugin {
         return auth;
     }
     
+    public UltraVisionAPI getAPI () {
+        return api;
+    }
+    
     public int ownBroadcast (String message) {
         Player[] ps = getServer().getOnlinePlayers();                
         int cnt = 0;
@@ -703,7 +681,7 @@ public class ultravision extends JavaPlugin {
             p.sendMessage(message);
             cnt++;
         }
-        getServer().getConsoleSender().sendMessage(message);
+        MLog.i("KICK: " + message);
         cnt++;
         return cnt;
     }

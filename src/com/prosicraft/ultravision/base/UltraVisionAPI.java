@@ -60,6 +60,7 @@ public interface UltraVisionAPI {
     
     // ====== KICK ======    
     public MResult doKick ( CommandSender cs, Player p, String reason );
+    public MResult backendKick ( Player p, String reason );
     public List<UVKick> getKickHistory ( Player p );
     
     // ====== WARN ======
@@ -74,6 +75,8 @@ public interface UltraVisionAPI {
     
     // ======= PRAISE ======
     public MResult praise ( CommandSender cs, Player p );  // one command sender can praise only once
+    public MResult unPraise ( CommandSender cs, Player p );
+    public boolean praised ( Player s, Player p ); // 
     public int getPraiseCount ( Player p );
     
     // ====== MISC ======

@@ -8,6 +8,7 @@
 package com.prosicraft.ultravision.commands;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -56,6 +57,10 @@ public class extendedCommand<PluginClass extends JavaPlugin> {
         return parent;
     }
     
+    public Server getServer () {
+        return parent.getServer();
+    }
+    
     public boolean hasArgs () {
         return (this.args != null && this.args.length > 0);
     }
@@ -95,6 +100,10 @@ public class extendedCommand<PluginClass extends JavaPlugin> {
             this.sendMessage(p, ChatColor.RED + msg);            
         }        
         return commandResult.RES_ERROR;
+    }
+    
+    public commandResult suc () {
+        return commandResult.RES_SUCCESS;
     }
     
     public commandResult suc (Player p, String msg) {

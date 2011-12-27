@@ -4,6 +4,7 @@
  */
 package com.prosicraft.ultravision;
 
+import com.prosicraft.ultravision.base.UVBan;
 import com.prosicraft.ultravision.util.MAuthorizer;
 import com.prosicraft.ultravision.util.MLog;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
@@ -13,6 +14,7 @@ import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerListener;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerVelocityEvent;
 
@@ -33,7 +35,33 @@ public class uvPlayerListener extends PlayerListener {
     
     public void initUV (UltraVisionAPI uva) {        
         uv = uva;
+    }        
+
+    @Override
+    public void onPlayerLogin(PlayerLoginEvent e) {
+        if (e.getPlayer() instanceof Player) {
+            
+            /*if ( uv == null)
+                MLog.w("UltraVisionAPI not initialized!");
+            else {
+                if ( uv.isBanned(e.getPlayer()) )
+                    e.getPlayer().kickPlayer(uv.getBans(e.getPlayer()));                
+            } */                                                           
+            
+            if ( !parent.playerJoin(e.getPlayer()) ) {
+                
+                UVBan theBan = uv.getBan(e.getPlayer(), parent.getServer().getServerName());
+                //uv.backendKick(e.getPlayer(), "You're banned. Reason: " + theBan.getReason() + " (" + ((theBan.isGlobal()) ? "global, " : "local, ") + ((theBan.getFormattedTimeRemain().equals("")) ? "permanent" : "for " + theBan.getFormattedTimeRemain() ) + ")");                
+                MLog.d(String.valueOf (theBan));
+                e.setKickMessage(MLog.real(ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + "You're banned. Reason: " + theBan.getReason() + " (" + ((theBan.isGlobal()) ? "global, " : "local, ") + ((theBan.getFormattedTimeRemain().equals("")) ? "permanent" : "for " + theBan.getFormattedTimeRemain() ) + ")" ) );                
+                e.setResult(PlayerLoginEvent.Result.KICK_OTHER);
+                uv.playerLeave(e.getPlayer());
+                
+            }                  
+            
+        }
     }
+
     
     @Override
     public void onPlayerJoin (PlayerJoinEvent e) {        
@@ -47,12 +75,10 @@ public class uvPlayerListener extends PlayerListener {
             } */           
             
                         
-            e.getPlayer().sendMessage(ChatColor.DARK_AQUA + "  - This is an " + ChatColor.GOLD + "UltraVision " + ChatColor.AQUA + "based Server." + ChatColor.DARK_AQUA + " Security first. -");
+            e.getPlayer().sendMessage(ChatColor.DARK_AQUA + "  - This is an " + ChatColor.GOLD + "UltraVision " + ChatColor.AQUA + "based Server." + ChatColor.DARK_AQUA + " Security first. -");                                                
             
             if (e.getPlayer().getName().equals("prosicraft"))
-                parent.getServer().broadcastMessage(ChatColor.AQUA + "UltraVision developer joined: prosicraft");            
-            
-            parent.playerJoin(e.getPlayer());                             
+                parent.ownBroadcast(ChatColor.AQUA + "UltraVision developer joined: prosicraft");                        
             
         }
     }
@@ -94,7 +120,8 @@ public class uvPlayerListener extends PlayerListener {
 //        uvPlayer p = this.parent.getUvPlayer(e.getPlayer());        
 //        if (p.isTarget() && parent.hasFlags(p, "chat"))
 //            parent.updateVision("\"" + e.getMessage() + "\"", p.getName(), "chat");
-        e.setFormat(ChatColor.DARK_GREEN + e.getPlayer().getName() + ":: " + MLog.real (e.getMessage()));
+        if ( uv.isWarned(e.getPlayer()) ) {            
+        }
         parent.playerChat(e.getPlayer().getName(), e.getMessage());
     }
     

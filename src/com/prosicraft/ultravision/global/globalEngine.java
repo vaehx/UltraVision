@@ -251,6 +251,21 @@ public class globalEngine implements UltraVisionAPI {
     public void playerLeave(Player p) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+
+    @Override
+    public MResult unPraise(CommandSender cs, Player p) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public boolean praised(Player s, Player p) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public MResult backendKick(Player p, String reason) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
     
     
 }
