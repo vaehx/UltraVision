@@ -32,7 +32,10 @@ public class praiseCommand extends extendedCommand {
                 
                 ev ( p );
                 
-                List<Player> mayPraise = getParent().getServer().matchPlayer(getArg(0));                
+                List<Player> mayPraise = getParent().getServer().matchPlayer(getArg(0));  
+                
+                if ( mayPraise == null || mayPraise.isEmpty() )
+                    return err (p, ChatColor.RED + "There's no player called '" + this.getArg(0) + "'.");  
                 
                 if ( mayPraise.size() > 1 ) {
                     p.sendMessage(ChatColor.DARK_AQUA + "There are some players matching '" + this.getArg(0) + "'");

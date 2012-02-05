@@ -21,7 +21,20 @@ import org.bukkit.entity.Player;
  * @author passi
  */
 public class globalEngine implements UltraVisionAPI {
+        
 
+    @Override
+    public MResult doTempBan(CommandSender cs, String pname, String reason, Time time, boolean global) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+
+    @Override
+    public Player getPlayer(String pname) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    
     @Override
     public Map<String, String> getAll(Player p) {
         throw new UnsupportedOperationException("Not supported yet.");
@@ -58,7 +71,7 @@ public class globalEngine implements UltraVisionAPI {
     }
 
     @Override
-    public MResult pardon(CommandSender cs, Player p, String note) {
+    public MResult pardon(CommandSender cs, String pname, String note) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 

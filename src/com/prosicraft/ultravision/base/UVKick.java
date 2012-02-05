@@ -45,7 +45,7 @@ public class UVKick {
         return servername;
     }       
     
-    public boolean read ( DataInputStream in ) throws IOException {
+    public boolean read ( DataInputStream in, UVFileInformation fi ) throws IOException {
         
         if ( (this.kicker = MStream.readString(in, 16)).trim().equalsIgnoreCase("") )
             return false;

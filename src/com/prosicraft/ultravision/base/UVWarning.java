@@ -57,7 +57,7 @@ public class UVWarning {
         return ((global) ? "globally " : "") + "warned by " + warner + ((mWarnTime != null) ? " for " + mWarnTime.toString() : "") + ". Reason: " + reason;                  
     }
     
-    public boolean read ( DataInputStream in ) throws IOException {
+    public boolean read ( DataInputStream in, UVFileInformation fi ) throws IOException {
         
         if ( (this.warner = MStream.readString(in, 16)).trim().equalsIgnoreCase("") )
             return false;

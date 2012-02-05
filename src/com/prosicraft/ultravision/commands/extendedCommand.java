@@ -141,6 +141,13 @@ public class extendedCommand<PluginClass extends JavaPlugin> {
         if (!this.isParentSet())
             throw new wrongParentException ("Parent not set.");
         if ( p == null || !(p instanceof Player) )
-            throw new wrongPlayerException ("Got no Player or Player instance is damaged.");
-    }    
+            throw new wrongPlayerException ("Got no Player or Player instance is damaged.");        
+    }
+    
+    public void ev(Player p, String perm) throws wrongParentException, wrongPlayerException, noPermissionException {
+        ev (p);
+        
+        if ( !p.hasPermission(perm) )
+            throw new noPermissionException ("No permissions.");
+    }
 }

@@ -4,12 +4,14 @@
  */
 package com.prosicraft.ultravision.base;
 
+import com.prosicraft.ultravision.commands.timeInterpreter;
 import com.prosicraft.ultravision.util.MAuthorizer;
 import com.prosicraft.ultravision.util.MStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.sql.Time;
+import java.util.Calendar;
 import org.bukkit.entity.Player;
 
 /**
@@ -32,7 +34,7 @@ public class UVBan {
         this.banner = banner.getName();
         this.global = global;
         this.timedif = timedif;
-        this.mTimeDif = timedif;
+        this.mTimeDif = new Time(Calendar.getInstance().getTimeInMillis());
         this.ServerName = ((banner != null) ? banner.getServer().getServerName() : ServerName);
     }       
     
@@ -44,12 +46,14 @@ public class UVBan {
         timedif = dif;
     }
     
-    public Time getTimeRemain () {
-        return timedif;
+    public Time getTimeRemain () {                
+        return new Time (timedif.getTime() -
+                (Calendar.getInstance().getTimeInMillis() - this.mTimeDif.getTime()));
     }
     
     public String getFormattedTimeRemain () {
-        return ((timedif != null && timedif.getTime() != 0) ? timedif.toString() : "" );
+        Time td = getTimeRemain();
+        return ((td != null && td.getTime() != 0) ? timeInterpreter.getText(td.getTime()) : "" );
     }
     
     public boolean isGlobal () {
@@ -77,15 +81,17 @@ public class UVBan {
         return ((global) ? "globally " : "") + "banned by " + banner + ((mTimeDif != null) ? " for " + mTimeDif.toString() : "" ) + ". Reason: " + reason;
     }
     
-    public boolean read ( DataInputStream in ) throws IOException {                
+    public boolean read ( DataInputStream in, UVFileInformation fi ) throws IOException {                
         
         this.banner = MStream.readString(in, 16).trim();        
         if ( this.banner.trim().equalsIgnoreCase("") )
             return false;
         this.reason = MStream.readString(in, 60).trim();
         this.global = MStream.readBool(in);
-        this.timedif = new Time ( (long)in.read() );
-        this.mTimeDif = new Time ( (long)in.read() );
+        if ( fi.getVersion() == 1 ) {
+            this.timedif = new Time ( in.readLong() );
+            this.mTimeDif = new Time ( in.readLong() );
+        }                             
         this.ServerName = MStream.readString(in, 16).trim();
         
         return true;
@@ -95,8 +101,8 @@ public class UVBan {
         out.write(MAuthorizer.getCharArrayB(banner, 16));
         out.write(MAuthorizer.getCharArrayB(reason, 60));                
         out.write( global ? 1 : 0 );        
-        out.write( (int)((timedif == null) ? 0 : timedif.getTime()) );
-        out.write( (int)((mTimeDif == null) ? 0 : mTimeDif.getTime()) );
+        out.writeLong( ((timedif == null) ? 0 : timedif.getTime()) );
+        out.writeLong( ((mTimeDif == null) ? 0 : mTimeDif.getTime()) );        
         out.write(MAuthorizer.getCharArrayB(ServerName, 16));
 
         out.flush();       

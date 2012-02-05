@@ -6,7 +6,6 @@ package com.prosicraft.ultravision.chat;
 
 import com.prosicraft.ultravision.util.MAuthorizer;
 import com.prosicraft.ultravision.util.MLog;
-import com.sun.org.apache.xalan.internal.xsltc.compiler.util.StringStack;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -36,11 +35,11 @@ public class UVServer extends Thread {
     private UVClientHandler[] clientHandlers = null;
     
     public Stack sendBuffer = null;
-    private List<UVChatListener> listeners = null;
+    private List<MCChatListener> listeners = null;
     
     public UVServer (String serverip, MAuthorizer auth, int numSlots) {        
-        this.sendBuffer = new StringStack();
-        listeners = new ArrayList<UVChatListener>();
+        this.sendBuffer = new Stack<String>();
+        listeners = new ArrayList<MCChatListener>();
         clientHandlers = new UVClientHandler[numSlots];
     }
     
@@ -53,7 +52,7 @@ public class UVServer extends Thread {
         state = UVChatStat.STAT_STOP;
     }
     
-    public void registerListener (UVChatListener uvcl) {
+    public void registerListener (MCChatListener uvcl) {
         if (uvcl != null) {
             listeners.add(uvcl);
         }
@@ -206,7 +205,7 @@ public class UVServer extends Thread {
     public void raiseOnMessageEvent (String msg) {
         if ( listeners == null || listeners.isEmpty() )
             return;
-        for ( UVChatListener l : listeners ) {
+        for ( MCChatListener l : listeners ) {
             l.onMessage(msg);
         }
     }
@@ -215,7 +214,7 @@ public class UVServer extends Thread {
         MLog.d("(UVServer) Raised OnLogin");                
         if ( listeners == null || listeners.isEmpty() )
             return;
-        for ( UVChatListener l : listeners ) {
+        for ( MCChatListener l : listeners ) {
             l.onLogin(username);
         }
     }
@@ -223,7 +222,7 @@ public class UVServer extends Thread {
     public void raiseOnLeaveEvent (String username) {
         if ( listeners == null || listeners.isEmpty() )
             return;
-        for ( UVChatListener l : listeners ) {
+        for ( MCChatListener l : listeners ) {
             l.onLeave(username);
         }
     }

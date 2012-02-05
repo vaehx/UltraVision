@@ -1,7 +1,7 @@
 ## ultravision plugin file
 
 name: Ultravision
-version: DEV
+version: v0db2
 description: Ultravision is a Player Supervision Plugin for highly improved server statistic management.
 author: prosicraft
 website: http://passiweb.bplaced.de
@@ -14,6 +14,11 @@ commands:
         usage: /<command>
         permission: ultravision.ultravision
         aliases: [uv, uvis]
+    jmessage:
+        description: Manage JMessage Template of UltraVision.
+        usage: /<command> [reload]
+        permission: ultravision.jmessage
+        aliases: [jmsg, jm]
     supervise:
         description: Enables watching one or all players acitvities independet of saving this data.
         usage: /<command> [Player] [Player] ...
@@ -56,87 +61,109 @@ commands:
     uvkick:
         description: Kicks a player with a given reason.
         usage: /<command> <playername> [reason]
+        permission: ultravision.mod.kick
         aliases: [kick]
     uvban:
         description: Permanent bans a player (local) with reason
         usage: /<command> <playername> [reason]
+        permission: ultravision.mod.ban
         aliases: [ban]
     uvtempban:
         description: Temporarily bans a player (local) with reason
         usage: /<command> <playername> <time> [reason]
+        permission: ultravision.mod.tempban
         aliases: [tban, tempban]
     uvglobaltempban:
         description: Temporarily bans a player (global) with reason
         usage: /<command> <playername> <time> [reason]
+        permission: ultravision.mod.globaltempban
         aliases: [gtban, globaltempban]
     uvglobalban: 
         description: Permanent bans a player (global) with reason.
         usage: /<command> <playername> <reason>
+        permission: ultravision.mod.globalban
         aliases: [gban, globalban]
     uvunban:
         description: Unbans a banned player (local)
         usage: /<command> <playername> [reason]
+        permission: ultravision.mod.unban
         aliases: [uban, unban, pardon, free]    
     uvunbanrequest:
         description: Sends request for global unban.
         usage: /<command> <playername> <reason>
+        permission: ultravision.mod.unbanrequest
         aliases: [unbanrequest, gunban]
     uvnote:
         description: Applies a note to a player.
         usage: /<command> <playername> <thenote>
+        permission: ultravision.mod.note
         aliases: [note]
     uvglobalnote:
         description: Applies a global note to a player.
+        permission: ultravision.mod.globalnote
         usage: /<command> <playername> <thenote>
     uvdelnote:
         description: Removes a note from a player.
         usage: /<command> <playername> <id>
+        permission: ultravision.mod.delnote
         aliases: [delnote, rmnote]
     uvdelglobalnote:
         description: Removes a global note from a player. 
         usage: /<command> <playername> <id>
+        permission: ultravision.mod.delglobalnote
         aliases: [delglobalnote, rmgnote]    
     uvwarn:
         description: Warns a player permanently. (local)
         usage: /<command> <playername> <reason>
+        permission: ultravision.mod.warn
         aliases: [warn]
     uvunwarn:
         description: Unwarns a player. (local)
         usage: /<command> <playername>
+        permission: ultravision.mod.unwarn
         aliases: [unwarn]    
     uvglobalwarn:
         description: Globally warns a player permanent.
         usage: /<command> <playername> <reason>
+        permission: ultravision.mod.globalwarn
         aliases: [globalwarn, gwarn]
     uvglobalunwarn:
         description: Unwarns a player globally.
         usage: /<command> <playername> <reason>
+        permission: ultravision.mod.globalunwarn
         aliases: [gunwarn]
     uvpraise:
         description: Praise a player.
         usage: /<command> <playername>
+        permission: ultravision.user.praise
         aliases: [praise]
     uvunpraise:
         description: Take back your praise of a player.
         usage: /<command> <playername>
+        permission: ultravision.user.unpraise
         aliases: [unpraise]
     uvmute:
         description: Mutes a player from chat. (local)
         usage: /<command> <playername> [reason]
+        permission: ultravision.mod.mute
         aliases: [mute]
     uvunmute:
         description: Unmutes a player from chat. (local)
         usage: /<command> <playername>
+        permission: ultravision.mod.unmute
         aliases: [mute]
     uvaddfriend:
         description: Adds a friend.
         usage: /<command> <friendname>
+        permission: ultravision.user.addfriend
         aliases: [addfriend]
     uvdelfriend:
         description: Removes a friend.
         usage: /<command> <friendname>
+        permission: ultravision.user.delfriend
         aliases: [rmfriend, unfriend, delfriend]
     uvstat:      
         description: Shows statistics.
         usage: /<command> [ban|kick|note|warning|mute|praise|time|friend|all] [playername|all]
+        permission: ultravision.mod.stat
         aliases: [stat]            

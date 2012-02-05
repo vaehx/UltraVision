@@ -8,7 +8,6 @@ import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.ultravision;
 import com.prosicraft.ultravision.util.MLog;
 import com.prosicraft.ultravision.util.MResult;
-import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -27,37 +26,25 @@ public class unbanCommand extends extendedCommand {
         
         try {
             
-            // /ban <player> [reason]   --> localban
-            if ( this.hasArgs(1) || this.hasArgs(2) ) {
+            // /unban <player> [note]   --> localban
+            if ( this.numArgs() >= 1 ) {
                 
-                this.ev(p);
-                
-                List<Player> mayKick = this.getParent().getServer().matchPlayer(this.getArg(0));
-            
-                if ( mayKick == null || mayKick.isEmpty() )
-                    return err (p, ChatColor.RED + "Theres no player called '" + this.getArg(0) + "'.");                
-            
-                if ( mayKick.size() > 1 ) {
-                    p.sendMessage(ChatColor.DARK_AQUA + "There are some players matching '" + this.getArg(0) + "'");
-                    String plist = "";
-                    for ( Player toKick : mayKick ) {                        
-                        plist += ChatColor.GRAY + toKick.getName() + ( (mayKick.indexOf(toKick) != (mayKick.size() -1)) ? ChatColor.DARK_GRAY + ", " : "" );
-                    }
-                    p.sendMessage(plist);
-                    return suc ();
-                } else {    // Got ONE player
+                this.ev(p);                                                            
+
                     String reason = "";
                     for ( int i = 1; i < this.numArgs(); i++ )
-                        reason += this.getArg(i).trim();
+                        reason += this.getArg(i).trim() + " ";
                     MResult res;
                     UltraVisionAPI api = ((ultravision)this.getParent()).getAPI();
-                    if ( (res = api.pardon(p, mayKick.get(0), ( (getArgs().length >= 2) ? reason : "No reason provided." ))) == MResult.RES_SUCCESS) {
-                        int c = ((ultravision)getParent()).ownBroadcast(ChatColor.AQUA + mayKick.get(0).getName() + ChatColor.DARK_AQUA + " pardoned by " + ChatColor.AQUA + p.getName() + ChatColor.DARK_AQUA + " (local). Reason: " + ChatColor.AQUA + ( (numArgs() >= 2) ? reason : "No reason." ));                    
+                    if ( (res = api.pardon(p, getArg(0), ( (getArgs().length >= 2) ? reason.trim() : "No reason provided." ))) == MResult.RES_SUCCESS) {
+                        ((ultravision)getParent()).ownBroadcast(ChatColor.AQUA + getArg(0) + ChatColor.DARK_AQUA + " pardoned by " + ChatColor.AQUA + p.getName() + ChatColor.DARK_AQUA + " (local). ");                    
+                        ((ultravision)getParent()).ownBroadcast(ChatColor.DARK_AQUA + "Reason: " + ChatColor.AQUA + ( (numArgs() >= 2) ? reason.trim() : "No reason." ));                    
+                    } else if ( res == MResult.RES_NOTINIT ) {
+                        return err(p, ChatColor.RED + "Player '" + getArg(0) + "' was never seen on this server.");
                     } else {
-                        p.sendMessage(ChatColor.RED + "Can't ban player: " + res.toString());
+                        return err(p, ChatColor.RED + "Can't unban player: " + res.toString());
                     }
-                    return suc (p, "Unbanned player. (local)");
-                } 
+                    return suc (p, "Unbanned player. (local)");                
                 
             } else {
                 return err ( p, "Too few arguments." );
@@ -65,6 +52,7 @@ public class unbanCommand extends extendedCommand {
             
         } catch ( Exception ex ) {
             MLog.e("[UNBANCMD] " + ex.getMessage());
+            ex.printStackTrace();
             return err ( p, "Failed to execute command." );
         } 
         

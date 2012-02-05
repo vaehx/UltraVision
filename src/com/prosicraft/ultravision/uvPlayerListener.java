@@ -8,12 +8,14 @@ import com.prosicraft.ultravision.base.UVBan;
 import com.prosicraft.ultravision.util.MAuthorizer;
 import com.prosicraft.ultravision.util.MLog;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
+import com.prosicraft.ultravision.util.MConfiguration;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerChatEvent;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerListener;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerVelocityEvent;
@@ -22,14 +24,16 @@ import org.bukkit.event.player.PlayerVelocityEvent;
  *
  * @author passi
  */
-public class uvPlayerListener extends PlayerListener {
+public class uvPlayerListener implements Listener {
 
     private ultravision parent = null;
     private MAuthorizer auth  = null;
     private UltraVisionAPI uv = null;
+    private MConfiguration config = null;
     
     public uvPlayerListener (ultravision parent) {
         this.parent = parent;
+        this.config = parent.getMConfig();
         auth = parent.getAuthorizer();        
     }
     
@@ -37,25 +41,35 @@ public class uvPlayerListener extends PlayerListener {
         uv = uva;
     }        
 
-    @Override
-    public void onPlayerLogin(PlayerLoginEvent e) {
+    @EventHandler(priority=EventPriority.LOW)
+    public void onPlayerLogin(PlayerLoginEvent e) {        
         if (e.getPlayer() instanceof Player) {
+            
+            for ( Player p : parent.getServer().getOnlinePlayers() ) {
+                if ( p.equals(e.getPlayer()) ) {
+                    MLog.i("Player " + p.getName() + " got hacked. Kick." );
+                    e.setKickMessage(MLog.real(ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + "You're hacking a user!" ) );                
+                    e.setResult(PlayerLoginEvent.Result.KICK_OTHER);
+                    uv.playerLeave(e.getPlayer());
+                    return;
+                }
+            }
             
             /*if ( uv == null)
                 MLog.w("UltraVisionAPI not initialized!");
             else {
                 if ( uv.isBanned(e.getPlayer()) )
                     e.getPlayer().kickPlayer(uv.getBans(e.getPlayer()));                
-            } */                                                           
+            } */                                                                                   
             
             if ( !parent.playerJoin(e.getPlayer()) ) {
                 
-                UVBan theBan = uv.getBan(e.getPlayer(), parent.getServer().getServerName());
+                UVBan theBan = uv.getBan(e.getPlayer(), parent.getServer().getServerName());                
                 //uv.backendKick(e.getPlayer(), "You're banned. Reason: " + theBan.getReason() + " (" + ((theBan.isGlobal()) ? "global, " : "local, ") + ((theBan.getFormattedTimeRemain().equals("")) ? "permanent" : "for " + theBan.getFormattedTimeRemain() ) + ")");                
-                MLog.d(String.valueOf (theBan));
-                e.setKickMessage(MLog.real(ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + "You're banned. Reason: " + theBan.getReason() + " (" + ((theBan.isGlobal()) ? "global, " : "local, ") + ((theBan.getFormattedTimeRemain().equals("")) ? "permanent" : "for " + theBan.getFormattedTimeRemain() ) + ")" ) );                
+                MLog.i(String.valueOf (theBan));
+                e.setKickMessage(MLog.real(ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + "You're banned. Reason: " + theBan.getReason() + " (" + ((theBan.isGlobal()) ? "global, " : "local, ") + ((theBan.getFormattedTimeRemain().equals("")) ? "permanent" :  theBan.getFormattedTimeRemain() + " left" ) + ")" ) );                
                 e.setResult(PlayerLoginEvent.Result.KICK_OTHER);
-                uv.playerLeave(e.getPlayer());
+                uv.playerLeave(e.getPlayer());                
                 
             }                  
             
@@ -63,7 +77,7 @@ public class uvPlayerListener extends PlayerListener {
     }
 
     
-    @Override
+    @EventHandler(priority=EventPriority.LOWEST)
     public void onPlayerJoin (PlayerJoinEvent e) {        
         if (e.getPlayer() instanceof Player) {
             
@@ -72,30 +86,36 @@ public class uvPlayerListener extends PlayerListener {
             else {
                 if ( uv.isBanned(e.getPlayer()) )
                     e.getPlayer().kickPlayer(uv.getBans(e.getPlayer()));                
-            } */           
-            
+            } */                       
                         
             e.getPlayer().sendMessage(ChatColor.DARK_AQUA + "  - This is an " + ChatColor.GOLD + "UltraVision " + ChatColor.AQUA + "based Server." + ChatColor.DARK_AQUA + " Security first. -");                                                
             
             if (e.getPlayer().getName().equals("prosicraft"))
-                parent.ownBroadcast(ChatColor.AQUA + "UltraVision developer joined: prosicraft");                        
+                parent.ownBroadcast(ChatColor.AQUA + "UltraVision developer joined: prosicraft");                                                
+            
+            if ( auth != null &&  !auth.isRegistered(e.getPlayer()) && parent.showNotRegWarning() )
+                e.getPlayer().sendMessage (ChatColor.YELLOW + "Warning: You're not registered in the login system yet!");                                    
             
         }
     }
     
-    @Override
+    @EventHandler(priority=EventPriority.LOWEST)
     public void onPlayerQuit (PlayerQuitEvent e) {
         parent.playerLeave(e.getPlayer());
     }            
 
-    @Override
+    @EventHandler(priority=EventPriority.LOW)
     public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
         
         MLog.d(event.getMessage());
         if ( !event.getMessage().contains("/login") && !auth.loggedIn(event.getPlayer()) ) {
             event.getPlayer().sendMessage(ChatColor.RED + "You're not logged in.");
             event.setCancelled(true);
-        }                
+        }
+        if (uv != null && parent.useCommandLog()) {
+                uv.log(event.getPlayer(), event.getMessage());
+        } 
+        
         
 //        if (event.getMessage().contains("/m") || event.getMessage().contains("/msg")) {
 //            uvPlayer p = this.parent.getUvPlayer(event.getPlayer());        
@@ -112,23 +132,5 @@ public class uvPlayerListener extends PlayerListener {
 //                parent.updateVision(msg, p.getName(), "chat");                
 //            }
 //        }
-    }
-
-    
-    @Override
-    public void onPlayerChat (PlayerChatEvent e) {
-//        uvPlayer p = this.parent.getUvPlayer(e.getPlayer());        
-//        if (p.isTarget() && parent.hasFlags(p, "chat"))
-//            parent.updateVision("\"" + e.getMessage() + "\"", p.getName(), "chat");
-        if ( uv.isWarned(e.getPlayer()) ) {            
-        }
-        parent.playerChat(e.getPlayer().getName(), e.getMessage());
-    }
-    
-    @Override
-    public void onPlayerVelocity (PlayerVelocityEvent e) {
-//        uvPlayer p = this.parent.getUvPlayer(e.getPlayer());
-//        if (p.isTarget() && parent.hasFlags(p, "move"))
-//            parent.updateVision("Moving at velocity of " + e.getVelocity().toString(), p.getName(), "move");
-    }                    
+    }                                 
 }

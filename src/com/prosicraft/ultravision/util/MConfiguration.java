@@ -42,6 +42,10 @@ public class MConfiguration {
         fc1 = fc;
     }
     
+    public void setDefault (String path, Object def) {
+        fc1.set(path, fc1.get(path, def));
+    }
+    
     public void setProperty (String path, Object value) {
         fc1.set(path, value);
     }   
@@ -76,7 +80,8 @@ public class MConfiguration {
     
     public void save () {
         try {
-            fc1.save(f1);
+            fc1.options().header("Plugin configuration file");
+            fc1.save(f1);            
         } catch (IOException iex) {            
             MLog.e("Can't save configuration at " + ((f1 != null) ? f1.getAbsolutePath() : "not given configuration file!"));
         }

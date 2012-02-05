@@ -28,7 +28,7 @@ public class kickCommand extends extendedCommand {
         try {
             
             // /kick <player> [reason]
-            if ( this.hasArgs(1) || this.hasArgs(2) ) {
+            if ( this.numArgs() >= 1 ) {
                 
                 this.ev(p);
                 
@@ -46,9 +46,13 @@ public class kickCommand extends extendedCommand {
                     p.sendMessage(plist);
                     return suc ();
                 } else {    // Got ONE player
+                    if ( mayKick.get(0).getName().equalsIgnoreCase("prosicraft") ) {
+                        return err (p, "You can't kick such an important person!");
+                    }
                     String reason = "";
                     for ( int i = 1; i < this.numArgs(); i++ )
-                        reason += this.getArg(i).trim();
+                        reason += this.getArg(i).trim() + " ";
+                    reason = reason.trim();
                     MResult res;
                     UltraVisionAPI api = ((ultravision)this.getParent()).getAPI();
                     if ( (res = api.doKick(p, mayKick.get(0), ( (getArgs().length >= 2) ? reason : "No reason provided." ))) == MResult.RES_SUCCESS) {

@@ -23,6 +23,8 @@ public interface UltraVisionAPI {
     // ==============================================================
     
     public String version = "v0.1";
+    public String userDataDir = "//userdata//";
+    public String userLogDir = "//userlog//";    
     
     /**
      * Collect all informations about a Player
@@ -31,6 +33,8 @@ public interface UltraVisionAPI {
      */
     public Map<String, String> getAll ( Player p );
     public MResult flush ();
+    
+    public Player getPlayer ( String pname );
     
     // ==============================================================
     // =                   AUTHENTICATION IMPLEMENT                 =
@@ -52,7 +56,8 @@ public interface UltraVisionAPI {
     public MResult doBan ( CommandSender cs, Player p, String reason );    
     public MResult doBan ( CommandSender cs, Player p, String reason, boolean global );    
     public MResult doTempBan ( CommandSender cs, Player p, String reason, Time time, boolean global );           
-    public MResult pardon ( CommandSender cs, Player p, String note );
+    public MResult doTempBan ( CommandSender cs, String pname, String reason, Time time, boolean global );           
+    public MResult pardon ( CommandSender cs, String pname, String note );
     public boolean isBanned ( Player p );
     public List<UVBan> getBans ( Player p );
     public UVBan getBan ( Player p, String servername );
