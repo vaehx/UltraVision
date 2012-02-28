@@ -35,6 +35,7 @@ import net.minecraft.server.EntityPlayer;
 import net.minecraft.server.Packet255KickDisconnect;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
@@ -65,7 +66,19 @@ public class localEngine implements UltraVisionAPI {
     @Override
     public Player getPlayer(String pname) {
         return (Player)valid(pname);                
+    }       
+
+    @Override
+    public UVPlayerInfo getPlayerInfo(String pname) {
+        
+        UVLocalPlayer uP;
+        if ( (uP = valid(pname)) != null )
+            return uP.i;
+        
+        return this.fetchPlayerInfo(pname, true);
+        
     }
+
     
     // Actually this function is useless :P
     private boolean hasPlayer (String name) {
@@ -465,6 +478,8 @@ public class localEngine implements UltraVisionAPI {
                         i.kickHistory.add(k);
                     } else if ( ch.equalsIgnoreCase("nokick") ) {
                         continue;
+                    } else if ( ch.equalsIgnoreCase("frireq") ) {
+                        i.friendRequests.add(MStream.readString(fid, 16));
                     } else if ( ch.equalsIgnoreCase("friend") ) {
                         i.friends.add(MStream.readString(fid, 16));
                     } else if ( ch.equalsIgnoreCase("nofrie") ) {
@@ -556,13 +571,24 @@ public class localEngine implements UltraVisionAPI {
             return MResult.RES_NOTGIVEN;
         } catch (IOException ex) {
             MLog.e("Can't read database: " + ex.getMessage());
-            ex.printStackTrace(); return MResult.RES_ERROR;
+            ex.printStackTrace(System.out); return MResult.RES_ERROR;
         }
         
-    }            
+    }               
 
     @Override
     public void playerJoin(Player p) {
+       
+        UVLocalPlayer uP = valid (p);
+        if ( uP != null ) {
+            uP.log("** Joined successfully (ip " + p.getAddress().toString() + ")");
+        }
+        
+    }
+
+    
+    @Override
+    public void playerLogin(Player p) {
         if ( p == null ) {
             MLog.d("p is null!");
             return;
@@ -597,17 +623,14 @@ public class localEngine implements UltraVisionAPI {
             }     
             
             thePlayer.i.lastLogin =
-                    new Time (Calendar.getInstance().getTime().getTime());          
-            
-            thePlayer.log("** Joined successfully");
+                    new Time (Calendar.getInstance().getTime().getTime());                                 
             
             thePlayer.i.offline = false;                                                
             
         } else if ( (thePlayer = valid (p)).i.offline ) {
             thePlayer.i.offline = false; 
             thePlayer.i.lastLogin =
-                    new Time (Calendar.getInstance().getTime().getTime()); 
-            thePlayer.log("** Joined successfully.");
+                    new Time (Calendar.getInstance().getTime().getTime());             
             MLog.d("Player already added but offline. Now online.");
         } else {
             MLog.d ("Player already joined: " + p.getName());
@@ -619,7 +642,7 @@ public class localEngine implements UltraVisionAPI {
                 this.flushInfo(uP.getName(), uP.i);
             } catch (IOException ioex) {
                 MLog.e("Can't save user file for player '" + uP.getName() + "'");
-                ioex.printStackTrace();
+                ioex.printStackTrace(System.out);
             }
     }    
     
@@ -632,10 +655,11 @@ public class localEngine implements UltraVisionAPI {
             uP.i.offline = true;            
             MResult res = MResult.RES_UNKNOWN;               
             if ( (res = addTime(new Time(t.getTime() - uP.i.lastLogin.getTime()), p)) == MResult.RES_SUCCESS ) {
-                uP.log( "** Left successfully." );
+                uP.log( "** Left successfully. (ip " + p.getAddress().toString() + ")" );
             } else {
                 uP.log( "[ERROR] ** Left with error: " + res.toString() );
-            }            
+            }
+            uP.quitlog();
             flushPlayerInfo (uP);
         } else {
             MLog.d("Player never joined: " + p.getName());
@@ -881,8 +905,9 @@ public class localEngine implements UltraVisionAPI {
                 
         UVLocalPlayer uPKicker;                
         
-        if ( (uPKicker = valid ((Player)cs)) == null )
-            return MResult.RES_NOTINIT;
+        if ( !(cs instanceof ConsoleCommandSender) )
+            if ( (uPKicker = valid ((Player)cs)) == null )
+                return MResult.RES_NOTINIT;
         
         MLog.real(ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + reason + " BY " + cs.getName());
         uP.log(ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + reason + " BY " + cs.getName());
@@ -893,6 +918,9 @@ public class localEngine implements UltraVisionAPI {
         ((CraftServer)((CraftPlayer)p).getServer()).getHandle().server.serverConfigurationManager.disconnect(((CraftPlayer)p).getHandle());
         ((CraftPlayer)p).getHandle().netServerHandler.disconnected = true;
            
+        if ( !(cs instanceof Player) )
+            return MResult.RES_SUCCESS;
+        
         uP.i.kickHistory.add( new UVKick (reason, (Player)cs, new Time ((new Date()).getTime()) ) );
         try {
             flushInfo (uP.getName(), uP.i);
@@ -1195,10 +1223,40 @@ public class localEngine implements UltraVisionAPI {
     @Override
     public List<String> getLog(Player p, String pluginfilter, Time timediff) {
         throw new UnsupportedOperationException("Not supported yet.");
-    }
+    }                   
 
     @Override
-    public MResult addFriend(Player p, Player p2) {
+    public MResult cancelFriend(Player p, Player p2) {
+        UVLocalPlayer uP;
+        if ( (uP = valid(p)) == null )
+            return MResult.RES_NOTGIVEN;
+        
+        if ( !uP.i.friendRequests.contains(p2.getName()) )
+            return MResult.RES_ALREADY;
+        
+        uP.i.friendRequests.remove(p2.getName());
+        
+        return MResult.RES_SUCCESS;
+    }
+
+
+    @Override
+    public MResult requestFriend(Player p, Player p2) {
+        UVLocalPlayer uP;
+        if ( (uP = valid(p2)) == null )
+            return MResult.RES_NOTGIVEN;
+        
+        if ( uP.i.friendRequests.contains(p.getName()) )
+            return MResult.RES_ALREADY;
+        
+        uP.i.friendRequests.add(p.getName());
+        
+        return MResult.RES_SUCCESS;
+    }
+
+    
+    @Override
+    public MResult finalizeFriend(Player p, Player p2) {
         UVLocalPlayer uP; UVLocalPlayer uT;
         if ( (uP = valid (p)) == null )
             return MResult.RES_NOTGIVEN;
@@ -1209,7 +1267,15 @@ public class localEngine implements UltraVisionAPI {
         if ( uP.i.friends.contains(uT.getName()) )
             return MResult.RES_ALREADY;
         
-        uP.i.friends.add(uT.getName());
+        uP.i.friends.add(uT.getName());       
+        
+        if ( uT.i.friends.contains(uP.getName()) )
+            return MResult.RES_ALREADY;
+        
+        uT.i.friends.add(uP.getName()); 
+        
+        uP.i.friendRequests.remove(p2.getName());
+        uT.i.friendRequests.remove(p.getName());                
         
         return MResult.RES_SUCCESS;
     }
@@ -1227,6 +1293,11 @@ public class localEngine implements UltraVisionAPI {
             return MResult.RES_ALREADY;
         
         uP.i.friends.remove(uT.getName());
+        
+        if ( !uT.i.friends.contains(uP.getName()) )
+            return MResult.RES_ALREADY;
+        
+        uT.i.friends.remove(uP.getName());
         
         return MResult.RES_SUCCESS;
     }

@@ -1,7 +1,7 @@
 ## ultravision plugin file
 
 name: Ultravision
-version: v0db2
+version: v0db5
 description: Ultravision is a Player Supervision Plugin for highly improved server statistic management.
 author: prosicraft
 website: http://passiweb.bplaced.de
@@ -18,31 +18,11 @@ commands:
         description: Manage JMessage Template of UltraVision.
         usage: /<command> [reload]
         permission: ultravision.jmessage
-        aliases: [jmsg, jm]
-    supervise:
-        description: Enables watching one or all players acitvities independet of saving this data.
-        usage: /<command> [Player] [Player] ...
-        permission: ultravision.visionize
-        aliases: [vis, sv, superv]
+        aliases: [jmsg, jm]    
     uvclear:
         description: Lets the user clear the configuration in runtime.
         usage: /<command>
-        permission: ultravision.uvclear
-    uvlist:
-        description: Lists all targets, that are visionized from you.
-        usage: /<command>
-        permission: ultravision.uvlist
-        aliases: [uvl]
-    uvdelete:
-        description: Stopps target to be supervised.
-        usage: /<command>
-        aliases: [uvdel, uvrem, uvremove]
-        permission: ultravision.uvdelete
-    uvset:
-        description: Sets flags for targets to filter alerts.
-        usage: /<command>
-        aliases: [uvs]
-        permission: ultravision.uvset
+        permission: ultravision.uvclear        
     uvlogin:
         description: Loggs you in.
         usage: /<command>
@@ -95,7 +75,7 @@ commands:
         aliases: [unbanrequest, gunban]
     uvnote:
         description: Applies a note to a player.
-        usage: /<command> <playername> <thenote>
+        usage: /<command> <playername> <id>
         permission: ultravision.mod.note
         aliases: [note]
     uvglobalnote:
@@ -151,7 +131,7 @@ commands:
         description: Unmutes a player from chat. (local)
         usage: /<command> <playername>
         permission: ultravision.mod.unmute
-        aliases: [mute]
+        aliases: [unmute]
     uvaddfriend:
         description: Adds a friend.
         usage: /<command> <friendname>
@@ -162,8 +142,18 @@ commands:
         usage: /<command> <friendname>
         permission: ultravision.user.delfriend
         aliases: [rmfriend, unfriend, delfriend]
+    uvacceptfriend:
+        description: Accepts Friendship request
+        usage: /<command> <yes / no>
+        permission: ultravision.user.acceptfriend
+        aliases: [accfriend, acceptfriend]
     uvstat:      
         description: Shows statistics.
         usage: /<command> [ban|kick|note|warning|mute|praise|time|friend|all] [playername|all]
         permission: ultravision.mod.stat
         aliases: [stat]            
+    uvgc:
+        description: Garbage Collector
+        usage: /<command>
+        permission: ultravision.gc
+        aliases: [gc]

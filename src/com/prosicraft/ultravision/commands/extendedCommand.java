@@ -9,6 +9,7 @@ package com.prosicraft.ultravision.commands;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -42,6 +43,10 @@ public class extendedCommand<PluginClass extends JavaPlugin> {
     public commandResult run (Player p) throws Exception {                
         throw new Exception ("me.prosicraft.extendedCommand<" + this.parent.getClass().getName() + ">::run() cannot be used. Please override this function or use specific Commandclasses.");
     }     
+    
+    public commandResult consoleRun (CommandSender s) throws Exception {
+        throw new Exception ("me.prosicraft.extendedCommand<" + this.parent.getClass().getName() + ">::run() cannot be used. Please override this function or use specific Commandclasses.");
+    }
     
     public boolean isParentSet () {
         if (this.parent != null)

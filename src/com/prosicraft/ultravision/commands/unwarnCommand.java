@@ -23,16 +23,12 @@ public class unwarnCommand extends extendedCommand {
     }
 
     @Override
-    public commandResult run(Player p) {
-        boolean enabled = false;
+    public commandResult run(Player p) {        
         
-        try {
-            
-            if ( !enabled )
-                return err (p, "Warnings are not implemented yet." );
+        try {                        
             
             // /unwarn <player>
-            if ( this.numArgs() >= 2 ) {
+            if ( this.numArgs() == 1 ) {
                                 
                 List<Player> mayWarn = getServer().matchPlayer(getArg(0));
 
@@ -50,7 +46,7 @@ public class unwarnCommand extends extendedCommand {
                     return suc ();
                 } else {    // Got ONE player
                     UltraVisionAPI api = ((ultravision)getParent()).getAPI();
-                    if ( !api.isWarned(p) )
+                    if ( !api.isWarned(mayWarn.get(0)) )
                         return suc (p, ChatColor.RED + "Player is not warned.");
                     
                     String reason = "";
@@ -58,9 +54,9 @@ public class unwarnCommand extends extendedCommand {
                         reason += getArg(i).trim();
                     MResult res;                    
                     if ( (res = api.unsetWarn(p, mayWarn.get(0))) == MResult.RES_SUCCESS) {
-                        ((ultravision)getParent()).ownBroadcast(ChatColor.AQUA + "Player " + mayWarn.get(0).getName() + " has been unwarned." );                    
+                        ((ultravision)getParent()).ownBroadcast(ChatColor.AQUA + "Player " + mayWarn.get(0).getName() + " has been unwarned by " + p.getName() + "." );                                            
                     } else {
-                        return suc (p, ChatColor.RED + "Can't unwarn player: " + res.toString());
+                        return err (p, ChatColor.RED + "Can't unwarn player: " + res.toString());
                     }
                     return suc (p, "Unwarned player successfully.");
                 } 

@@ -9,7 +9,6 @@ import com.prosicraft.ultravision.util.MStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.sql.Time;
 import org.bukkit.entity.Player;
 
@@ -62,8 +61,14 @@ public class UVWarning {
         if ( (this.warner = MStream.readString(in, 16)).trim().equalsIgnoreCase("") )
             return false;
         this.reason = MStream.readString(in, 60);
-        this.warnTime = new Time ( (long)in.read() );
-        this.mWarnTime = new Time ( (long)in.read() );
+        if ( fi.getVersion() >= 2 ) {
+            this.warnTime = new Time ( in.readLong() );
+            this.mWarnTime = new Time ( in.readLong() );
+        }
+        else {
+            this.warnTime = new Time ( (long)in.read() );
+            this.mWarnTime = new Time ( (long)in.read() );
+        }
         this.ServerName = MStream.readString(in, 16);
         this.global = MStream.readBool(in);
         
@@ -75,8 +80,8 @@ public class UVWarning {
         
         out.write(MAuthorizer.getCharArrayB(warner, 16));
         out.write(MAuthorizer.getCharArrayB(reason, 60));        
-        out.write( (int) warnTime.getTime() );
-        out.write( (int) mWarnTime.getTime() );
+        out.writeLong( (warnTime != null) ? warnTime.getTime() : 0 );
+        out.writeLong( (mWarnTime != null) ? mWarnTime.getTime() : 0 );
         out.write(MAuthorizer.getCharArrayB(ServerName, 16));
         out.write( global ? 1 : 0 );
         

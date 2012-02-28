@@ -6,6 +6,7 @@ package com.prosicraft.ultravision.global;
 
 import com.prosicraft.ultravision.base.UVBan;
 import com.prosicraft.ultravision.base.UVKick;
+import com.prosicraft.ultravision.base.UVPlayerInfo;
 import com.prosicraft.ultravision.base.UVWarning;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.util.MAuthorizer;
@@ -20,8 +21,24 @@ import org.bukkit.entity.Player;
  *
  * @author passi
  */
-public class globalEngine implements UltraVisionAPI {
-        
+public class globalEngine implements UltraVisionAPI {                  
+
+    @Override
+    public MResult finalizeFriend(Player p, Player p2) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    @Override
+    public MResult requestFriend(Player p, Player p2) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+            
+
+    @Override
+    public void playerJoin(Player p) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
 
     @Override
     public MResult doTempBan(CommandSender cs, String pname, String reason, Time time, boolean global) {
@@ -218,12 +235,19 @@ public class globalEngine implements UltraVisionAPI {
     @Override
     public List<String> getLog(Player p, String pluginfilter, Time timediff) {
         throw new UnsupportedOperationException("Not supported yet.");
-    }
+    }        
 
     @Override
-    public MResult addFriend(Player p, Player p2) {
+    public UVPlayerInfo getPlayerInfo(String pname) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+
+
+    @Override
+    public MResult cancelFriend(Player p, Player p2) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
 
     @Override
     public MResult delFriend(Player p, Player p2) {
@@ -256,7 +280,7 @@ public class globalEngine implements UltraVisionAPI {
     }
 
     @Override
-    public void playerJoin(Player p) {
+    public void playerLogin(Player p) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 

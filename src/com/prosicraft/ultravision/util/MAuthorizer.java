@@ -3,7 +3,6 @@
  */
 package com.prosicraft.ultravision.util;
 
-import com.prosicraft.ultravision.uvPlayer;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;

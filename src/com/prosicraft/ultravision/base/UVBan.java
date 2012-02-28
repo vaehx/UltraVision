@@ -46,7 +46,9 @@ public class UVBan {
         timedif = dif;
     }
     
-    public Time getTimeRemain () {                
+    public Time getTimeRemain () {
+        if ( timedif == null )
+            return null;
         return new Time (timedif.getTime() -
                 (Calendar.getInstance().getTimeInMillis() - this.mTimeDif.getTime()));
     }
@@ -88,7 +90,7 @@ public class UVBan {
             return false;
         this.reason = MStream.readString(in, 60).trim();
         this.global = MStream.readBool(in);
-        if ( fi.getVersion() == 1 ) {
+        if ( fi.getVersion() >= 1 ) {
             this.timedif = new Time ( in.readLong() );
             this.mTimeDif = new Time ( in.readLong() );
         }                             

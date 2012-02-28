@@ -10,6 +10,7 @@ import com.prosicraft.ultravision.util.MLog;
 import com.prosicraft.ultravision.util.MResult;
 import java.util.List;
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 /**
@@ -20,7 +21,58 @@ public class kickCommand extends extendedCommand {
     
     public kickCommand ( ultravision uv, String[] args ) {
         super ( uv, args );
+    }        
+
+    @Override
+    public commandResult consoleRun(CommandSender s) {
+        try {
+            
+            // /kick <player> [reason]
+            if ( this.numArgs() >= 1 ) {                                
+                
+                List<Player> mayKick = this.getParent().getServer().matchPlayer(this.getArg(0));
+            
+                if ( mayKick == null || mayKick.isEmpty() ) {
+                    MLog.e(ChatColor.RED + "Theres no player called '" + this.getArg(0) + "'.");
+                    return commandResult.RES_ERROR;
+                }
+                
+            
+                if ( mayKick.size() > 1 ) {
+                    MLog.i(ChatColor.DARK_AQUA + "There are some players matching '" + this.getArg(0) + "'");
+                    String plist = "";
+                    for ( Player toKick : mayKick ) {                        
+                        plist += ChatColor.GRAY + toKick.getName() + ( (mayKick.indexOf(toKick) != (mayKick.size() -1)) ? ChatColor.DARK_GRAY + ", " : "" );
+                    }
+                    MLog.i(plist);
+                    return suc ();
+                } else {    // Got ONE player                   
+                    String reason = "";
+                    for ( int i = 1; i < this.numArgs(); i++ )
+                        reason += this.getArg(i).trim() + " ";
+                    reason = reason.trim();
+                    MResult res;
+                    UltraVisionAPI api = ((ultravision)this.getParent()).getAPI();
+                    if ( (res = api.doKick(s, mayKick.get(0), ( (getArgs().length >= 2) ? reason : "No reason provided." ))) == MResult.RES_SUCCESS) {
+                        int c = ((ultravision)getParent()).ownBroadcast(ChatColor.AQUA + mayKick.get(0).getName() + ChatColor.DARK_AQUA + " kicked by " + ChatColor.AQUA + s.getName() + ChatColor.DARK_AQUA + ". Reason: " + ChatColor.AQUA + ( (numArgs() >= 2) ? reason : "No reason." ));                    
+                    } else {
+                        MLog.e(ChatColor.RED + "Can't kick player: " + res.toString());
+                    }
+                    MLog.i("Kicked player successfully.");
+                    return commandResult.RES_SUCCESS;
+                } 
+                
+            } else {
+                MLog.e("Too few arguments.");
+                return commandResult.RES_ERROR;                
+            }
+            
+        } catch ( Exception ex ) {
+            MLog.e("[KICKCMD] " + ex.getMessage());            
+            return commandResult.RES_ERROR;            
+        } 
     }
+
 
     @Override
     public commandResult run(Player p) {

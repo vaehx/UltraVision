@@ -9,6 +9,7 @@ import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.util.MConst;
 import com.prosicraft.ultravision.util.MLog;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.DateFormat;
@@ -28,9 +29,11 @@ public class UVLocalPlayer extends CraftPlayer {
     public UVPlayerInfo i           = null;
     public File         logFile     = null;   
     private String      nl          = System.getProperty("line.separator");
+    private String      logpath     = "";
     
-    public UVLocalPlayer ( CraftServer server, EntityPlayer ep, String logpath, UVPlayerInfo pi ) {
-        super (server,ep);                
+    public UVLocalPlayer ( CraftServer server, EntityPlayer ep, String logp, UVPlayerInfo pi ) {
+        super (server,ep);       
+        logpath = logp;
         logFile = new File ( logpath + UltraVisionAPI.userLogDir, ep.name + ".log" );
         i = pi;
         if ( !logFile.exists() ) {
@@ -47,14 +50,15 @@ public class UVLocalPlayer extends CraftPlayer {
             }
         }
         try {            
-            i.logOut = new PrintWriter (logFile);
+            i.logOut = new PrintWriter (new FileOutputStream(logFile, true));
         } catch (IOException ioex) {
             MLog.e("Can't open User file of user '" + ep.displayName + "'");
         }
     }
     
-    public UVLocalPlayer ( Player p, String logpath, UVPlayerInfo pi ) {        
+    public UVLocalPlayer ( Player p, String logp, UVPlayerInfo pi ) {        
         super ((CraftServer)p.getServer(), ((CraftPlayer)p).getHandle());
+        logpath = logp;
         logFile = new File ( logpath + UltraVisionAPI.userLogDir, p.getName() + ".log" );
         i = pi;
         if ( !logFile.exists() ) {
@@ -69,11 +73,32 @@ public class UVLocalPlayer extends CraftPlayer {
             }
         } 
         try {            
-            i.logOut = new PrintWriter (logFile);            
+            i.logOut = new PrintWriter (new FileOutputStream(logFile, true));            
         } catch (IOException ioex) {
             MLog.e("Can't open User file of user '" + p.getName() + "'");
         }
-    }           
+    }  
+    
+    public void reopenLog () {
+        if ( i.logOut == null ) {
+            MLog.d ("LogOut == null");
+            if ( logFile != null ) {
+                MLog.d("LogFile != null");
+                try {            
+                    i.logOut = new PrintWriter (new FileOutputStream(logFile, true));            
+                } catch (IOException ioex) {
+                    MLog.e("Can't open User file.");
+                }
+            }
+        }        
+    }
+    
+    public void quitlog () {
+        if ( i.logOut != null ) {
+            i.logOut.close();
+            i.logOut = null;
+        }        
+    }
     
     public void log (String txt) {
         if ( i.logOut != null ) {
@@ -82,6 +107,7 @@ public class UVLocalPlayer extends CraftPlayer {
             Date date = new Date();
             
             if ( logFile.length() > MConst._LIMIT_A * 1024 ) {
+                MLog.d("User file reached limit");
                 logFile.delete();
                 i.logOut.close();
                 try {
@@ -100,7 +126,8 @@ public class UVLocalPlayer extends CraftPlayer {
             i.logOut.flush();                        
             
         } else {
-            MLog.e("Can't do log in UVLocalPlayer: LogOut not initialized.");            
+            reopenLog();
+            log(txt);
         }
     }
     

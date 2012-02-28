@@ -13,12 +13,20 @@ import com.prosicraft.ultravision.base.UVChatListener;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.chat.MCChatListener;
 import com.prosicraft.ultravision.chat.UVServer;
+import com.prosicraft.ultravision.commands.accfriendCommand;
+import com.prosicraft.ultravision.commands.addfriendCommand;
 import com.prosicraft.ultravision.commands.banCommand;
 import com.prosicraft.ultravision.commands.commandResult;
+import com.prosicraft.ultravision.commands.delfriendCommand;
+import com.prosicraft.ultravision.commands.delnoteCommand;
+import com.prosicraft.ultravision.commands.gcCommand;
 import com.prosicraft.ultravision.commands.kickCommand;
+import com.prosicraft.ultravision.commands.noteCommand;
 import com.prosicraft.ultravision.commands.praiseCommand;
+import com.prosicraft.ultravision.commands.statCommand;
 import com.prosicraft.ultravision.commands.tempbanCommand;
 import com.prosicraft.ultravision.commands.unbanCommand;
+import com.prosicraft.ultravision.commands.unpraiseCommand;
 import com.prosicraft.ultravision.commands.unwarnCommand;
 import com.prosicraft.ultravision.commands.warnCommand;
 import com.prosicraft.ultravision.global.globalEngine;
@@ -88,10 +96,7 @@ public class ultravision extends JavaPlugin {
         loadTemplateSelection ();
         
         initAuthorizer();   // Authorizer template
-        initJMessage ();    // JMessage template
-
-        // Hook event listeners
-        initEvents ();                                
+        initJMessage ();    // JMessage template                                       
         
         MLog.d("Starting engine...");   
                 
@@ -124,11 +129,13 @@ public class ultravision extends JavaPlugin {
         if ( api != null ) {
             
             for ( Player p : getServer().getOnlinePlayers() ) {
-                api.playerJoin(p);
+                api.playerLogin(p);
             }                
             
         }
         
+        // Hook event listeners                
+        initEvents ();
         playerListener.initUV(api);
         
         if ( !useMineconnect ) {
@@ -168,6 +175,7 @@ public class ultravision extends JavaPlugin {
 
         if ( auth != null) auth.save();                      
         config.setDefault("auth.showMessagesNotLoggedIn", true);
+        config.setDefault("ultravision.showWarnedMessages", true);
         
         if ( jmsg != null)
             jmsg.save(config);
@@ -275,7 +283,6 @@ public class ultravision extends JavaPlugin {
         //pm.registerEvent(Type.BLOCK_BREAK, blockListener, Priority.Low, this);
         //pm.registerEvent(Type.PLAYER_COMMAND_PREPROCESS, playerListener, Priority.Low, this);
         
-        if ( auth != null )
             pm.registerEvents(new UVChatListener(this), this);
             //pm.registerEvent(Type.PLAYER_CHAT, playerListener, Priority.Low, this);
     }
@@ -337,7 +344,7 @@ public class ultravision extends JavaPlugin {
             // Reload already joined players
 //            Player[] p = getServer().getOnlinePlayers();
 //            for (int i = 0; i < p.length; i++) {
-//                playerJoin(p[i]);
+//                playerLogin(p[i]);
 //            }
             
             config.save();
@@ -357,7 +364,7 @@ public class ultravision extends JavaPlugin {
         if ( p == null )
             return true;    // not false, otherwise it would crash                        
             
-            api.playerJoin(p);
+            api.playerLogin(p);
             
             if ( api.isBanned(p) ) {                
                 return false;       
@@ -459,8 +466,17 @@ public class ultravision extends JavaPlugin {
             }           
 
             if (cmd.getName().equalsIgnoreCase("ultravision")) {
+                if ( args.length == 1 && args[0].equalsIgnoreCase("reload") ) {
+                    config = null;
+                    initConfig();
+                    loadTemplateSelection();
+                    p.sendMessage (ChatColor.GREEN + "Reloaded Config");
+                    return true;
+                }
+                
                 p.sendMessage(ChatColor.GOLD + fPDesc.getDescription() + " Running Version " + fPDesc.getVersion());
-                p.sendMessage("Commands: supervise, uvclear, uvlist, uvdel, uvset");
+                p.sendMessage("Commands: kick, ban, tban, praise");
+                return true;
             }
 
             if (cmd.getName().equalsIgnoreCase("jmessage")) {
@@ -564,7 +580,7 @@ public class ultravision extends JavaPlugin {
                 else
                     p.sendMessage(ChatColor.RED + "Couldn't unregister player " + args[0] + ": " + String.valueOf(res));                            
                 return true;
-            }
+            }                        
 
             if (cmd.getName().equalsIgnoreCase("uvkick") ) {
                 if ( (new kickCommand(this, args)).run(p) == commandResult.RES_SUCCESS )                
@@ -578,6 +594,9 @@ public class ultravision extends JavaPlugin {
             } else if ( cmd.getName().equalsIgnoreCase("uvpraise") ) {
                 if ( (new praiseCommand(this, args)).run(p) == commandResult.RES_SUCCESS )
                     return true;
+            } else if ( cmd.getName().equalsIgnoreCase("uvunpraise") ) {
+                if ( (new unpraiseCommand(this, args)).run(p) == commandResult.RES_SUCCESS )
+                    return true;
             } else if ( cmd.getName().equalsIgnoreCase("uvban") ) {
                 if ( (new banCommand(this, args)).run(p) == commandResult.RES_SUCCESS )
                     return true;
@@ -587,10 +606,40 @@ public class ultravision extends JavaPlugin {
             } else if ( cmd.getName().equalsIgnoreCase("uvtempban") ) {
                 if ( (new tempbanCommand(this, args)).run(p) == commandResult.RES_SUCCESS )
                     return true;
+            } else if ( cmd.getName().equalsIgnoreCase("uvgc") ) {
+                if ( (new gcCommand(this, args)).run(p) == commandResult.RES_SUCCESS )
+                    return true;
+            } else if ( cmd.getName().equalsIgnoreCase("uvnote") ) {
+                if ( (new noteCommand(this, args)).run(p) == commandResult.RES_SUCCESS )
+                    return true;
+            } else if ( cmd.getName().equalsIgnoreCase("uvdelnote") ) {
+                if ( (new delnoteCommand(this, args)).run(p) == commandResult.RES_SUCCESS )
+                    return true;
+            } else if ( cmd.getName().equalsIgnoreCase("uvaddfriend") ) {
+                if ( (new addfriendCommand(this, args)).run(p) == commandResult.RES_SUCCESS )
+                    return true;
+            } else if ( cmd.getName().equalsIgnoreCase("uvacceptfriend")) {
+                if ( (new accfriendCommand(this, args)).run(p) == commandResult.RES_SUCCESS )
+                    return true;
+            } else if ( cmd.getName().equalsIgnoreCase("uvdelfriend") ) {
+                if ( (new delfriendCommand(this, args)).run(p) == commandResult.RES_SUCCESS )
+                    return true;
+            } else if ( cmd.getName().equalsIgnoreCase("uvstat") ) {
+                if ( (new statCommand(this, args)).run(p) == commandResult.RES_SUCCESS )
+                    return true;
             }
             
         } else {    // Running command from console                      
-            MLog.i("There are no commands for console yet.");
+           
+            if ( cmd.getName().equalsIgnoreCase("ultravision") ) {
+                MLog.i("Running UltraVision " + fPDesc.getVersion() + ".");               
+            }
+            
+            if (cmd.getName().equalsIgnoreCase("uvkick") ) {
+                if ( (new kickCommand(this, args)).consoleRun(sender) == commandResult.RES_SUCCESS )                
+                    return true;
+            }
+            
         }
         
         return false;       

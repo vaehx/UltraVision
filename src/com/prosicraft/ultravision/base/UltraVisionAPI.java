@@ -35,11 +35,13 @@ public interface UltraVisionAPI {
     public MResult flush ();
     
     public Player getPlayer ( String pname );
+    public UVPlayerInfo getPlayerInfo ( String pname );     
     
     // ==============================================================
     // =                   AUTHENTICATION IMPLEMENT                 =
     // ==============================================================
     
+    public void playerLogin ( Player p );
     public void playerJoin ( Player p );
     public void playerLeave ( Player p );
     public MResult registerAuthorizer ( MAuthorizer authorizer );    
@@ -117,7 +119,9 @@ public interface UltraVisionAPI {
     // =                  USER PROFILES                             =
     // ==============================================================
     
-    public MResult addFriend ( Player p, Player p2 );
+    public MResult requestFriend ( Player p, Player p2 );
+    public MResult finalizeFriend ( Player p, Player p2 );
+    public MResult cancelFriend ( Player p, Player p2 );
     public MResult delFriend ( Player p, Player p2 );
     public List<String> getFriends ( Player p );    
     public MResult setProperty ( Player p, String prop );

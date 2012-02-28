@@ -12,7 +12,7 @@ public class UVFileInformation {
     
     // STATIC -------------------------------
     
-    public static int uVersion = 1;    
+    public static int uVersion = 2;    
     
     
     // UNSTATIC -----------------------------
@@ -24,7 +24,7 @@ public class UVFileInformation {
      * @param v File Data Version
      */    
     public UVFileInformation ( int v ) {
-        version = 1;
+        version = 2;
     }
     
     public int getVersion () {

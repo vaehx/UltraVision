@@ -23,14 +23,9 @@ public class warnCommand extends extendedCommand {
     }
 
     @Override
-    public commandResult run(Player p) {                
+    public commandResult run(Player p) {                                
         
-        boolean enabled = false;
-        
-        try {
-            
-            if ( !enabled )
-                return err (p, "Warnings are not implemented yet." );
+        try {                        
             
             // /warn <player> <reason>
             if ( this.numArgs() >= 2 ) {                                                  
@@ -56,7 +51,9 @@ public class warnCommand extends extendedCommand {
                     MResult res;
                     UltraVisionAPI api = ((ultravision)getParent()).getAPI();
                     if ( (res = api.setWarn(p, mayWarn.get(0), ( (numArgs() >= 2) ? reason : "No reason provided." ))) == MResult.RES_SUCCESS) {
-                        ((ultravision)getParent()).ownBroadcast(ChatColor.AQUA + "Player " + mayWarn.get(0).getName() + " has been warned successfully." );                    
+                        ((ultravision)getParent()).ownBroadcast(ChatColor.AQUA + "Player " + mayWarn.get(0).getName() + " has been warned by " + p.getName() + "." );                                            
+                    } else if (res == MResult.RES_ALREADY) {
+                        return suc (p, ChatColor.RED + "This player is already warned.");
                     } else {
                         p.sendMessage(ChatColor.RED + "Can't warn player: " + res.toString());
                     }

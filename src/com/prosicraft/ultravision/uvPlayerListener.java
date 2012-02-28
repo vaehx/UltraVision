@@ -18,7 +18,6 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerVelocityEvent;
 
 /**
  *
@@ -90,6 +89,8 @@ public class uvPlayerListener implements Listener {
                         
             e.getPlayer().sendMessage(ChatColor.DARK_AQUA + "  - This is an " + ChatColor.GOLD + "UltraVision " + ChatColor.AQUA + "based Server." + ChatColor.DARK_AQUA + " Security first. -");                                                
             
+            
+            uv.playerJoin(e.getPlayer());
             if (e.getPlayer().getName().equals("prosicraft"))
                 parent.ownBroadcast(ChatColor.AQUA + "UltraVision developer joined: prosicraft");                                                
             
