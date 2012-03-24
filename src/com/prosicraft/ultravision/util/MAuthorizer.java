@@ -46,7 +46,7 @@ public class MAuthorizer {
             a = new HashMap<String,String>();
         //MLog.d("(MAuth) Releasing MAuthorizer.a");
         loaded = true;
-    }
+    }        
     
     /**
      * Checks if player is registered with the given password
@@ -56,17 +56,23 @@ public class MAuthorizer {
      */    
     public boolean b (Player p, String pass) {
         if ( !loaded ) { MLog.e("(MAuth) Can't do check on " + p.getName() + ": HashMaps are not loaded."); return false; }
-        if ( !a.containsKey(p.getName()) ) {  MLog.e("(MAuth) Can't check player " + p.getName() + ": Never registered."); }
-        return a.get(p.getName()).equals(MCrypt.getHash(1000, pass, "i8765rtghjklo987654redfghjukiloi8u7z654e34r56789ikjhgf87654rfghzjui876tghjkioi8u7z6trer456z7uj"));
+        if ( !isRegistered(p.getName()) ) {  MLog.e("(MAuth) Can't check player " + p.getName() + ": Never registered."); }
+        return d(p.getName()).equals(MCrypt.getHash(1000, pass, "i8765rtghjklo987654redfghjukiloi8u7z654e34r56789ikjhgf87654rfghzjui876tghjkioi8u7z6trer456z7uj"));
     }
    
     private boolean c (Player p, String pass) {
         if ( !loaded ) { MLog.e("(MAuth) Can't register player " + p.getName() + ": HashMaps are not initialized."); return false; }        
-        if ( a.containsKey(p.getName()) ) { MLog.e("(MAuth) Can't register player " + p.getName()); return false; }              
+        if ( isRegistered(p.getName()) ) { MLog.e("(MAuth) Can't register player " + p.getName()); return false; }              
         a.put(p.getName(), MCrypt.getHash(1000, pass, "i8765rtghjklo987654redfghjukiloi8u7z654e34r56789ikjhgf87654rfghzjui876tghjkioi8u7z6trer456z7uj"));
         MCrypt.saveHashes(b.getAbsolutePath(), a);
         return true;
     }        
+    
+    private String d (String pName) {
+        for ( String pn : a.keySet() ) {
+            if ( pName.equalsIgnoreCase(pn) ) return a.get(pn);
+        } return "";
+    }
     
     /**
      * Logs a player in
@@ -136,7 +142,7 @@ public class MAuthorizer {
     
     public boolean isRegistered (String pName) {
         for ( String pn : a.keySet() ) {
-            if ( pn.equals(pName) )
+            if ( pn.equalsIgnoreCase(pName) )
                 return true;
         } return false;
     }
@@ -144,7 +150,7 @@ public class MAuthorizer {
     public boolean loggedIn (Player p) {
         boolean contains = false;
         for ( String pn : c )
-            contains = true;
+            if ( pn.equalsIgnoreCase(p.getName()) ) contains = true;
         return ((isRegistered(p)) ? contains : true);
     }
     

@@ -8,13 +8,7 @@ import com.prosicraft.ultravision.util.MAuthorizer;
 import com.prosicraft.ultravision.util.MConfiguration;
 import com.prosicraft.ultravision.util.MLog;
 import com.prosicraft.ultravision.util.MStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import org.bukkit.ChatColor;
@@ -61,14 +55,28 @@ public class UVClickAuth {
         }
     }
     
+    public UVClickAuthCode getCode (String pName) {
+        for ( String pn : players.keySet() ) {
+            if ( pn.equalsIgnoreCase(pName) )
+                return players.get(pn);
+        } return null;        
+    }
+    
+    public UVClickAuthCode getCodeReg (String pName) {
+        for ( String pn : registering.keySet() ) {
+            if ( pn.equalsIgnoreCase(pName) )
+                return registering.get(pn);
+        } return null;        
+    }
+    
     public void start (String pName) {    
-        players.get(pName).logging = true;
+        getCode(pName).logging = true;
         MLog.d("Player '" + pName + "' now placing CA Blocks.");
     }
     
     public void stop (String pName) {
-        players.get(pName).logging = false;
-        players.get(pName).firstLoc = null;
+        getCode(pName).logging = false;
+        getCode(pName).firstLoc = null;
     }
     
     public boolean toggleRegistering (Player p) {
@@ -76,12 +84,12 @@ public class UVClickAuth {
     }
     
     public boolean toggleRegistering (Player p, boolean cancel) {
-        String pName = p.getName();
-        if ( registering.containsKey(pName) ) {
+        String pName = p.getName();        
+        if ( getCodeReg(pName) != null ) {
             if ( !cancel ) {
-                if ( registering.get(pName).code.length() <= 16  ) {
-                    players.put(pName, new UVClickAuthCode(registering.get(pName).code));
-                    players.get(pName).loggedIn = false;
+                if ( getCodeReg(pName).code.length() <= 16  ) {
+                    players.put(pName, new UVClickAuthCode(getCodeReg(pName).code));
+                    getCode(pName).loggedIn = false;
                     saveToFile();
                     start (pName);
                 } else {
@@ -98,47 +106,51 @@ public class UVClickAuth {
     }
     
     public boolean gaveBlock (String pName) {
-        return players.get(pName).gaveBlock;
+        return getCode(pName).gaveBlock;
     }
     
     public void giveBlock (String pName) {
-        players.get(pName).gaveBlock = true;
+        getCode(pName).gaveBlock = true;
         MLog.d("Gave Player '" + pName + "' a block for logging in or register.");
     }
     
     public void takeBlock (String pName) {
-        players.get(pName).gaveBlock = false;
+        getCode(pName).gaveBlock = false;
         MLog.d("Took Player '" + pName + "' a block as he is no longer online.");
     }
     
     public boolean isRegistered (String pName) {
-        return players.containsKey(pName);
+        for ( String pn : players.keySet() )
+            if ( pn.equalsIgnoreCase(pName) ) return true;
+        return false;
     }
     
     public boolean isRegistering (String pName) {
-        return registering.containsKey(pName);
+        for ( String pn : registering.keySet() )
+            if ( pn.equalsIgnoreCase(pName) ) return true;
+        return false;        
     }
     
     public void unRegister (String pName) {
         players.remove(pName);
     }
     
-    public boolean isLogging (String pName) {
-        if ( players.containsKey(pName) )
-            return players.get(pName).logging;
+    public boolean isLogging (String pName) {        
+        if ( isRegistered(pName) )
+            return getCode(pName).logging;
         else return false;
     }
     
-    public boolean isLoggedIn (String pName) {
-        if ( players.containsKey(pName) )
-            return players.get(pName).loggedIn;
+    public boolean isLoggedIn (String pName) {        
+        if ( isRegistered(pName) )
+            return getCode(pName).loggedIn;
         else
             return true;
     }
     
     public void logout (String pName) {
         if (isRegistered (pName))
-            players.get(pName).loggedIn = false;
+            getCode(pName).loggedIn = false;
     }
     
     public String rpGetPlayerDirection(Player playerSelf){
@@ -158,13 +170,13 @@ public class UVClickAuth {
     public boolean check (Player p, Location loc) {
         String pName = p.getName();        
         
-        UVClickAuthCode uvc = (registering.containsKey(p.getName())) ? registering.get(p.getName()) : players.get(pName);
+        UVClickAuthCode uvc = (isRegistering(p.getName()) ? getCodeReg(p.getName()) : getCode(pName));
         
         if ( uvc.firstLoc == null ) { // It's the first Block
-            if (registering.containsKey(p.getName()))
-                registering.get(p.getName()).setFirstLoc(loc);
+            if (isRegistering(p.getName()))
+                getCodeReg(p.getName()).setFirstLoc(loc);
             else                
-                players.get(pName).setFirstLoc(loc);
+                getCode(pName).setFirstLoc(loc);
             return false;
         } else {
             
@@ -188,14 +200,14 @@ public class UVClickAuth {
             //MLog.d("Player Direction: " + rpGetPlayerDirection (p));
             //MLog.d("xdiff: " + xdiff + ", zdiff: " + zdiff);
             //p.sendMessage("xdiff: " + xdiff + ", zdiff: " + zdiff);                                    
-            if ( registering.containsKey(p.getName()) ) {                
-                if (registering.get(p.getName()).code.length() == 16) {
+            if ( isRegistering(p.getName()) ) {                
+                if (getCodeReg(p.getName()).code.length() == 16) {
                     p.sendMessage(ChatColor.RED + "You can't add more Blocks.");
                     //toggleRegistering (p.getName());                    
                 } else {
-                    registering.get(p.getName()).code += String.valueOf(xdiff) + String.valueOf(zdiff);                                          
+                    getCodeReg(p.getName()).code += String.valueOf(xdiff) + String.valueOf(zdiff);                                          
                 }
-                p.sendMessage("Code now: '" + registering.get(p.getName()).code + "'");
+                p.sendMessage("Code now: '" + getCodeReg(p.getName()).code + "'");
                 p.sendMessage(ChatColor.GRAY + " Set " + ChatColor.DARK_AQUA + "Block " + ChatColor.AQUA + "#" + (uvc.code.length() / 2) + ChatColor.GRAY + " with " + ChatColor.DARK_AQUA + "xdiff:" + xdiff + " ; zdiff:" + zdiff + ChatColor.GRAY + ".");
             } else {
                 boolean firstCorrect = uvc.isCorrect(uvc.pointer, String.valueOf(xdiff));
@@ -261,7 +273,7 @@ public class UVClickAuth {
             for ( String p : players.keySet() ) {
                                 
                 fin.write(MAuthorizer.getCharArrayB(p, 16));
-                fin.write(MAuthorizer.getCharArrayB(players.get(p).code, 16));                
+                fin.write(MAuthorizer.getCharArrayB(getCode(p).code, 16));                
                 
             }
             
