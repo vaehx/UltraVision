@@ -24,7 +24,7 @@ public class UVFileInformation {
      * @param v File Data Version
      */    
     public UVFileInformation ( int v ) {
-        version = 2;
+        version = v;
     }
     
     public int getVersion () {

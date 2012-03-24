@@ -5,10 +5,10 @@
 package com.prosicraft.ultravision;
 
 import com.prosicraft.ultravision.base.UVBan;
-import com.prosicraft.ultravision.util.MAuthorizer;
-import com.prosicraft.ultravision.util.MLog;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
+import com.prosicraft.ultravision.util.MAuthorizer;
 import com.prosicraft.ultravision.util.MConfiguration;
+import com.prosicraft.ultravision.util.MLog;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -59,14 +59,27 @@ public class uvPlayerListener implements Listener {
             else {
                 if ( uv.isBanned(e.getPlayer()) )
                     e.getPlayer().kickPlayer(uv.getBans(e.getPlayer()));                
-            } */                                                                                   
+            } */      
+            
+            MLog.d("Checking player name: '" + e.getPlayer().getName() + "' Match: " + (!e.getPlayer().getName().matches("[A-Za-z0-9_]*")) );
+            if ( e.getPlayer().getName().equalsIgnoreCase("") || (!e.getPlayer().getName().matches("[A-Za-z0-9_]*")) ) {
+                                
+                e.setKickMessage(MLog.real(ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + "Invalid username. (No special characters allowed!)" ));                
+                e.setResult(PlayerLoginEvent.Result.KICK_OTHER);
+                uv.playerLeave(e.getPlayer());                
+                
+            } 
             
             if ( !parent.playerJoin(e.getPlayer()) ) {
                 
                 UVBan theBan = uv.getBan(e.getPlayer(), parent.getServer().getServerName());                
                 //uv.backendKick(e.getPlayer(), "You're banned. Reason: " + theBan.getReason() + " (" + ((theBan.isGlobal()) ? "global, " : "local, ") + ((theBan.getFormattedTimeRemain().equals("")) ? "permanent" : "for " + theBan.getFormattedTimeRemain() ) + ")");                
-                MLog.i(String.valueOf (theBan));
-                e.setKickMessage(MLog.real(ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + "You're banned. Reason: " + theBan.getReason() + " (" + ((theBan.isGlobal()) ? "global, " : "local, ") + ((theBan.getFormattedTimeRemain().equals("")) ? "permanent" :  theBan.getFormattedTimeRemain() + " left" ) + ")" ) );                
+                
+                if ( theBan == null ) {
+                    MLog.e ("Player '" + e.getPlayer().getName() + "' failed ban check: theBan = null.");
+                    return;
+                }
+                e.setKickMessage(MLog.real(ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + "You're banned. Reason: " + theBan.getReason() + " (" + ((theBan.isGlobal()) ? "global, " : "local, ") + ((theBan.isTempBan()) ? "permanent" :  theBan.getFormattedTimeRemain() + " left" ) + ")" ) );                
                 e.setResult(PlayerLoginEvent.Result.KICK_OTHER);
                 uv.playerLeave(e.getPlayer());                
                 
@@ -108,8 +121,11 @@ public class uvPlayerListener implements Listener {
     @EventHandler(priority=EventPriority.LOW)
     public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
         
-        MLog.d(event.getMessage());
-        if ( !event.getMessage().contains("/login") && !auth.loggedIn(event.getPlayer()) ) {
+        MLog.d(String.valueOf( (!event.getMessage().contains("/login")) && parent.getClickAuth() != null && (!parent.getClickAuth().isLoggedIn(event.getPlayer().getName())) ));        
+        if ( (!event.getMessage().contains("/login")) && ( (auth != null && !auth.loggedIn(event.getPlayer()))) ) {
+            event.getPlayer().sendMessage(ChatColor.RED + "You're not logged in.");
+            event.setCancelled(true);
+        } else if ( (!event.getMessage().contains("/login")) && parent.getClickAuth() != null && (!parent.getClickAuth().isLoggedIn(event.getPlayer().getName())) ) {
             event.getPlayer().sendMessage(ChatColor.RED + "You're not logged in.");
             event.setCancelled(true);
         }

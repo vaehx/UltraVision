@@ -24,7 +24,7 @@ public interface UltraVisionAPI {
     
     public String version = "v0.1";
     public String userDataDir = "//userdata//";
-    public String userLogDir = "//userlog//";    
+    public String userLogDir = "//userlog//";     
     
     /**
      * Collect all informations about a Player

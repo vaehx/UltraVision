@@ -73,6 +73,7 @@ public class statCommand extends extendedCommand {
             Player pl = null;
             UVPlayerInfo uI = null;
             String t = "all";
+            String theName = "";
             
             ev ( p );
             
@@ -89,11 +90,12 @@ public class statCommand extends extendedCommand {
                         getArg(0).equalsIgnoreCase("praise") ||
                         getArg(0).equalsIgnoreCase("time") ||
                         getArg(0).equalsIgnoreCase("friend") ||
-                        getArg(0).equalsIgnoreCase("all") )
+                        getArg(0).equalsIgnoreCase("all") ||
+                        getArg(0).equalsIgnoreCase("reg") )
                     t = getArg(0);
                 else {
                     List<Player> mayStat = getParent().getServer().matchPlayer(getArg(0));  
-                
+                    
                     if ( mayStat == null || mayStat.isEmpty() )
                         return err (p, ChatColor.RED + "There's no player called '" + this.getArg(0) + "'.");  
                 
@@ -107,6 +109,7 @@ public class statCommand extends extendedCommand {
                         return suc ();
                     } else {
                         pl = mayStat.get(0);
+                        theName = pl.getName();
                     }
                 }
                         
@@ -122,7 +125,8 @@ public class statCommand extends extendedCommand {
                         getArg(0).equalsIgnoreCase("praise") ||
                         getArg(0).equalsIgnoreCase("time") ||
                         getArg(0).equalsIgnoreCase("friend") ||
-                        getArg(0).equalsIgnoreCase("all") )
+                        getArg(0).equalsIgnoreCase("all") ||
+                        getArg(0).equalsIgnoreCase("reg") )
                     t = getArg(0);
                 else 
                     return err (p, "Stat type not recognized: '" + getArg(0) + "'");
@@ -130,6 +134,7 @@ public class statCommand extends extendedCommand {
                 // Eval param 2
                 List<Player> mayStat = getParent().getServer().matchPlayer(getArg(1));  
                 
+                theName = getArg(1);
                 if ( mayStat == null || mayStat.isEmpty() ) {
                     if ( (uI = api.getPlayerInfo(getArg(1))) == null )
                         return err (p, ChatColor.RED + "There's no player called '" + this.getArg(1) + "'.");  
@@ -145,6 +150,7 @@ public class statCommand extends extendedCommand {
                     return suc ();
                 } else if ( mayStat.size() == 1 ) {
                     pl = mayStat.get(0);
+                    theName = pl.getName();
                 }
                 
             }
@@ -154,14 +160,22 @@ public class statCommand extends extendedCommand {
             
             if ( uI == null && pl != null ) {
                 uI = api.getPlayerInfo(pl.getName());
+                
             }
             
             // now we have the PlayerInfo instance and we can read this out.
             
             if ( t.equalsIgnoreCase("time") ) {
                 return suc (p, ChatColor.DARK_AQUA + "Total Online time of " + ChatColor.AQUA + getArg(1) + ChatColor.DARK_AQUA + ": " + ChatColor.GOLD + timeInterpreter.getText(uI.getOnlineTime()));
+            } else if ( t.equalsIgnoreCase("registered") || t.equalsIgnoreCase("reg") ) {
+                if (!api.isAuthInit())
+                    return suc (p, ChatColor.YELLOW + "Authorizer is not in use.");
+                if (api.getAuthorizer().isRegistered(theName))
+                    return suc (p, ChatColor.GREEN + "Player '" + theName + "' is registered.");
+                else
+                    return suc (p, ChatColor.RED + "Player '" + theName + "' is not registered.");                
             } else {
-                return err (p, "Stat type " + t + " isn't implemented yet.");
+                return err (p, "Stat type '" + t + "' isn't implemented yet.");
             }                        
             
         } catch ( Exception ex ) {

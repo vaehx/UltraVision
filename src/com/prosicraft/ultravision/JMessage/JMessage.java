@@ -4,6 +4,7 @@
  */
 package com.prosicraft.ultravision.JMessage;
 
+import com.prosicraft.ultravision.util.MAuthorizer;
 import com.prosicraft.ultravision.util.MConfiguration;
 import com.prosicraft.ultravision.util.MLog;
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -25,6 +27,8 @@ public class JMessage {
     private List<String> leavemsg = new ArrayList<String>();
     private Map<String,List<String>> indimsg = new HashMap<String, List<String>>();
     private boolean clearStandard = true;   
+    private List<Player> ingamelogger = new ArrayList<Player>();
+    private List<String> fakeoffliner = new ArrayList<String>();
     private JMPlayerListener listener = null;
     
     public JMessage ( MConfiguration config ) {
@@ -43,8 +47,8 @@ public class JMessage {
         
     }        
     
-    public void init ( JavaPlugin plug ) {        
-        (listener = new JMPlayerListener (plug, this)).init();                        
+    public void init ( JavaPlugin plug, MAuthorizer mauth ) {        
+        (listener = new JMPlayerListener (plug, this, mauth)).init();                        
     }
     
     public void assignIndividual ( String pname, String txt ) {
@@ -155,5 +159,29 @@ public class JMessage {
     public void broadcast ( String txt ) {
         // This function needs to be overridden!
     }   
+    
+    public void addIngameLogger ( Player pl ) {
+        pl.sendMessage(ChatColor.YELLOW + "You're now registered as IngameLogger.");
+        ingamelogger.add(pl);
+    }
+    
+    public void removeIngameLogger ( Player pl ) {
+        pl.sendMessage(ChatColor.YELLOW + "You're no longer ingame logging.");
+        ingamelogger.remove(pl);
+    }
+    
+    public void addFakeOffliner (String name) {
+        if (!fakeoffliner.contains(name))
+            fakeoffliner.add(name);
+    }    
+    
+    public void removeFakeOffliner (String name) {
+        if (fakeoffliner.contains(name))
+            fakeoffliner.add(name);
+    }
+    
+    public List<Player> getIngameLogger () {
+        return ingamelogger;
+    }
     
 }

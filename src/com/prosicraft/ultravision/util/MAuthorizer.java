@@ -115,12 +115,12 @@ public class MAuthorizer {
             return MResult.RES_ALREADY;
         if ( c ( p, pass ) )
             return MResult.RES_SUCCESS;
-        MLog.d("Something went wrong while registering new player :(");
+        MLog.e("Something went wrong while registering new player :(");
         return MResult.RES_ERROR;
     }
     
     public MResult unregister (String pName, Player p) {        
-        if ( pName.equals("") || !a.containsKey(pName) ) return MResult.RES_NOTINIT;
+        if ( pName.equals("") || !isRegistered(pName) ) return MResult.RES_NOTINIT;
         a.remove(pName);
         if ( p != null ) {
             logout (p);
@@ -130,16 +130,22 @@ public class MAuthorizer {
         return MResult.RES_SUCCESS;
     }    
     
-    public boolean isRegistered (Player p) {
-        return a.containsKey(p.getName());
+    public boolean isRegistered (Player p) {        
+        return isRegistered(p.getName());
     }
     
     public boolean isRegistered (String pName) {
-        return a.containsKey(pName);
+        for ( String pn : a.keySet() ) {
+            if ( pn.equals(pName) )
+                return true;
+        } return false;
     }
     
     public boolean loggedIn (Player p) {
-        return ((isRegistered(p)) ? c.contains(p.getName()) : true);
+        boolean contains = false;
+        for ( String pn : c )
+            contains = true;
+        return ((isRegistered(p)) ? contains : true);
     }
     
     public void save() {

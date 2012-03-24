@@ -51,7 +51,7 @@ public class MLog {
         
         public static String real(String src) {        
             if(src == null) return null;
-            return ChatColor.stripColor(src).replaceAll("&([0-9a-f])", "\u00A7$1");
+            return src.replaceAll("&([0-9a-f])", "\u00A7$1");
         }
 	
 }

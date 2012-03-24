@@ -31,7 +31,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import net.minecraft.server.EntityPlayer;
 import net.minecraft.server.Packet255KickDisconnect;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -397,7 +396,7 @@ public class localEngine implements UltraVisionAPI {
         
         try {                        
             
-            UVFileInformation fi = new UVFileInformation (1);
+            UVFileInformation fi = new UVFileInformation ( UVFileInformation.uVersion );
             
             String ch = "nochnk";
             while ( !ch.equalsIgnoreCase("theend") ) {  
@@ -419,7 +418,8 @@ public class localEngine implements UltraVisionAPI {
                     ud.renameTo(new File(plugDir + UltraVisionAPI.userDataDir, p + ".dmg") );                    
                     return i;
                 } else {
-                    fi.setVersion(fid.read());                                        
+                    fi.setVersion(fid.read());
+                    MLog.d("File version is '" + fi.getVersion() + "' at " + MConfiguration.normalizePath(ud));
                 }
                 
                 
@@ -649,13 +649,14 @@ public class localEngine implements UltraVisionAPI {
     @Override
     public void playerLeave(Player p) {
         if ( p == null ) return;        
-        UVLocalPlayer uP = null;
+        UVLocalPlayer uP;
         if ( (uP = valid (p)) != null ) {   
             Time t = new Time ( Calendar.getInstance().getTime().getTime() );
             uP.i.offline = true;            
-            MResult res = MResult.RES_UNKNOWN;               
+            MResult res;               
             if ( (res = addTime(new Time(t.getTime() - uP.i.lastLogin.getTime()), p)) == MResult.RES_SUCCESS ) {
-                uP.log( "** Left successfully. (ip " + p.getAddress().toString() + ")" );
+                if ( p.getAddress() != null )
+                    uP.log( "** Left successfully. (ip " + p.getAddress().toString() + ")" );                                    
             } else {
                 uP.log( "[ERROR] ** Left with error: " + res.toString() );
             }
@@ -707,8 +708,9 @@ public class localEngine implements UltraVisionAPI {
             return false;                                           
         
         if ( uP.i.ban != null ) {
+            MLog.d("isBanned::getTimeRemain() = '" + uP.i.ban.getTimeRemain() + "'");
             if ( uP.i.ban.getTimeRemain() == null )
-                return true;
+               return true;            
             if ( uP.i.ban.getTimeRemain().getTime() <= 0 ) {
                 uP.i.ban = null;
                 return false;
@@ -865,13 +867,10 @@ public class localEngine implements UltraVisionAPI {
 
     @Override
     public UVBan getBan(Player p, String servername) {
-        List<UVBan> bs = getBans ( p );
-        for ( UVBan b : bs ) {
-            MLog.d("Testing ban with " + b.getServerName() + " == " + servername);
-            if ( b.getServerName().equalsIgnoreCase(servername) )
-                return b;
-        }        
-        return null;
+        UVLocalPlayer uP;
+        if ( (uP = valid(p)) == null )
+            return null;        
+        return uP.i.ban;
     }
 
 
@@ -902,11 +901,10 @@ public class localEngine implements UltraVisionAPI {
         UVLocalPlayer uP;
         if ( (uP = valid(p)) == null )
             return MResult.RES_NOTINIT;  // or RES_ALREADY                
-                
-        UVLocalPlayer uPKicker;                
+                                        
         
         if ( !(cs instanceof ConsoleCommandSender) )
-            if ( (uPKicker = valid ((Player)cs)) == null )
+            if ( (valid ((Player)cs)) == null )
                 return MResult.RES_NOTINIT;
         
         MLog.real(ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + reason + " BY " + cs.getName());
@@ -921,6 +919,7 @@ public class localEngine implements UltraVisionAPI {
         if ( !(cs instanceof Player) )
             return MResult.RES_SUCCESS;
         
+        uP.quitlog();
         uP.i.kickHistory.add( new UVKick (reason, (Player)cs, new Time ((new Date()).getTime()) ) );
         try {
             flushInfo (uP.getName(), uP.i);
@@ -1352,27 +1351,22 @@ public class localEngine implements UltraVisionAPI {
     }
 
     @Override
-    public MResult backendKick(Player p, String reason) {                
-        if ( ((CraftPlayer)p).getHandle().netServerHandler != null ) {            
-            ((CraftPlayer)p).getHandle().netServerHandler.player.E();
-            ((CraftPlayer)p).getHandle().netServerHandler.sendPacket(new Packet255KickDisconnect(MLog.real(ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + reason)));        
-            ((CraftPlayer)p).getHandle().netServerHandler.networkManager.d();
-        }
-        try {
-            ((CraftServer)((CraftPlayer)p).getServer()).getHandle().server.serverConfigurationManager.disconnect(((CraftPlayer)p).getHandle());
-        } catch (NullPointerException nex) {
-            EntityPlayer ep = ((CraftPlayer)p).getHandle();            
-            /*
-            MLog.i("Disconnecting '" + p.getName() + "': " + reason);
-            ((CraftServer)((CraftPlayer)p).getServer()). 
-            //((CraftPlayer)p).getHandle().netServerHandler.networkManager.queue(new Packet255KickDisconnect(MLog.real(ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + reason)));            
-            ((CraftServer)((CraftPlayer)p).getServer()).getHandle().server.serverConfigurationManager.playerFileData.a(ep);
-            ((CraftServer)((CraftPlayer)p).getServer()).getHandle().server.serverConfigurationManager.server.getWorldServer((ep).dimension).kill(ep);
-            ((CraftServer)((CraftPlayer)p).getServer()).getHandle().server.serverConfigurationManager.players.remove(ep);
-            ((CraftServer)((CraftPlayer)p).getServer()).getHandle().server.serverConfigurationManager.server.getWorldServer(ep.dimension).manager.removePlayer(ep); */
-        }
-        if ( ((CraftPlayer)p).getHandle().netServerHandler != null )
-            ((CraftPlayer)p).getHandle().netServerHandler.disconnected = true;
+    public MResult backendKick(Player p, String reason) {                                
+        MLog.real(ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "BackendKick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + reason);        
+        
+        // Save Log quit
+        UVLocalPlayer uP;
+        if ( (uP = valid(p)) != null )
+            uP.quitlog();
+        
+        ((CraftPlayer)p).getHandle().netServerHandler.player.E();
+        ((CraftPlayer)p).getHandle().netServerHandler.sendPacket(new Packet255KickDisconnect(MLog.real(ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + reason)));        
+        ((CraftPlayer)p).getHandle().netServerHandler.networkManager.d();
+        ((CraftServer)((CraftPlayer)p).getServer()).getHandle().server.serverConfigurationManager.disconnect(((CraftPlayer)p).getHandle());
+        ((CraftPlayer)p).getHandle().netServerHandler.disconnected = true;                
+        
+        
+        
         return MResult.RES_SUCCESS;
     }        
 }
