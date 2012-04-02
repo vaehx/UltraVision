@@ -93,7 +93,7 @@ public class globalEngine implements UltraVisionAPI {
     }
 
     @Override
-    public boolean isBanned(Player p) {
+    public boolean isBanned(String pname) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 

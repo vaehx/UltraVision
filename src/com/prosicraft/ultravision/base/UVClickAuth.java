@@ -74,9 +74,12 @@ public class UVClickAuth {
         MLog.d("Player '" + pName + "' now placing CA Blocks.");
     }
     
-    public void stop (String pName) {
-        getCode(pName).logging = false;
-        getCode(pName).firstLoc = null;
+    public void stop (String pName)
+    {
+        if ( getCode(pName) != null ) {
+            getCode(pName).logging = false;
+            getCode(pName).firstLoc = null;
+        }
     }
     
     public boolean toggleRegistering (Player p) {
@@ -106,17 +109,18 @@ public class UVClickAuth {
     }
     
     public boolean gaveBlock (String pName) {
-        return getCode(pName).gaveBlock;
+            if ( getCode(pName) != null )
+                    return getCode(pName).gaveBlock;
+            else
+                    return false;
     }
     
     public void giveBlock (String pName) {
-        getCode(pName).gaveBlock = true;
-        MLog.d("Gave Player '" + pName + "' a block for logging in or register.");
+        getCode(pName).gaveBlock = true;        
     }
     
     public void takeBlock (String pName) {
-        getCode(pName).gaveBlock = false;
-        MLog.d("Took Player '" + pName + "' a block as he is no longer online.");
+        getCode(pName).gaveBlock = false;        
     }
     
     public boolean isRegistered (String pName) {
@@ -206,8 +210,7 @@ public class UVClickAuth {
                     //toggleRegistering (p.getName());                    
                 } else {
                     getCodeReg(p.getName()).code += String.valueOf(xdiff) + String.valueOf(zdiff);                                          
-                }
-                p.sendMessage("Code now: '" + getCodeReg(p.getName()).code + "'");
+                }                
                 p.sendMessage(ChatColor.GRAY + " Set " + ChatColor.DARK_AQUA + "Block " + ChatColor.AQUA + "#" + (uvc.code.length() / 2) + ChatColor.GRAY + " with " + ChatColor.DARK_AQUA + "xdiff:" + xdiff + " ; zdiff:" + zdiff + ChatColor.GRAY + ".");
             } else {
                 boolean firstCorrect = uvc.isCorrect(uvc.pointer, String.valueOf(xdiff));

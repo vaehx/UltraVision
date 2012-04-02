@@ -4,8 +4,8 @@
  */
 package com.prosicraft.ultravision.JMessage;
 
+import com.prosicraft.ultravision.base.UVClickAuth;
 import com.prosicraft.ultravision.util.MAuthorizer;
-import com.prosicraft.ultravision.util.MLog;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -25,11 +25,13 @@ public class JMPlayerListener implements Listener {
     private JavaPlugin parent = null;
     private JMessage messager = null;
     private MAuthorizer auth = null;
+    private UVClickAuth cauth = null;
     
-    public JMPlayerListener (JavaPlugin prnt, JMessage msg, MAuthorizer mauth) {
+    public JMPlayerListener (JavaPlugin prnt, JMessage msg, MAuthorizer mauth, UVClickAuth cauth) {
         this.parent = prnt;        
         this.messager = msg;
         this.auth = mauth;
+        this.cauth = cauth;
     }
     
     public void init () {
@@ -57,13 +59,16 @@ public class JMPlayerListener implements Listener {
     }
     
     @EventHandler(priority=EventPriority.LOW)
-    public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
+    public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event)
+    {
         if (messager.getIngameLogger().isEmpty())
             return;
-        for ( Player p : messager.getIngameLogger() ) {                        
-            if ( this.auth != null && !this.auth.loggedIn(p) ) continue;
-            if ( !p.getName().equalsIgnoreCase(event.getPlayer().getName()) )                
-                p.sendMessage(ChatColor.DARK_GRAY + " " + event.getPlayer().getName() + ": " + ChatColor.GRAY+ event.getMessage());
+        for ( Player p : messager.getIngameLogger() )
+        {
+                final boolean loggedIn = ( (auth != null && auth.loggedIn(p)) && (cauth != null && (cauth.isLoggedIn(p.getName()))) );
+                if ( !loggedIn ) continue;
+                if ( !p.getName().equalsIgnoreCase(event.getPlayer().getName()) )                
+                        p.sendMessage(ChatColor.DARK_GRAY + " " + event.getPlayer().getName() + ": " + ChatColor.GRAY+ event.getMessage());
         }
     }
     

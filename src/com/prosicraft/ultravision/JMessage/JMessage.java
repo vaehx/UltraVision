@@ -4,6 +4,7 @@
  */
 package com.prosicraft.ultravision.JMessage;
 
+import com.prosicraft.ultravision.base.UVClickAuth;
 import com.prosicraft.ultravision.util.MAuthorizer;
 import com.prosicraft.ultravision.util.MConfiguration;
 import com.prosicraft.ultravision.util.MLog;
@@ -47,8 +48,8 @@ public class JMessage {
         
     }        
     
-    public void init ( JavaPlugin plug, MAuthorizer mauth ) {        
-        (listener = new JMPlayerListener (plug, this, mauth)).init();                        
+    public void init ( JavaPlugin plug, MAuthorizer mauth, UVClickAuth cauth ) {        
+        (listener = new JMPlayerListener (plug, this, mauth, cauth)).init();                        
     }
     
     public void assignIndividual ( String pname, String txt ) {
@@ -116,10 +117,11 @@ public class JMessage {
             if ( !tp.equals(p) ) {
                 res += tp.getName() + ", ";
             }                        
-        }              
+        }
+        res += "You";
 
-        if ( res.length() > 2 )
-            res = res.substring(0, res.length() - 2);
+        /*if ( res.length() > 2 )
+            res = res.substring(0, res.length() - 2);*/
     
         return res;             
         

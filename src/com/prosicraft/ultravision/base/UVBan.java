@@ -12,6 +12,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.sql.Time;
 import java.util.Calendar;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 /**
@@ -33,7 +34,7 @@ public class UVBan {
         this.reason = reason;
         this.banner = banner.getName();
         this.global = global;
-        this.timedif = timedif;
+        this.timedif = timedif;        
         this.mTimeDif = new Time(Calendar.getInstance().getTimeInMillis());
         this.ServerName = ((banner != null) ? banner.getServer().getServerName() : ServerName);
     }       
@@ -79,8 +80,10 @@ public class UVBan {
         this.reason = reason;
     }
     
-    public String getFormattedInfo () {
-        return ((global) ? "globally " : "") + "banned by " + banner + ((mTimeDif != null) ? " for " + mTimeDif.toString() : "" ) + ". Reason: " + reason;
+    public String getFormattedInfo () {            
+            return ChatColor.DARK_GRAY + "[" + ChatColor.DARK_AQUA + mTimeDif.toString() + ChatColor.DARK_GRAY + "] " +
+                    ((global) ? "globally " : "") + "banned by " + ChatColor.AQUA + banner + ChatColor.DARK_GRAY + ((timedif != null) ? ChatColor.AQUA + " for " + timeInterpreter.getText(timedif.getTime()) : "" ) +
+                            ChatColor.DARK_AQUA + ". Reason: " + ChatColor.GOLD + reason;
     }
     
     public boolean read ( DataInputStream in, UVFileInformation fi ) throws IOException {                

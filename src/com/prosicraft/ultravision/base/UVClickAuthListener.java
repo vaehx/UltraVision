@@ -50,7 +50,7 @@ public class UVClickAuthListener implements Listener {
         }
     }
     
-    @EventHandler(priority=EventPriority.LOW)
+    @EventHandler(priority=EventPriority.NORMAL)
     public void onPlayerQuit (PlayerQuitEvent event) {
         if ( au.isLogging(event.getPlayer().getName()) || au.isRegistering(event.getPlayer().getName()) ) {
             au.stop(event.getPlayer().getName());

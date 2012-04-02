@@ -120,8 +120,7 @@ public class UVLocalPlayer extends CraftPlayer {
                 } catch (IOException ioex) {
                     MLog.e("Can't open User file of user '" + this.getName() + "' AFTER CLEAR.");
                 }
-            }
-            
+            }            
             i.logOut.append(dateFormat.format(date) + ": " + txt + nl);            
             i.logOut.flush();                        
             
