@@ -124,6 +124,7 @@ public class UVClickAuth {
     }
     
     public boolean isRegistered (String pName) {
+            MLog.d("Check if registered: '" + pName + "'");
         for ( String pn : players.keySet() )
             if ( pn.equalsIgnoreCase(pName) ) return true;
         return false;
@@ -139,14 +140,15 @@ public class UVClickAuth {
         players.remove(pName);
     }
     
-    public boolean isLogging (String pName) {        
+    public boolean isLogging (String pName) {                
         if ( isRegistered(pName) )
             return getCode(pName).logging;
         else return false;
     }
     
     public boolean isLoggedIn (String pName) {        
-        if ( isRegistered(pName) )
+        MLog.d("isLoggedIn (reg? " + isRegistered(pName) + ")");
+            if ( isRegistered(pName) )
             return getCode(pName).loggedIn;
         else
             return true;
@@ -326,9 +328,10 @@ public class UVClickAuth {
         try {
             while ( !MStream.isZero( (str = MStream.readStringBuf(fin, 16)) ) && reads < 1000 ) {                                                                                
                                 
-                if (theName.equalsIgnoreCase(""))
-                    theName = (new String(str)).trim();
-                else {                    
+                if (theName.equalsIgnoreCase("")) {
+                    theName = (new String(str)).trim();                        
+                }
+                else {                                            
                     players.put(theName, new UVClickAuthCode ((new String(str)).trim()));
                     theName = "";                
                 }

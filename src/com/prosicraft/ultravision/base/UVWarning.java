@@ -10,6 +10,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.sql.Time;
+import java.util.Calendar;
 import org.bukkit.entity.Player;
 
 /**
@@ -40,8 +41,11 @@ public class UVWarning {
         return this.global;
     }
     
-    public Time getRemainingWarnTime () {
-        return warnTime;
+    public Time getRemainingWarnTime () {        
+        if ( warnTime == null )
+            return null;
+        return new Time (warnTime.getTime() -
+                (Calendar.getInstance().getTimeInMillis() - this.mWarnTime.getTime()));
     }
     
     public String getReason() {
@@ -62,11 +66,13 @@ public class UVWarning {
             return false;
         this.reason = MStream.readString(in, 60);
         if ( fi.getVersion() >= 2 ) {
-            this.warnTime = new Time ( in.readLong() );
+                long v = in.readLong();
+            this.warnTime = (v == -1) ? null : new Time ( v );
             this.mWarnTime = new Time ( in.readLong() );
         }
         else {
-            this.warnTime = new Time ( (long)in.read() );
+                long v = in.read();
+            this.warnTime = (v == -1) ? null : new Time ( v );
             this.mWarnTime = new Time ( (long)in.read() );
         }
         this.ServerName = MStream.readString(in, 16);
@@ -80,7 +86,7 @@ public class UVWarning {
         
         out.write(MAuthorizer.getCharArrayB(warner, 16));
         out.write(MAuthorizer.getCharArrayB(reason, 60));        
-        out.writeLong( (warnTime != null) ? warnTime.getTime() : 0 );
+        out.writeLong( (warnTime != null) ? warnTime.getTime() : -1 );
         out.writeLong( (mWarnTime != null) ? mWarnTime.getTime() : 0 );
         out.write(MAuthorizer.getCharArrayB(ServerName, 16));
         out.write( global ? 1 : 0 );

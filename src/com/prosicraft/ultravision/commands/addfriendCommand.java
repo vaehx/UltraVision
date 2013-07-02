@@ -45,15 +45,15 @@ public class addfriendCommand extends extendedCommand {
                     }
                     p.sendMessage(plist);
                     return suc ();
-                } else {    // Got ONE player
-                    String reason = "";
-                    for ( int i = 1; i < this.numArgs(); i++ )
-                        reason += this.getArg(i).trim();
+                } else {    // Got ONE player                    
                     MResult res;
                     UltraVisionAPI api = ((ultravision)this.getParent()).getAPI();
                     
                     if ( api.getFriends(p).contains(mayFriend.get(0).getName()) )
                         return suc (p, "You are already in friendship with " + mayFriend.get(0).getName());
+                    
+                    if ( p.getName().equalsIgnoreCase(mayFriend.get(0).getName()) )
+                            return suc (p, ChatColor.RED + "You can't add yourself as a friend.");
                     
                     if ( (res = api.requestFriend(p, mayFriend.get(0))) == MResult.RES_SUCCESS) {
                         mayFriend.get(0).sendMessage(ChatColor.AQUA + p.getName() + ChatColor.DARK_AQUA + " wants to be a friend of you.");

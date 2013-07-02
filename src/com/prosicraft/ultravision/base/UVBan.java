@@ -11,7 +11,10 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.sql.Time;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -80,8 +83,10 @@ public class UVBan {
         this.reason = reason;
     }
     
-    public String getFormattedInfo () {            
-            return ChatColor.DARK_GRAY + "[" + ChatColor.DARK_AQUA + mTimeDif.toString() + ChatColor.DARK_GRAY + "] " +
+    public String getFormattedInfo () {
+            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            Date date = new Date(mTimeDif.getTime());
+            return ChatColor.DARK_GRAY + "[" + ChatColor.DARK_AQUA + dateFormat.format(date) + ChatColor.DARK_GRAY + "] " +
                     ((global) ? "globally " : "") + "banned by " + ChatColor.AQUA + banner + ChatColor.DARK_GRAY + ((timedif != null) ? ChatColor.AQUA + " for " + timeInterpreter.getText(timedif.getTime()) : "" ) +
                             ChatColor.DARK_AQUA + ". Reason: " + ChatColor.GOLD + reason;
     }
@@ -93,8 +98,9 @@ public class UVBan {
             return false;
         this.reason = MStream.readString(in, 60).trim();
         this.global = MStream.readBool(in);
-        if ( fi.getVersion() >= 1 ) {
-            this.timedif = new Time ( in.readLong() );
+        if ( fi.getVersion() >= 1 ) {            
+            long v = in.readLong();
+            this.timedif = ( v == -1 ) ? null : new Time ( v );
             this.mTimeDif = new Time ( in.readLong() );
         }                             
         this.ServerName = MStream.readString(in, 16).trim();
@@ -106,7 +112,7 @@ public class UVBan {
         out.write(MAuthorizer.getCharArrayB(banner, 16));
         out.write(MAuthorizer.getCharArrayB(reason, 60));                
         out.write( global ? 1 : 0 );        
-        out.writeLong( ((timedif == null) ? 0 : timedif.getTime()) );
+        out.writeLong( ((timedif == null) ? -1 : timedif.getTime()) );
         out.writeLong( ((mTimeDif == null) ? 0 : mTimeDif.getTime()) );        
         out.write(MAuthorizer.getCharArrayB(ServerName, 16));
 

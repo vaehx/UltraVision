@@ -54,7 +54,7 @@ public class kickCommand extends extendedCommand {
                     MResult res;
                     UltraVisionAPI api = ((ultravision)this.getParent()).getAPI();
                     if ( (res = api.doKick(s, mayKick.get(0), ( (getArgs().length >= 2) ? reason : "No reason provided." ))) == MResult.RES_SUCCESS) {
-                        int c = ((ultravision)getParent()).ownBroadcast(ChatColor.AQUA + mayKick.get(0).getName() + ChatColor.DARK_AQUA + " kicked by " + ChatColor.AQUA + s.getName() + ChatColor.DARK_AQUA + ". Reason: " + ChatColor.AQUA + ( (numArgs() >= 2) ? reason : "No reason." ));                    
+                        int c = ((ultravision)getParent()).ownBroadcast(ChatColor.AQUA + mayKick.get(0).getName() + ChatColor.DARK_GRAY + " kicked by " + ChatColor.AQUA + s.getName() + ChatColor.DARK_GRAY + ". Reason: " + ChatColor.GOLD + ( (numArgs() >= 2) ? reason : "No reason." ));                    
                     } else {
                         MLog.e(ChatColor.RED + "Can't kick player: " + res.toString());
                     }
@@ -108,7 +108,7 @@ public class kickCommand extends extendedCommand {
                     MResult res;
                     UltraVisionAPI api = ((ultravision)this.getParent()).getAPI();
                     if ( (res = api.doKick(p, mayKick.get(0), ( (getArgs().length >= 2) ? reason : "No reason provided." ))) == MResult.RES_SUCCESS) {
-                        int c = ((ultravision)getParent()).ownBroadcast(ChatColor.AQUA + mayKick.get(0).getName() + ChatColor.DARK_AQUA + " kicked by " + ChatColor.AQUA + p.getName() + ChatColor.DARK_AQUA + ". Reason: " + ChatColor.AQUA + ( (numArgs() >= 2) ? reason : "No reason." ));                    
+                        int c = ((ultravision)getParent()).ownBroadcast(ChatColor.AQUA + mayKick.get(0).getName() + ChatColor.DARK_GRAY + " kicked by " + ChatColor.AQUA + p.getName() + ChatColor.DARK_GRAY + ". Reason: " + ChatColor.GOLD + ( (numArgs() >= 2) ? reason : "No reason." ));                    
                     } else {
                         p.sendMessage(ChatColor.RED + "Can't kick player: " + res.toString());
                     }

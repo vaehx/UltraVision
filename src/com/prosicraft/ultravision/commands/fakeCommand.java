@@ -29,8 +29,7 @@ public class fakeCommand extends extendedCommand {
             JMessage jmsg = ((ultravision)getParent()).getMessager();
             if (hasArgs(1)) {
                 
-                if (getArg(0).equalsIgnoreCase("login")) {
-                    
+                if (getArg(0).equalsIgnoreCase("login")) {                    
                 }
                 
             }

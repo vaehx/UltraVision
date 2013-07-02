@@ -52,11 +52,13 @@ public class banCommand extends extendedCommand {
                     String reason = "";
                     for ( int i = 1; i < this.numArgs(); i++ )
                         reason += this.getArg(i).trim() + " ";
+                    if ( reason.trim().equalsIgnoreCase("") )
+                            return suc(p, ChatColor.RED + "No permanent ban without a reason.");
                     MResult res;                    
                     UltraVisionAPI api = ((ultravision)this.getParent()).getAPI();
                     if ( (res = api.doBan(p, mayKick.get(0), ( (getArgs().length >= 2) ? reason.trim() : "No reason provided." ))) == MResult.RES_SUCCESS) {
-                        int c = ((ultravision)getParent()).ownBroadcast(ChatColor.AQUA + mayKick.get(0).getName() + ChatColor.DARK_AQUA + " permanently banned by " + ChatColor.AQUA + p.getName() + ChatColor.DARK_AQUA + " (local).");
-                        ((ultravision)getParent()).ownBroadcast(ChatColor.DARK_AQUA + "Reason: " + ChatColor.AQUA + ( (numArgs() >= 2) ? reason.trim() : "No reason." ));
+                        ((ultravision)getParent()).ownBroadcast(ChatColor.AQUA + mayKick.get(0).getName() + ChatColor.DARK_AQUA + " permanently " + ChatColor.DARK_GRAY + " banned by " + ChatColor.AQUA + p.getName() + ChatColor.DARK_GRAY + " (local).");
+                        ((ultravision)getParent()).ownBroadcast(ChatColor.DARK_GRAY + "Reason: " + ChatColor.GOLD + ( (numArgs() >= 2) ? reason.trim() : "No reason." ));
                     } else {
                         return err(p, ChatColor.RED + "Can't ban player: " + res.toString());
                     }

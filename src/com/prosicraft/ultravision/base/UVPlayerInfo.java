@@ -29,7 +29,8 @@ public class UVPlayerInfo {
     public List<String>    praiser          = new ArrayList<String>();
     public boolean         isMute           = false;
     public Time            onlineTime       = new Time (0);
-    public Time            lastLogin        = null;        
+    public Time            lastLogin        = null;
+    public Time            lastOnline       = null;
     public PrintWriter     logOut           = null;    
     public boolean         offline          = true;    
     

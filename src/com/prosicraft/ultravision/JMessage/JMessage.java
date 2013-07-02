@@ -5,14 +5,14 @@
 package com.prosicraft.ultravision.JMessage;
 
 import com.prosicraft.ultravision.base.UVClickAuth;
+import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.util.MAuthorizer;
 import com.prosicraft.ultravision.util.MConfiguration;
 import com.prosicraft.ultravision.util.MLog;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.sql.Time;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -23,21 +23,28 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public class JMessage {        
     
-    private List<String> joinmsg = new ArrayList<String>();
-    private List<String> joinmsgpri = new ArrayList<String>();
-    private List<String> leavemsg = new ArrayList<String>();
+    private List<String> joinmsg        = new ArrayList<String>();
+    private List<String> joinmsgpri     = new ArrayList<String>();
+    private List<String> leavemsg       = new ArrayList<String>();
+    private List<String> spawnmsg       = new ArrayList<String>();
+    private List<String> players        = new ArrayList<String>();
     private Map<String,List<String>> indimsg = new HashMap<String, List<String>>();
-    private boolean clearStandard = true;   
-    private List<Player> ingamelogger = new ArrayList<Player>();
-    private List<String> fakeoffliner = new ArrayList<String>();
-    private JMPlayerListener listener = null;
+    private boolean clearStandard       = true;   
+    private boolean useUltraChat        = false;
+    private List<Player> ingamelogger   = new ArrayList<Player>();
+    private List<String> fakeoffliner   = new ArrayList<String>();
+    private JMPlayerListener listener   = null;
+    private UltraVisionAPI uv           = null;
     
-    public JMessage ( MConfiguration config ) {
+    public JMessage ( MConfiguration config, UltraVisionAPI ultravision ) {
         
-        clearStandard = config.getBoolean("JMessage.clear-standard-messages", clearStandard);
-        joinmsg = config.getStringList("JMessage.join-message", joinmsg);
-        joinmsgpri = config.getStringList("JMessage.join-message-private", joinmsgpri);
-        leavemsg = config.getStringList("JMessage.leave-message", leavemsg); 
+        clearStandard   = config.getBoolean("JMessage.clear-standard-messages", clearStandard);
+        joinmsg         = config.getStringList("JMessage.join-message", joinmsg);
+        joinmsgpri      = config.getStringList("JMessage.join-message-private", joinmsgpri);
+        leavemsg        = config.getStringList("JMessage.leave-message", leavemsg);
+        spawnmsg        = config.getStringList("JMessage.spawn-message", spawnmsg);
+        players         = config.getStringList("JMessage.players", players);
+        useUltraChat    = config.getBoolean("JMessage.use-ultrachat", useUltraChat);        
         
         Set<String> keys = config.getKeys("JMessage.individual-messages");        
         if ( keys == null || keys.isEmpty() )
@@ -46,10 +53,17 @@ public class JMessage {
             indimsg.put(pn, config.getStringList("JMessage.individual-messages." + pn, null));            
         } 
         
+        uv = ultravision;
+        
     }        
     
     public void init ( JavaPlugin plug, MAuthorizer mauth, UVClickAuth cauth ) {        
-        (listener = new JMPlayerListener (plug, this, mauth, cauth)).init();                        
+        (listener = new JMPlayerListener (plug, this, mauth, cauth)).init();                               
+    }    
+    
+    public void setAPI ( UltraVisionAPI api )
+    {
+            uv = api;
     }
     
     public void assignIndividual ( String pname, String txt ) {
@@ -66,10 +80,13 @@ public class JMessage {
     public void load ( MConfiguration config ) {
         indimsg.clear();
         config.load();
-        clearStandard = config.getBoolean("JMessage.clear-standard-messages", clearStandard);
-        joinmsg = config.getStringList("JMessage.join-message", joinmsg);
-        joinmsgpri = config.getStringList("JMessage.join-message-private", joinmsgpri);
-        leavemsg = config.getStringList("JMessage.leave-message", leavemsg); 
+        clearStandard   = config.getBoolean("JMessage.clear-standard-messages", clearStandard);
+        useUltraChat    = config.getBoolean("JMessage.use-ultrachat", useUltraChat);                
+        joinmsg         = config.getStringList("JMessage.join-message", joinmsg);
+        joinmsgpri      = config.getStringList("JMessage.join-message-private", joinmsgpri);
+        leavemsg        = config.getStringList("JMessage.leave-message", leavemsg); 
+        spawnmsg        = config.getStringList("JMessage.spawn-message", spawnmsg); 
+        players         = config.getStringList("JMessage.players", players);
         
         Set<String> keys = config.getKeys("JMessage.individual-messages");        
         if ( keys == null || keys.isEmpty() )
@@ -82,9 +99,12 @@ public class JMessage {
     public void save ( MConfiguration config ) {
         
         config.set("JMessage.clear-standard-messages", clearStandard);
+        config.set("JMessage.use-ultrachat", useUltraChat);
         config.set("JMessage.join-message", joinmsg);
         config.set("JMessage.join-message-private", joinmsgpri);        
         config.set("JMessage.leave-message", leavemsg);
+        config.set("JMessage.spawn-message", spawnmsg);
+        config.set("JMessage.players", players);
         
         Set<String> keys = indimsg.keySet();
         for ( String pn : keys ) {
@@ -95,33 +115,62 @@ public class JMessage {
         
     }   
     
+    public String perms_getPrefix ( Player p ) {
+            if ( !useUltraChat) return "";            
+            return "";
+    }
+     
     public String untag ( String src, Player p ) {                                
         
-        String res = src.replaceAll("%nm", p.getName())    // Normal name
-                        .replaceAll("%dnm", p.getDisplayName())   // Display name
-                        .replaceAll("%ol", getOnlinePlayerList (p))
+        String res = src.replaceAll("%nm", p.getName())                                                 // Normal name
+                        .replaceAll("%dnm", p.getDisplayName())                                         // Display name
+                        .replaceAll("%ol", getOnlinePlayerList (p, false))                              // Online List (w/o Prefixes)
+                        .replaceAll("%preol", getOnlinePlayerList (p, true))                            // Online List (with Prefixes)
+                        .replaceAll("%size", Integer.toString(p.getServer().getOnlinePlayers().length)) // Current online users
+                        .replaceAll("%max", Integer.toString(p.getServer().getMaxPlayers()))            // Max Slots
+                        .replaceAll("%mode", p.getGameMode().name())                                    // Gamemode
+                        .replaceAll("%laston", getLastOnlineTime(p))                                    // Last Login time
+                        .replaceAll("%world", p.getWorld().getName())                                   // World
+                        .replaceAll("%snm", p.getServer().getServerName())                              // Server name 
                         .replaceAll("&uuml;", "ü")
                         .replaceAll("&ouml;", "ö")
                         .replaceAll("&aauml;", "ä")
-                        .replaceAll("%snm", p.getServer().getServerName());    // Server name                
+                        .replaceAll("&szlig", "ß");                                                       
+        
+        if ( listener != null )
+                res = listener.untag2(res, p);
         
         return MLog.real(res);
         
     }
     
-    public String getOnlinePlayerList ( Player p ) {
+    public String getLastOnlineTime (Player p) {
+            if ( uv == null ) return "";
+            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            Time t = uv.getPlayerInfo(p.getName()).lastOnline;
+            Date date = new Date(t.getTime());            
+            return dateFormat.format(date);
+    }
+    
+    public String getOnlinePlayerList ( Player p, boolean prefixed) {
         
         String res = "";
+        String pre = "";        
+        
+        if ( prefixed ) listener.checkVault();
         
         for ( Player tp : p.getServer().getOnlinePlayers() ) {            
             if ( !tp.equals(p) ) {
-                res += tp.getName() + ", ";
+                    if ( listener.getChat() != null ) {
+                            if ( prefixed ) pre = listener.getChat().getPlayerPrefix(tp);                            
+                    }                                                
+                    res += pre + tp.getName() + ChatColor.GRAY + ", ";
             }                        
         }
-        res += "You";
-
-        /*if ( res.length() > 2 )
-            res = res.substring(0, res.length() - 2);*/
+        if ( listener.getChat() != null ) {
+                if ( prefixed ) pre = listener.getChat().getPlayerPrefix(p);                            
+        }                                                
+        res += pre + p.getName();               
     
         return res;             
         
@@ -133,6 +182,13 @@ public class JMessage {
             for ( String s : joinmsgpri )
                 p.sendMessage( untag(s, p) );
         }  
+                
+        if ( !spawnmsg.isEmpty() && !players.contains(p.getName()) ) {
+                for ( String s : spawnmsg )
+                        p.sendMessage( untag(s, p) );
+                players.add(p.getName());
+        }
+        
         
         if ( !joinmsg.isEmpty() ) {
             for ( String s : joinmsg ) {                
@@ -146,12 +202,25 @@ public class JMessage {
                 broadcast ( untag (s, p) );
             }
         }
-    }
+    }       
     
     public void doLeave ( Player p ) {
         if ( !leavemsg.isEmpty() )
             for ( String s : leavemsg )
                 broadcast ( untag( s, p) );
+    }
+    
+    public void doJoinTest ( Player p ) {                            
+        if ( !joinmsgpri.isEmpty() ) for ( String s : joinmsgpri ) p.sendMessage( untag(s, p) );               
+        if ( !spawnmsg.isEmpty() ) for ( String s : spawnmsg ) p.sendMessage( untag(s, p) );
+        if ( !joinmsg.isEmpty() ) for ( String s : joinmsg ) p.sendMessage( untag(s, p) );                                                    
+        if ( indimsg.containsKey(p.getName()) ) for ( String s : indimsg.get(p.getName()) ) p.sendMessage ( untag (s, p) );                    
+    }
+    
+    public void doLeaveTest ( Player p ) {
+        if ( !leavemsg.isEmpty() )
+            for ( String s : leavemsg )
+                p.sendMessage( untag( s, p) );
     }
     
     public boolean isClearingStandard () {

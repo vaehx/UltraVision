@@ -32,10 +32,10 @@ public class UVChatListener implements Listener {
         MLog.d ("Api: " + (uv = parent.getAPI()));
     }
     
-    @EventHandler(priority=EventPriority.LOW)
+    @EventHandler(priority=EventPriority.LOWEST)
     public void onPlayerChat (PlayerChatEvent e) {
         if ( auth != null &&  !auth.loggedIn(e.getPlayer()) )
-            e.setMessage( ChatColor.GRAY + "(Not logged in) " + ( config.getBoolean("auth.showMessagesNotLoggedIn", true) ? e.getMessage() : ""));
+            e.setMessage( ChatColor.GRAY + "(Not logged in) " + ( parent.showMessagesNotLoggedIn ? e.getMessage() : ""));
         if ( uv.isWarned(e.getPlayer()) )
             e.setMessage( ChatColor.GRAY + "(warned) " + ( config.getBoolean("ultravision.showWarnedMessages", true) ? e.getMessage() : ""));
         parent.playerChat(e.getPlayer().getName(), e.getMessage());

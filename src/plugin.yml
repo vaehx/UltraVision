@@ -1,10 +1,10 @@
 ## ultravision plugin file
 
 name: Ultravision
-version: v0db11
-description: Ultravision is a Player Supervision Plugin for highly improved server statistic management.
+version: 2013d-1.5.2-Rel
+description: Ultravision is a Player Supervision Plugin for highly improved server frontend business.
 author: prosicraft
-website: http://passiweb.bplaced.de
+website: http://minecraft.net
 
 main: com.prosicraft.ultravision.ultravision
 
@@ -14,6 +14,11 @@ commands:
         usage: /<command>
         permission: ultravision.ultravision
         aliases: [uv, uvis]
+    uvconfig:
+        description: Ingame configuration editing
+        usage: /<command> <node> [value]
+        permission: ultravision.admin.uvconfig
+        aliases: [conf, uvconf]
     jmessage:
         description: Manage JMessage Template of UltraVision.
         usage: /<command> [reload]
@@ -68,8 +73,13 @@ commands:
         aliases: [bkick, backendkick]
     uvban:
         description: Permanent bans a player (local) with reason
-        usage: /<command> <playername> [reason]
+        usage: /<command> <playername> <reason>
         permission: ultravision.mod.ban
+        aliases: [rban]
+    uvfban:
+        description: Permanent bans a player (local) without reason
+        usage: /<command> <playername>
+        permission: ultravision.mod.fban
         aliases: [ban]
     uvtempban:
         description: Temporarily bans a player (local) with reason
@@ -120,6 +130,11 @@ commands:
         usage: /<command> <playername> <reason>
         permission: ultravision.mod.warn
         aliases: [warn]
+    uvtempwarn:
+        description: Warns a player temporaily. (local)
+        usage: /<command> <playername> <time> <reason>
+        permission: ultravision.mod.tempwarn
+        aliases: [twarn, tempwarn]
     uvunwarn:
         description: Unwarns a player. (local)
         usage: /<command> <playername>
@@ -185,8 +200,27 @@ commands:
         usage: /<command> <text>
         permission: ultravision.admin.say
         aliases: [say]
+    uvspamsay:
+        description: Multibroadcasts important OP Messages. Not depend.
+        usage: /<command> <count> <text>
+        permission: ultravision.admin.spamsay
+        aliases: [spamsay,multibroadcast,spam]
     uvfake:
         description: Some fake commands.
         usage: /<command> <login|leave|msg> [<Player> <text>]
         permission: ultravision.admin.fake
-        aliases: [fake]            
+        aliases: [fake]
+    uvver:
+        description: Checks identity of player. Debug only
+        usage: /<command>
+        aliases: [v,vr]
+    uvaddmac:
+        description: Adds Mac address to CrashHack
+        usage: /<command> <player>
+        permission: ultravision.admin.addmac
+        aliases: [addmac]
+    uvclearmac:
+        description: Clears Mac address from CrashHack
+        usage: /<command> <player>
+        permission: ultravision.admin.clearmac
+        aliases: [clearmac]

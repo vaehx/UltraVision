@@ -4,8 +4,9 @@
  */
 package com.prosicraft.ultravision;
 
-import com.prosicraft.ultravision.util.MLog;
+import org.bukkit.ChatColor;
 import org.bukkit.block.Sign;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -29,48 +30,71 @@ public class uvblocklistener implements Listener {
         uv = handle;
     }   
     
+    public boolean validateAuthorizer( Player p )
+    {   
+        if ( (uv.getAuthorizer() != null && uv.getAuthorizer().isRegistered( p ) && !uv.getAuthorizer().loggedIn( p )) ||
+                (!uv.allowNotRegActions && !uv.getAuthorizer().isRegistered( p )) )
+        {            
+            if( !uv.getAuthorizer().isRegistered(p) )
+                p.sendMessage(ChatColor.RED + "Please register on this server. Use " + ChatColor.GOLD + "/register " + ChatColor.YELLOW + "YOURPASSWORD");
+            else
+                p.sendMessage(ChatColor.RED + "Your are not logged in.");
+            return true;
+        }
+        else
+            return false;
+    }
+    
+    public boolean validateClickAuth( Player p, Action a )
+    {
+         if ( (uv.getClickAuth() != null && uv.getClickAuth().isRegistered(p.getName()) &&
+                !uv.getClickAuth().isLoggedIn(p.getName()) && a != Action.RIGHT_CLICK_BLOCK)
+                || (!uv.allowNotRegActions && !uv.getClickAuth().isRegistered(p.getName())) )
+         {
+             p.sendMessage(ChatColor.RED + "Please register on this server.");
+             return true;
+         }
+         else
+             return false;
+    }
+    
     @EventHandler(priority=EventPriority.LOW)
     public void onPlayerInteract(PlayerInteractEvent event) {
-        if ( uv.getAuthorizer() != null && uv.getAuthorizer().isRegistered(event.getPlayer()) &&
-                !uv.getAuthorizer().loggedIn(event.getPlayer()) ) {                                                                     
-            
-            event.setCancelled(true);                                                                       
-            
-        } else if ( uv.getClickAuth() != null && uv.getClickAuth().isRegistered(event.getPlayer().getName()) &&
-                !uv.getClickAuth().isLoggedIn(event.getPlayer().getName()) && event.getAction() != Action.RIGHT_CLICK_BLOCK ) {
-            event.setCancelled(true);            
-        }
+        
+        if (validateAuthorizer( event.getPlayer() ))                    
+            event.setCancelled(true);          
+        
+        else if ( validateClickAuth( event.getPlayer(), event.getAction() ) )        
+            event.setCancelled(true);                    
+        
     }
     
     @EventHandler(priority=EventPriority.LOW)
     public void onPlayerDropItem(PlayerDropItemEvent event) {
-        if ( uv.getAuthorizer() != null && uv.getAuthorizer().isRegistered(event.getPlayer()) &&
-                !uv.getAuthorizer().loggedIn(event.getPlayer()) ) {                                                                     
-            
-            event.setCancelled(true);                                                                       
-            
-        } else if ( uv.getClickAuth() != null && uv.getClickAuth().isRegistered(event.getPlayer().getName()) &&
-                !uv.getClickAuth().isLoggedIn(event.getPlayer().getName()) )
+        
+        if (validateAuthorizer( event.getPlayer() ))                    
+            event.setCancelled(true);          
+        
+        else if ( validateClickAuth( event.getPlayer(), null ) )        
             event.setCancelled(true);
+        
     }
     
     @EventHandler(priority=EventPriority.LOW)
     public void onPlayerPickupItem(PlayerPickupItemEvent event) {
-        if ( uv.getAuthorizer() != null && uv.getAuthorizer().isRegistered(event.getPlayer()) &&
-                !uv.getAuthorizer().loggedIn(event.getPlayer()) ) {                                                                     
-            
-            event.setCancelled(true);                                                                       
-            
-        } else if ( uv.getClickAuth() != null && uv.getClickAuth().isRegistered(event.getPlayer().getName()) &&
-                !uv.getClickAuth().isLoggedIn(event.getPlayer().getName()) )
+        
+        if (validateAuthorizer( event.getPlayer() ))                    
+            event.setCancelled(true);          
+        
+        else if ( validateClickAuth( event.getPlayer(), null ) )        
             event.setCancelled(true);
+        
     }
     
     @EventHandler(priority=EventPriority.LOW)
     public void onBlockBreak(BlockBreakEvent event) {
                         
-        if ( uv.getAuthorizer() != null && uv.getAuthorizer().isRegistered(event.getPlayer()) &&
-                !uv.getAuthorizer().loggedIn(event.getPlayer()) ) {                        
+        if (validateAuthorizer( event.getPlayer() )) {                        
             
             String[] l = null;
             if ( event.getBlock() instanceof Sign )
@@ -82,32 +106,31 @@ public class uvblocklistener implements Listener {
                 for ( int i=0; i < l.length; i++ )
                     ((Sign)event.getBlock()).setLine(i, l[i]);
             
-        } else if ( uv.getClickAuth() != null && uv.getClickAuth().isRegistered(event.getPlayer().getName()) &&
-                !uv.getClickAuth().isLoggedIn(event.getPlayer().getName()) )
+        } else if ( validateClickAuth( event.getPlayer(), null ) ) 
             event.setCancelled(true);
         
     }        
 
     @EventHandler(priority=EventPriority.LOW)
     public void onBlockPlace(BlockPlaceEvent event) {
-        if ( uv.getAuthorizer() != null && uv.getAuthorizer().isRegistered(event.getPlayer()) &&
-                !uv.getAuthorizer().loggedIn(event.getPlayer()) ) {
-            
+        
+        if (validateAuthorizer( event.getPlayer() ))                    
+            event.setCancelled(true);          
+        
+        else if ( validateClickAuth( event.getPlayer(), null ) )        
             event.setCancelled(true);
-            
-        }
+        
     }        
     
     @EventHandler(priority=EventPriority.LOW)
     public void onBlockDamage (BlockDamageEvent event) {
-        if ( uv.getAuthorizer() != null && uv.getAuthorizer().isRegistered(event.getPlayer()) &&
-                !uv.getAuthorizer().loggedIn(event.getPlayer()) ) {                        
-            
+        
+        if (validateAuthorizer( event.getPlayer() ))                    
+            event.setCancelled(true);          
+        
+        else if ( validateClickAuth( event.getPlayer(), null ) )        
             event.setCancelled(true);
-            
-        }  else if ( uv.getClickAuth() != null && uv.getClickAuth().isRegistered(event.getPlayer().getName()) &&
-                !uv.getClickAuth().isLoggedIn(event.getPlayer().getName()) )
-            event.setCancelled(true);
+        
     }
     
 }

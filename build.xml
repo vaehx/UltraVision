@@ -11,7 +11,7 @@
     <description>Builds, tests, and runs the project UltraVision.</description>
     <import file="nbproject/build-impl.xml"/>
     <target name="-pre-jar" > 
-        <propertyfile file="${src.dir}\version.properties"> 
+        <propertyfile file="${src.dir}\com\prosicraft\ultravision\version_en_US.properties"> 
             <entry key="BUILD" value="1" type="int" operation="+"/> 
         </propertyfile> 
     </target>     
