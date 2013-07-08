@@ -52,14 +52,14 @@ public class uvPlayerListener implements Listener {
                 if (e.getPlayer() instanceof Player)
                 {
                         // Check Mac Address With CrashHack
-                        if (parent.getCrashHack() != null)
+                        /*if (parent.getCrashHack() != null)
                         {
                                 String msg = parent.getCrashHack().join(e.getPlayer());
                                 if (!msg.equalsIgnoreCase("valid"))
                                 {
                                         e.setKickMessage(MLog.real(ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.RED + msg));
                                 }
-                        }
+                        }*/
                         
                         // Check if player is already online
                         for (Player p : parent.getServer().getOnlinePlayers())

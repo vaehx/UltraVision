@@ -20,7 +20,6 @@ import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.chat.MCChatListener;
 import com.prosicraft.ultravision.chat.UVServer;
 import com.prosicraft.ultravision.commands.*;
-import com.prosicraft.ultravision.crashhack.CrashHack;
 import com.prosicraft.ultravision.global.globalEngine;
 import com.prosicraft.ultravision.local.localEngine;
 import com.prosicraft.ultravision.util.*;
@@ -59,8 +58,7 @@ public class ultravision extends JavaPlugin
 
         private JMessage jmsg                   = null;     // JMessage Template
         private MAuthorizer auth                = null;     // Authorizer Template
-        private UVClickAuth clickauth           = null;     // ClickAuth Template
-        private CrashHack chack                 = null;     // AntiHack Template
+        private UVClickAuth clickauth           = null;     // ClickAuth Template        
 
         private UltraVisionAPI api              = null;     // Ultravision API Instance
         private boolean global                  = false;    // use global api ?
@@ -374,7 +372,7 @@ public class ultravision extends JavaPlugin
         
         private void initCHack () 
         {
-                if ( chack != null && !useCHack )
+                /*if ( chack != null && !useCHack )
                 {            
                         MLog.i("CHack is disabled in configuration file.");
                         return;
@@ -382,7 +380,7 @@ public class ultravision extends JavaPlugin
 
                 chack = new CrashHack ();
                 chack.load(config);
-                MLog.i ("CHack initialized");
+                MLog.i ("CHack initialized");*/
         }
 
         // ========================================================================================
@@ -689,7 +687,7 @@ public class ultravision extends JavaPlugin
                         }
                         
                         if ( cmd.getLabel().equalsIgnoreCase("uvver") ) {
-                                chack.join(p);
+                                //chack.join(p);
                                 p.sendMessage ("Executed.");
                                 return true;
                         }                                
@@ -716,7 +714,7 @@ public class ultravision extends JavaPlugin
                                 return true;
                         }                       
                         
-                        if ( cmd.getLabel().equalsIgnoreCase("uvaddmac") ) {
+                        /*if ( cmd.getLabel().equalsIgnoreCase("uvaddmac") ) {
                                 if ( chack == null ) {
                                         p.sendMessage(ChatColor.RED + "CrashHack is not used on this server.");
                                         return true;
@@ -757,7 +755,7 @@ public class ultravision extends JavaPlugin
                                 chack.clearMac(args[0]);
                                 p.sendMessage(ChatColor.GREEN + "Mac of player " + ChatColor.GRAY + args[0] + ChatColor.GREEN + " has been unregistered.");
                                 return true;
-                        }
+                        }*/
 
                         if ( cmd.getLabel().equalsIgnoreCase("uvclickregister") ) 
                         {
@@ -945,9 +943,9 @@ public class ultravision extends JavaPlugin
                 return config;
         }
         
-        public CrashHack getCrashHack () {
+        /*public CrashHack getCrashHack () {
                 return this.chack;
-        }
+        }*/
 
         public boolean showNotRegWarning () {
                 return showNotRegWarning;
