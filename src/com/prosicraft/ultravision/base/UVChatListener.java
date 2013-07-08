@@ -12,7 +12,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerChatEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 /**
  *
@@ -33,7 +33,7 @@ public class UVChatListener implements Listener {
     }
     
     @EventHandler(priority=EventPriority.LOWEST)
-    public void onPlayerChat (PlayerChatEvent e) {
+    public void onPlayerChat (AsyncPlayerChatEvent e) {
         if ( auth != null &&  !auth.loggedIn(e.getPlayer()) )
             e.setMessage( ChatColor.GRAY + "(Not logged in) " + ( parent.showMessagesNotLoggedIn ? e.getMessage() : ""));
         if ( uv.isWarned(e.getPlayer()) )

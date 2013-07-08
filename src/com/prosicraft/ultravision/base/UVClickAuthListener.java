@@ -11,7 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.player.PlayerChatEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
@@ -64,7 +64,7 @@ public class UVClickAuthListener implements Listener {
     }
     
     @EventHandler(priority=EventPriority.LOW)    
-    public void onPlayerChat (PlayerChatEvent e) {
+    public void onPlayerChat (AsyncPlayerChatEvent e) {
         if ( au != null &&  !au.isLoggedIn(e.getPlayer().getName()) )
             e.setMessage( ChatColor.GRAY + "(Not logged in) " + ( showMessagesNotLoggedIn ? e.getMessage() : ""));                    
     }
