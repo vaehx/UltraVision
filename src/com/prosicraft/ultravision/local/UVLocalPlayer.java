@@ -16,9 +16,9 @@ import java.io.PrintWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import net.minecraft.server.v1_6_R1.EntityPlayer;
-import org.bukkit.craftbukkit.v1_6_R1.CraftServer;
-import org.bukkit.craftbukkit.v1_6_R1.entity.CraftPlayer;
+import net.minecraft.server.v1_6_R2.EntityPlayer;
+import org.bukkit.craftbukkit.v1_6_R2.CraftServer;
+import org.bukkit.craftbukkit.v1_6_R2.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 /**

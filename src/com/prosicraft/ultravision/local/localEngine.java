@@ -18,12 +18,12 @@ import java.sql.Time;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import net.minecraft.server.v1_6_R1.Packet255KickDisconnect;
+import net.minecraft.server.v1_6_R2.Packet255KickDisconnect;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
-import org.bukkit.craftbukkit.v1_6_R1.CraftServer;
-import org.bukkit.craftbukkit.v1_6_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_6_R2.CraftServer;
+import org.bukkit.craftbukkit.v1_6_R2.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 /*
@@ -45,7 +45,7 @@ public class localEngine implements UltraVisionAPI
 
         public localEngine(String pluginDir)
         {
-                this.players    = new ArrayList<UVLocalPlayer>();
+                this.players    = new ArrayList<>();
                 this.plugDir    = pluginDir;
                 this.db         = new File(pluginDir, "data.db");
         }
