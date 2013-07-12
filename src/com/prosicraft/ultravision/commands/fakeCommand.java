@@ -13,35 +13,42 @@ import org.bukkit.entity.Player;
  *
  * @author passi
  */
-public class fakeCommand extends extendedCommand {
+public class fakeCommand extends extendedCommand
+{
 
-    public fakeCommand ( ultravision uv, String[] args ) {
-        super ( uv, args );
-    }
+	public fakeCommand( ultravision uv, String[] args )
+	{
+		super( uv, args );
+	}
 
-    @Override
-    public commandResult run(Player p) {
+	@Override
+	public commandResult run( Player p )
+	{
 
-        try {
+		try
+		{
 
-            // /fake <login|leave|msg> [<Player> <Message>]
-            this.ev(p);
-            JMessage jmsg = ((ultravision)getParent()).getMessager();
-            if (hasArgs(1)) {
+			// /fake <login|leave|msg> [<Player> <Message>]
+			this.ev( p );
+			JMessage jmsg = ( ( ultravision ) getParent() ).getMessager();
+			if( hasArgs( 1 ) )
+			{
 
-                if (getArg(0).equalsIgnoreCase("login")) {
-                }
+				if( getArg( 0 ).equalsIgnoreCase( "login" ) )
+				{
+				}
 
-            }
+			}
 
 
-            return suc ();
+			return suc();
 
-        } catch ( wrongParentException | wrongPlayerException ex ) {
-            MLog.e("[GCCMD] " + ex.getMessage());
-            return err ( p, "Failed to execute command." );
-        }
+		}
+		catch( wrongParentException | wrongPlayerException ex )
+		{
+			MLog.e( "[GCCMD] " + ex.getMessage() );
+			return err( p, "Failed to execute command." );
+		}
 
-    }
-
+	}
 }

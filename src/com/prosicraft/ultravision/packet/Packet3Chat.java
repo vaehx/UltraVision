@@ -13,55 +13,58 @@ import java.io.PrintWriter;
  *
  * @author prosicraft
  */
-public class Packet3Chat {
+public class Packet3Chat
+{
+	private String message = "";    // with a maximum of 120 characters
+	private static int maxSize = 120;
 
-    private String message = "";    // with a maximum of 120 characters
-    private static int maxSize = 120;
+	public Packet3Chat()
+	{
+	}
 
-    public Packet3Chat () {
-    }
+	public Packet3Chat( String message )
+	{
+		this.message = message;
+	}
 
-    public Packet3Chat (String message) {
-        this.message = message;
-    }
+	public void send( PrintWriter out )
+	{
+		out.write( 3 );
+		out.flush();
 
-    public void send (PrintWriter out) {
+		char[] chars = new char[ maxSize ];
 
-        out.write(3);
-        out.flush();
+		for( int i = 0; i < chars.length; i++ )
+		{
+			chars[i] = ( ( message.length() > i ) ? message.charAt( i ) : 0 );
+		}
 
-        char[] chars = new char[maxSize];
+		out.write( chars );
+		out.flush();
+	}
 
-        for ( int i=0; i<chars.length; i++ ) {
-            chars[i] = ( (message.length() > i) ? message.charAt(i) : 0 );
-        }
+	public boolean eval( int pID, BufferedReader in )
+	{
+		if( pID != 3 )
+			return false;
 
-        out.write(chars);
-        out.flush();
+		char[] theMessage = new char[ maxSize ];
+		try
+		{
+			in.read( theMessage );
+		}
+		catch( IOException ex )
+		{
+			MLog.e( "Failure reading Packet3Chat: " + ex.getMessage() );
+			ex.printStackTrace( System.out );
+		}
 
-    }
+		message = ( new String( theMessage ) ).trim();
+		return true;
+	}
 
-    public boolean eval ( int pID, BufferedReader in ) {
-
-        if ( pID != 3 )
-            return false;
-
-        char[] theMessage = new char[maxSize];
-        try {
-            in.read(theMessage);
-        } catch (IOException ex) {
-            MLog.e("Failure reading Packet3Chat: " + ex.getMessage());
-            ex.printStackTrace( System.out );
-        }
-
-        message = (new String (theMessage)).trim();
-        return true;
-
-    }
-
-    public String getMessage () {
-        return message;
-    }
-
-
+	public String getMessage()
+	{
+		return message;
+	}
 }

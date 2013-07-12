@@ -8,9 +8,10 @@ package com.prosicraft.ultravision.commands;
  *
  * @author passi
  */
-public class wrongPlayerException extends Exception {
-
-    public wrongPlayerException (String message) {
-        super (message);
-    }
+public class wrongPlayerException extends Exception
+{
+	public wrongPlayerException( String message )
+	{
+		super( message );
+	}
 }

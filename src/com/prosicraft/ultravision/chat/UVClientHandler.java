@@ -20,135 +20,160 @@ import java.util.Stack;
  *
  * @author prosicraft
  */
-public class UVClientHandler extends Thread {
+public class UVClientHandler extends Thread
+{
 
-    private UVClientHandler[] stock = null;
-    private Socket socket = null;
-    private UVServer server = null;
-    private Stack sendStack = null;
-    private String sendmsg = "";
+	private UVClientHandler[] stock = null;
+	private Socket socket = null;
+	private UVServer server = null;
+	private Stack sendStack = null;
+	private String sendmsg = "";
+	private BufferedReader in = null;
+	private PrintWriter out = null;
 
-    private BufferedReader in = null;
-    private PrintWriter out = null;
+	//private String username = "";
+	public UVClientHandler( Socket s, UVClientHandler[] stock, UVServer server )
+	{
+		this.stock = stock;
+		this.socket = s;
+		this.server = server;
+		this.sendStack = new StringStack();
+	}
 
-    //private String username = "";
+	public void sendMessage( String txt )
+	{
 
-    public UVClientHandler (Socket s, UVClientHandler[] stock, UVServer server) {
-        this.stock = stock;
-        this.socket = s;
-        this.server = server;
-        this.sendStack = new StringStack ();
-    }
+		final String theTxt = txt;
 
-    public void sendMessage (String txt) {
+		( new Thread()
+		{
+			@Override
+			public void run()
+			{
+				MLog.d( "Inside sendMessage()" );
 
-        final String theTxt = txt;
+				Packet3Chat pc = new Packet3Chat( theTxt );
+				pc.send( out );
 
-        (new Thread () {
+				MLog.d( "Sent message: '" + theTxt + "'" );
+			}
+		} ).start();
 
-            @Override
-            public void run() {
-                MLog.d("Inside sendMessage()");
+	}
 
-                Packet3Chat pc = new Packet3Chat(theTxt);
-                pc.send(out);
+	@Override
+	public void run()
+	{
+		try
+		{
+			in = new BufferedReader( new InputStreamReader( socket.getInputStream() ) );
+			out = new PrintWriter( socket.getOutputStream(), true );
+		}
+		catch( IOException ex )
+		{
+			MLog.e( "Can't create Client Streams." );
+			ex.printStackTrace();
+		}
 
-                MLog.d("Sent message: '" + theTxt + "'");
-            }
+		int packID = -1;
 
-        }).start();
+		try
+		{
+			packID = in.read();
+			MLog.d( "Read packet id: " + packID );
+		}
+		catch( IOException ioex )
+		{
+			MLog.e( " Can't read next package: " + ioex.getMessage() );
+			ioex.printStackTrace();
+		}
 
-    }
+		if( packID != 1 )
+		{  // ... for login
+			MLog.e( "Bad packet id. Disconnect." );
+			try
+			{
+				socket.close();
+			}
+			catch( IOException ex )
+			{
+				MLog.e( "Can't close connection to client (" + socket.getInetAddress().getHostAddress() + ")" );
+			}
+			return;
+		}
 
-    @Override
-    public void run() {
-        try {
-            in = new BufferedReader ( new InputStreamReader ( socket.getInputStream() ) );
-            out = new PrintWriter ( socket.getOutputStream(), true );
-        } catch (IOException ex) {
-            MLog.e("Can't create Client Streams.");
-            ex.printStackTrace();
-        }
+		Packet1Login lp = new Packet1Login();
+		if( lp.eval( packID, in ) )
+		{
+			MLog.d( "Received correct protocol." );
 
-        int packID = -1;
+			Packet2Handshake ph = new Packet2Handshake( true );
+			ph.send( out );
 
-        try {
-            packID = in.read();
-            MLog.d("Read packet id: " + packID);
-        } catch (IOException ioex) {
-            MLog.e(" Can't read next package: " + ioex.getMessage());
-            ioex.printStackTrace();
-        }
+			server.raiseOnLoginEvent( lp.getUsername() );
 
-        if ( packID != 1 ) {  // ... for login
-            MLog.e("Bad packet id. Disconnect.");
-            try {
-                socket.close();
-            } catch (IOException ex) {
-                MLog.e("Can't close connection to client (" + socket.getInetAddress().getHostAddress() + ")");
-            }
-            return;
-        }
+			Packet3Chat pc = new Packet3Chat();
 
-        Packet1Login lp = new Packet1Login ();
-        if ( lp.eval(packID, in) ) {
-            MLog.d("Received correct protocol.");
+			// now go into the loop
+			while( true )
+			{
 
-            Packet2Handshake ph = new Packet2Handshake(true);
-            ph.send(out);
+				try
+				{
 
-            server.raiseOnLoginEvent(lp.getUsername());
+					// get new packet id
+					packID = in.read();
 
-            Packet3Chat pc = new Packet3Chat();
+					if( pc.eval( packID, in ) )
+					{
+						server.raiseOnMessageEvent( pc.getMessage() );
+					}
+					else
+					{
+						MLog.e( "Got wrong packet id: " + packID );
+						break;
+					}
 
-            // now go into the loop
-            while (true) {
+					// send
+					if( sendmsg.equals( "" ) )
+						continue;
 
-                try {
+					MLog.d( "(ClientHandler) sendStack not empty!" );
 
-                    // get new packet id
-                    packID = in.read();
+					Packet3Chat pcb = new Packet3Chat( sendmsg );
+					pcb.send( out );
 
-                    if ( pc.eval(packID, in) ) {
-                        server.raiseOnMessageEvent(pc.getMessage());
-                    } else {
-                        MLog.e("Got wrong packet id: " + packID);
-                        break;
-                    }
+				}
+				catch( IOException ioex )
+				{
+					ioex.printStackTrace();
+					break;
+				}
 
-                    // send
-                    if ( sendmsg.equals("") )
-                        continue;
+			}
 
-                    MLog.d("(ClientHandler) sendStack not empty!");
+			server.raiseOnLeaveEvent( lp.getUsername() );
 
-                    Packet3Chat pcb = new Packet3Chat (sendmsg);
-                    pcb.send(out);
+		}
+		else
+		{
+			MLog.e( "Bad protocol. Disconnect." );
+		}
 
-                } catch (IOException ioex) {
-                    ioex.printStackTrace();
-                    break;
-                }
+		try
+		{
+			socket.close();
+			MLog.i( "Client disconnected: " + socket.getInetAddress().getHostAddress() );
+		}
+		catch( IOException ex )
+		{
+			MLog.e( "Can't close connection to client (" + socket.getInetAddress().getHostAddress() + ")" );
+		}
 
-            }
+		for( int i = 0; i < stock.length; i++ )
+			if( stock[i] == this )
+				stock[i] = null;
 
-            server.raiseOnLeaveEvent(lp.getUsername());
-
-        } else {
-           MLog.e("Bad protocol. Disconnect.");
-        }
-
-        try {
-            socket.close();
-            MLog.i("Client disconnected: " + socket.getInetAddress().getHostAddress());
-        } catch (IOException ex) {
-            MLog.e("Can't close connection to client (" + socket.getInetAddress().getHostAddress() + ")");
-        }
-
-        for ( int i=0; i < stock.length; i++ )
-            if ( stock[i] == this ) stock[i] = null;
-
-        return;
-    }
-
+		return;
+	}
 }

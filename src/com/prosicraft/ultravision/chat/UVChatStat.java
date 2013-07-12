@@ -8,6 +8,9 @@ package com.prosicraft.ultravision.chat;
  *
  * @author passi
  */
-public enum UVChatStat {
-    STAT_BOOT, STAT_IDLE, STAT_STOP
+public enum UVChatStat
+{
+	STAT_BOOT,
+	STAT_IDLE,
+	STAT_STOP
 }

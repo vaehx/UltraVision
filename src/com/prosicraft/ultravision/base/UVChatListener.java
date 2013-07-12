@@ -18,27 +18,29 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
  *
  * @author passi
  */
-public class UVChatListener implements Listener {
+public class UVChatListener implements Listener
+{
 
-    private ultravision parent = null;
-    private MAuthorizer auth  = null;
-    private MConfiguration config = null;
-    private UltraVisionAPI uv = null;
+	private ultravision parent = null;
+	private MAuthorizer auth = null;
+	private MConfiguration config = null;
+	private UltraVisionAPI uv = null;
 
-    public UVChatListener (ultravision parent) {
-        this.parent = parent;
-        this.config = parent.getMConfig();
-        auth = parent.getAuthorizer();
-        MLog.d ("Api: " + (uv = parent.getAPI()));
-    }
+	public UVChatListener( ultravision parent )
+	{
+		this.parent = parent;
+		this.config = parent.getMConfig();
+		auth = parent.getAuthorizer();
+		MLog.d( "Api: " + ( uv = parent.getAPI() ) );
+	}
 
-    @EventHandler(priority=EventPriority.LOWEST)
-    public void onPlayerChat (AsyncPlayerChatEvent e) {
-        if ( auth != null &&  !auth.loggedIn(e.getPlayer()) )
-            e.setMessage( ChatColor.GRAY + "(Not logged in) " + ( parent.showMessagesNotLoggedIn ? e.getMessage() : ""));
-        if ( uv.isWarned(e.getPlayer()) )
-            e.setMessage( ChatColor.GRAY + "(warned) " + ( config.getBoolean("ultravision.showWarnedMessages", true) ? e.getMessage() : ""));
-        parent.playerChat(e.getPlayer().getName(), e.getMessage());
-    }
-
+	@EventHandler( priority = EventPriority.LOWEST )
+	public void onPlayerChat( AsyncPlayerChatEvent e )
+	{
+		if( auth != null && !auth.loggedIn( e.getPlayer() ) )
+			e.setMessage( ChatColor.GRAY + "(Not logged in) " + ( parent.showMessagesNotLoggedIn ? e.getMessage() : "" ) );
+		if( uv.isWarned( e.getPlayer() ) )
+			e.setMessage( ChatColor.GRAY + "(warned) " + ( config.getBoolean( "ultravision.showWarnedMessages", true ) ? e.getMessage() : "" ) );
+		parent.playerChat( e.getPlayer().getName(), e.getMessage() );
+	}
 }

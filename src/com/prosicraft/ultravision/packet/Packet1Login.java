@@ -12,74 +12,85 @@ import java.io.IOException;
  *
  * @author prosicraft
  */
-public class Packet1Login {
+public class Packet1Login
+{
+	private static int ID = 1;
+	private int myip = 0;
+	private String username = "Unknown";
+	private String password = "";
+	//private boolean accepted = false;
 
-    private static int ID = 1;
-    private int myip = 0;
-    private String username = "Unknown";
-    private String password = "";
-    //private boolean accepted = false;
+	public Packet1Login()
+	{
+	}
 
-    public Packet1Login () {
-    }
+	public Packet1Login( int ip, String uname, String pword )
+	{
+		myip = ip;
+		username = uname;
+		password = pword;
+	}
 
-    public Packet1Login (int ip, String uname, String pword) {
-        myip = ip;
-        username = uname;
-        password = pword;
-    }
+	public boolean eval( int sID, BufferedReader s )
+	{
+		MLog.d( "Packet1Login got id: " + sID + " ('" + String.valueOf( new char[]
+		{
+			( char ) sID
+		} ) );
 
-    public boolean eval ( int sID, BufferedReader s ) {
+		if( sID != ID )
+			return false;
 
-        MLog.d("Packet1Login got id: " + sID + " ('" + String.valueOf(new char[] { (char)sID}));
+		MLog.d( "Packet1Login now checking..." );
 
-        if ( sID != ID )
-            return false;
+		/*if ( (myip = s.getInt()) == 0 )
+		 MLog.e("Received damaged packet with id " + String.valueOf(sID) + ": No IP!");
 
-        MLog.d("Packet1Login now checking...");
+		 MLog.d("Got ip: " + myip); */
 
-        /*if ( (myip = s.getInt()) == 0 )
-            MLog.e("Received damaged packet with id " + String.valueOf(sID) + ": No IP!");
+		char[] uname = new char[ 16 ];
+		try
+		{
+			s.read( uname );
+		}
+		catch( IOException ex )
+		{
+			MLog.e( "IOException reading username on Packet1Login: " + ex.getMessage() );
+			ex.printStackTrace( System.out );
+		}
+		username = String.valueOf( uname );
+		if( username.trim().equals( "" ) )
+			MLog.e( "Received damaged packet with id " + String.valueOf( sID ) + ": No Username!" );
 
-        MLog.d("Got ip: " + myip); */
+		username = username.trim();
 
-        char[] uname = new char[16];
-        try {
-            s.read(uname);
-        } catch (IOException ex) {
-            MLog.e("IOException reading username on Packet1Login: " + ex.getMessage());
-            ex.printStackTrace( System.out );
-        }
-        username = String.valueOf(uname);
-        if ( username.trim().equals("") )
-            MLog.e("Received damaged packet with id " + String.valueOf(sID) + ": No Username!");
+		MLog.d( "Got username: '" + username + "'" );
 
-        username = username.trim();
+		char[] pword = new char[ 16 ];
+		try
+		{
+			s.read( pword );
+		}
+		catch( IOException ex )
+		{
+			MLog.e( "IOException reading password on Packet1Login: " + ex.getMessage() );
+			ex.printStackTrace( System.out );
+		}
+		if( ( password = String.valueOf( pword ) ).trim().equals( "" ) )
+			MLog.e( "Received damaged packet with id " + String.valueOf( sID ) + ": No Password!" );
 
-        MLog.d("Got username: '" + username + "'");
+		MLog.d( "Got password: '" + password + "'" );
 
-        char[] pword = new char[16];
-        try {
-            s.read(pword);
-        } catch (IOException ex) {
-            MLog.e("IOException reading password on Packet1Login: " + ex.getMessage());
-            ex.printStackTrace( System.out );
-        }
-        if ( (password = String.valueOf(pword)).trim().equals("") )
-            MLog.e("Received damaged packet with id " + String.valueOf(sID) + ": No Password!");
+		return true;
+	}
 
-        MLog.d("Got password: '" + password + "'");
+	public String getUsername()
+	{
+		return username;
+	}
 
-        return true;
-
-    }
-
-    public String getUsername () {
-        return username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
+	public String getPassword()
+	{
+		return password;
+	}
 }

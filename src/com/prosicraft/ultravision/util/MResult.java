@@ -8,6 +8,13 @@ package com.prosicraft.ultravision.util;
  *
  * @author passi
  */
-public enum MResult {
-    RES_SUCCESS, RES_ERROR, RES_NOACCESS, RES_ALREADY, RES_NOTGIVEN, RES_NOTINIT, RES_UNKNOWN
+public enum MResult
+{
+	RES_SUCCESS,
+	RES_ERROR,
+	RES_NOACCESS,
+	RES_ALREADY,
+	RES_NOTGIVEN,
+	RES_NOTINIT,
+	RES_UNKNOWN
 }

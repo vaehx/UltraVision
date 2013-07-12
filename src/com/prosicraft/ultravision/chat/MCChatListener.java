@@ -8,17 +8,22 @@ package com.prosicraft.ultravision.chat;
  *
  * @author passi
  */
-public class MCChatListener {
+public class MCChatListener
+{
 
-    public MCChatListener () {
-    }
+	public MCChatListener()
+	{
+	}
 
-    public void onMessage ( String msg ) {
-    }
+	public void onMessage( String msg )
+	{
+	}
 
-    public void onLogin ( String username ) {
-    }
+	public void onLogin( String username )
+	{
+	}
 
-    public void onLeave ( String username ) {
-    }
+	public void onLeave( String username )
+	{
+	}
 }

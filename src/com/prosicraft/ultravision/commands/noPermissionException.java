@@ -8,9 +8,11 @@ package com.prosicraft.ultravision.commands;
  *
  * @author passi
  */
-public class noPermissionException extends Exception {
+public class noPermissionException extends Exception
+{
 
-    public noPermissionException (String message) {
-        super (message);
-    }
+	public noPermissionException( String message )
+	{
+		super( message );
+	}
 }

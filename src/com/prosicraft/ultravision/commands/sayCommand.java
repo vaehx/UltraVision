@@ -14,78 +14,88 @@ import org.bukkit.entity.Player;
  *
  * @author passi
  */
-public class sayCommand extends extendedCommand {
+public class sayCommand extends extendedCommand
+{
 
-    public sayCommand ( ultravision uv, String[] args ) {
-        super ( uv, args );
-    }
+	public sayCommand( ultravision uv, String[] args )
+	{
+		super( uv, args );
+	}
 
-    @Override
-    public commandResult consoleRun(CommandSender s) {
+	@Override
+	public commandResult consoleRun( CommandSender s )
+	{
 
-        try {
+		try
+		{
 
-            // /say text
+			// /say text
 
-                if ( numArgs() < 1 ) {
-                    MLog.e("Too few arguments.");
-                    return commandResult.RES_ERROR;
-                }
+			if( numArgs() < 1 )
+			{
+				MLog.e( "Too few arguments." );
+				return commandResult.RES_ERROR;
+			}
 
-                String out = "";
-                for ( int i = 0; i < numArgs(); i++ )
-                    out += getArg(i) + " ";
+			String out = "";
+			for( int i = 0; i < numArgs(); i++ )
+				out += getArg( i ) + " ";
 
-                out = out.trim();
+			out = out.trim();
 
-                if ( out.equalsIgnoreCase("reload") )
-                    out = "Serverreload. Do NOT chat or use any command.";
-                else if ( out.equalsIgnoreCase("finish") )
-                    out = "Finished. You're logged out.";
+			if( out.equalsIgnoreCase( "reload" ) )
+				out = "Serverreload. Do NOT chat or use any command.";
+			else if( out.equalsIgnoreCase( "finish" ) )
+				out = "Finished. You're logged out.";
 
-                ((ultravision)getParent()).ownBroadcast(ChatColor.DARK_GRAY + "  [" + ChatColor.LIGHT_PURPLE + "Server" + ChatColor.DARK_GRAY + "] " + ChatColor.RED + out);
+			( ( ultravision ) getParent() ).ownBroadcast( ChatColor.DARK_GRAY + "  [" + ChatColor.LIGHT_PURPLE + "Server" + ChatColor.DARK_GRAY + "] " + ChatColor.RED + out );
 
-                return suc ();
+			return suc();
 
-        } catch ( Exception ex ) {
-            MLog.e("[GCCMD] " + ex.getMessage());
-            return commandResult.RES_ERROR;
-        }
+		}
+		catch( Exception ex )
+		{
+			MLog.e( "[GCCMD] " + ex.getMessage() );
+			return commandResult.RES_ERROR;
+		}
 
-    }
+	}
 
-    @Override
-    public commandResult run(Player p) {
+	@Override
+	public commandResult run( Player p )
+	{
 
-        try {
+		try
+		{
 
-            // /say text
+			// /say text
 
-                if ( numArgs() < 1 )
-                    return err (p, "Too few arguments.");
+			if( numArgs() < 1 )
+				return err( p, "Too few arguments." );
 
-                this.ev(p);
+			this.ev( p );
 
-                String out = "";
-                for ( int i = 0; i < numArgs(); i++ )
-                    out += getArg(i) + " ";
+			String out = "";
+			for( int i = 0; i < numArgs(); i++ )
+				out += getArg( i ) + " ";
 
-                out = out.trim();
+			out = out.trim();
 
-                if ( out.equalsIgnoreCase("reload") )
-                    out = "Serverreload. Do NOT chat or use any command.";
-                else if ( out.equalsIgnoreCase("finish") )
-                    out = "Finished. You're logged out.";
+			if( out.equalsIgnoreCase( "reload" ) )
+				out = "Serverreload. Do NOT chat or use any command.";
+			else if( out.equalsIgnoreCase( "finish" ) )
+				out = "Finished. You're logged out.";
 
-                ((ultravision)getParent()).ownBroadcast(ChatColor.DARK_GRAY + "  [" + ChatColor.DARK_RED + p.getDisplayName() + ChatColor.DARK_GRAY + "] " + ChatColor.RED + out);
+			( ( ultravision ) getParent() ).ownBroadcast( ChatColor.DARK_GRAY + "  [" + ChatColor.DARK_RED + p.getDisplayName() + ChatColor.DARK_GRAY + "] " + ChatColor.RED + out );
 
-                return suc ();
+			return suc();
 
-        } catch ( wrongParentException | wrongPlayerException ex ) {
-            MLog.e("[GCCMD] " + ex.getMessage());
-            return err ( p, "Failed to execute command." );
-        }
+		}
+		catch( wrongParentException | wrongPlayerException ex )
+		{
+			MLog.e( "[GCCMD] " + ex.getMessage() );
+			return err( p, "Failed to execute command." );
+		}
 
-    }
-
+	}
 }
