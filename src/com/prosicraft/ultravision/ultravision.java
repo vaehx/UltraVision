@@ -67,8 +67,7 @@ public class ultravision extends JavaPlugin
         private boolean useJMessage             = false;    // Join Message Template
         private boolean useAuthorizer           = true;     // Authorizer / Login Template
         private boolean useClickAuthorizer      = false;    // Clickauthorizer / Optional login template
-        private boolean useCommandLog           = true;     // Command logging   
-        private boolean useCHack                = true;     // Use AntiHack
+        private boolean useCommandLog           = true;     // Command logging
         public  boolean useUltraChat            = true;     // Use UltraChat Plugin if found
         private boolean showNotRegWarning       = true;     // Show "NotRegistered" Warning on join                    
         public  boolean allowNotRegActions      = true;     // Allow Player Interaction when not registered
@@ -117,8 +116,7 @@ public class ultravision extends JavaPlugin
 
                 initAuthorizer();       // Authorizer template
                 initClickAuthorizer();  // Optional Authorizer Template
-                initJMessage ();        // JMessage template                                       
-                initCHack ();           // AntiHack Algorithm
+                initJMessage ();        // JMessage template
 
                 MLog.d("Starting engine...");   
 
@@ -267,7 +265,6 @@ public class ultravision extends JavaPlugin
                 config.set( "general.useClickAuthorizer", (useClickAuthorizer = config.getBoolean("general.useClickAuthorizer", false)) );
                 config.set( "general.useJMessage", (useJMessage = config.getBoolean("general.useJMessage", false)) );
                 config.set( "general.useCommandLog", (useCommandLog = config.getBoolean("general.useCommandLog", true)) );
-                config.set( "general.useCHack", (useCHack = config.getBoolean("general.useCHack", false)) );
                 config.set( "general.useUltraChat", (useUltraChat = config.getBoolean("general.useUltraChat", true)));
                 config.set( "general.showWelcomeMessage", (showWelcomeMessage = config.getBoolean("general.showWelcomeMessage", true)) );
                 config.set( "general.logFileLimitKByte", (MConst._LIMIT_A = config.getInt("general.logFileLimitKByte", MConst._LIMIT_A)) );
@@ -366,22 +363,6 @@ public class ultravision extends JavaPlugin
                 }).init(this, auth, clickauth);
                 jmsg.save(config);
         }        
-        // ========================================================================================
-        
-        //      Initialize JMessage if used
-        
-        private void initCHack () 
-        {
-                /*if ( chack != null && !useCHack )
-                {            
-                        MLog.i("CHack is disabled in configuration file.");
-                        return;
-                }        
-
-                chack = new CrashHack ();
-                chack.load(config);
-                MLog.i ("CHack initialized");*/
-        }
 
         // ========================================================================================
         
@@ -428,7 +409,7 @@ public class ultravision extends JavaPlugin
                 config = new MConfiguration (YamlConfiguration.loadConfiguration(cf), cf);
                 
                 // Initialize DataTable
-                Map<String,MConfiguration.DataType> dt = new HashMap<String,MConfiguration.DataType> ();
+                Map<String,MConfiguration.DataType> dt = new HashMap<> ();
                 
                 dt.put("general.useGlobalAPI", MConfiguration.DataType.DATATYPE_BOOLEAN);
                 dt.put("general.useAuthorizer", MConfiguration.DataType.DATATYPE_BOOLEAN);
