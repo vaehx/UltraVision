@@ -1,6 +1,6 @@
 /*
  * UVLocalPlayer.java
- * 
+ *
  * Local Player class for ultravision
  */
 package com.prosicraft.ultravision.local;

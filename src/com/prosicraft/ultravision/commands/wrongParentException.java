@@ -9,8 +9,8 @@ package com.prosicraft.ultravision.commands;
  * @author passi
  */
 public class wrongParentException extends Exception {
-    
+
     public wrongParentException (String message) {
-        super (message);        
-    }            
+        super (message);
+    }
 }

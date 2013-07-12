@@ -21,30 +21,30 @@ public class uvPlayerListener implements Listener {
 
     private ultravision parent = null;
     private MAuthorizer auth  = null;
-    private UltraVisionAPI uv = null;    
-    
+    private UltraVisionAPI uv = null;
+
     public uvPlayerListener (ultravision parent) {
-        this.parent = parent;       
-        auth = parent.getAuthorizer();        
+        this.parent = parent;
+        auth = parent.getAuthorizer();
     }
-    
-    public void initUV (UltraVisionAPI uva) {        
+
+    public void initUV (UltraVisionAPI uva) {
         uv = uva;
-    }        
-    
-    public boolean loggedIn (Player p) {            
-            boolean res = true;     
-            if ( auth != null ) res = auth.loggedIn(p);                                            
-            if ( parent.getClickAuth() != null ) { if ( res && !parent.getClickAuth().isLoggedIn(p.getName()) ) res = false; }                          
+    }
+
+    public boolean loggedIn (Player p) {
+            boolean res = true;
+            if ( auth != null ) res = auth.loggedIn(p);
+            if ( parent.getClickAuth() != null ) { if ( res && !parent.getClickAuth().isLoggedIn(p.getName()) ) res = false; }
             return res;
     }
-    
-    public boolean registered (Player p) {            
-            boolean res = false;     
-            if ( auth != null ) res = auth.isRegistered(p); else MLog.d("auth is null");                                           
+
+    public boolean registered (Player p) {
+            boolean res = false;
+            if ( auth != null ) res = auth.isRegistered(p); else MLog.d("auth is null");
             if ( parent.getClickAuth() != null ) { if ( !res && parent.getClickAuth().isRegistered(p.getName()) ) res = true; } else MLog.d("clickauth is null");
             return res;
-    }    
+    }
 
         @EventHandler(priority = EventPriority.LOW)
         public void onPlayerLogin(PlayerLoginEvent e)
@@ -60,7 +60,7 @@ public class uvPlayerListener implements Listener {
                                         e.setKickMessage(MLog.real(ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.RED + msg));
                                 }
                         }*/
-                        
+
                         // Check if player is already online
                         for (Player p : parent.getServer().getOnlinePlayers())
                         {
@@ -101,29 +101,29 @@ public class uvPlayerListener implements Listener {
                 }
         }
 
-    
+
     @EventHandler(priority=EventPriority.LOWEST)
-    public void onPlayerJoin (PlayerJoinEvent e) {        
+    public void onPlayerJoin (PlayerJoinEvent e) {
         if (e.getPlayer() instanceof Player)
-        {                                       
+        {
             if ( parent.showWelcomeMessage )
-                e.getPlayer().sendMessage(ChatColor.DARK_GRAY + " ==== " + ChatColor.GRAY + "This Server is" + ChatColor.DARK_AQUA + " powered by " + ChatColor.AQUA + "UltraVision" + ChatColor.DARK_GRAY + " ====");                                                            
-            
-            uv.playerJoin(e.getPlayer());                                                         
-            
-            if ( !registered(e.getPlayer()) ) 
+                e.getPlayer().sendMessage(ChatColor.DARK_GRAY + " ==== " + ChatColor.GRAY + "This Server is" + ChatColor.DARK_AQUA + " powered by " + ChatColor.AQUA + "UltraVision" + ChatColor.DARK_GRAY + " ====");
+
+            uv.playerJoin(e.getPlayer());
+
+            if ( !registered(e.getPlayer()) )
             {
                 e.getPlayer().sendMessage (ChatColor.YELLOW + "Warning: You're not registered in the login system yet!");
-            }                                    
+            }
         }
     }
-    
+
     @EventHandler(priority=EventPriority.HIGH)
     public void onPlayerJoinAfter (PlayerJoinEvent e)
     {
             if ( e.getPlayer() instanceof Player )
             {
-                    UVPlayerInfo ui = null;
+                    UVPlayerInfo ui;
                     if ( (ui = uv.getPlayerInfo(e.getPlayer().getName())) != null )
                     {
                             for ( String fr : ui.friendRequests )
@@ -132,21 +132,21 @@ public class uvPlayerListener implements Listener {
                                     e.getPlayer().sendMessage(ChatColor.DARK_AQUA + "Please answer with " + ChatColor.GOLD + "/accfriend " + fr + " yes" + ChatColor.DARK_AQUA + " or " + ChatColor.GOLD + "no");
                             }
                     }
-                    else 
+                    else
                     {
                             MLog.e("Can't lookup playerinfo for '" + e.getPlayer().getName() + "'");
                     }
             }
     }
-    
+
     @EventHandler(priority=EventPriority.NORMAL)
     public void onPlayerQuit (PlayerQuitEvent e) {
-        parent.playerLeave(e.getPlayer());        
-    }            
+        parent.playerLeave(e.getPlayer());
+    }
 
     @EventHandler(priority=EventPriority.LOWEST)
     public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event)
-    {                        
+    {
         final boolean loggedIn = loggedIn(event.getPlayer());
         if ( (!event.getMessage().contains("/login")) && !loggedIn )
         {
@@ -156,20 +156,20 @@ public class uvPlayerListener implements Listener {
         if (uv != null && parent.useCommandLog())
         {
                 uv.log(event.getPlayer(), event.getMessage());
-        }                 
-    }       
-    
+        }
+    }
+
     @EventHandler(priority=EventPriority.LOW)
-    public void onPlayerDamage (EntityDamageEvent event) 
-    {           
-            if ( event.getEntity() instanceof Player && parent.IsUsingAuthorizer() ) 
-            {                               
+    public void onPlayerDamage (EntityDamageEvent event)
+    {
+            if ( event.getEntity() instanceof Player && parent.IsUsingAuthorizer() )
+            {
                     if ( !loggedIn((Player) event.getEntity()) || !uv.getAuthorizer().isRegistered((Player) event.getEntity()) )
                     {
                             event.setCancelled(true);
                     }
             }
-    }            
-    
-    
+    }
+
+
 }

@@ -22,133 +22,133 @@ import java.util.Stack;
  */
 public class UVClientHandler extends Thread {
 
-    private UVClientHandler[] stock = null;    
-    private Socket socket = null;    
+    private UVClientHandler[] stock = null;
+    private Socket socket = null;
     private UVServer server = null;
     private Stack sendStack = null;
     private String sendmsg = "";
-    
+
     private BufferedReader in = null;
     private PrintWriter out = null;
-                
-    //private String username = "";        
-    
+
+    //private String username = "";
+
     public UVClientHandler (Socket s, UVClientHandler[] stock, UVServer server) {
         this.stock = stock;
         this.socket = s;
         this.server = server;
-        sendStack = new StringStack ();
-    }        
-    
+        this.sendStack = new StringStack ();
+    }
+
     public void sendMessage (String txt) {
-        
+
         final String theTxt = txt;
-        
-        (new Thread () {                        
+
+        (new Thread () {
 
             @Override
             public void run() {
-                MLog.d("Inside sendMessage()");                                               
+                MLog.d("Inside sendMessage()");
 
                 Packet3Chat pc = new Packet3Chat(theTxt);
-                pc.send(out); 
-                                
+                pc.send(out);
+
                 MLog.d("Sent message: '" + theTxt + "'");
             }
-                        
+
         }).start();
-        
+
     }
-    
+
     @Override
-    public void run() {                                      
+    public void run() {
         try {
-            in = new BufferedReader ( new InputStreamReader ( socket.getInputStream() ) );       
+            in = new BufferedReader ( new InputStreamReader ( socket.getInputStream() ) );
             out = new PrintWriter ( socket.getOutputStream(), true );
         } catch (IOException ex) {
             MLog.e("Can't create Client Streams.");
             ex.printStackTrace();
         }
-        
+
         int packID = -1;
-        
-        try {        
+
+        try {
             packID = in.read();
             MLog.d("Read packet id: " + packID);
         } catch (IOException ioex) {
             MLog.e(" Can't read next package: " + ioex.getMessage());
             ioex.printStackTrace();
         }
-        
+
         if ( packID != 1 ) {  // ... for login
-            MLog.e("Bad packet id. Disconnect.");        
+            MLog.e("Bad packet id. Disconnect.");
             try {
-                socket.close();                
+                socket.close();
             } catch (IOException ex) {
                 MLog.e("Can't close connection to client (" + socket.getInetAddress().getHostAddress() + ")");
             }
             return;
         }
-        
+
         Packet1Login lp = new Packet1Login ();
-        if ( lp.eval(packID, in) ) {                                    
+        if ( lp.eval(packID, in) ) {
             MLog.d("Received correct protocol.");
-            
+
             Packet2Handshake ph = new Packet2Handshake(true);
-            ph.send(out);            
-            
+            ph.send(out);
+
             server.raiseOnLoginEvent(lp.getUsername());
-            
-            Packet3Chat pc = new Packet3Chat();            
-            
+
+            Packet3Chat pc = new Packet3Chat();
+
             // now go into the loop
             while (true) {
-                
+
                 try {
-                    
+
                     // get new packet id
-                    packID = in.read();                
-                    
-                    if ( pc.eval(packID, in) ) {                        
-                        server.raiseOnMessageEvent(pc.getMessage());                       
+                    packID = in.read();
+
+                    if ( pc.eval(packID, in) ) {
+                        server.raiseOnMessageEvent(pc.getMessage());
                     } else {
-                        MLog.e("Got wrong packet id: " + packID);                        
+                        MLog.e("Got wrong packet id: " + packID);
                         break;
                     }
-                    
+
                     // send
-                    if ( sendmsg.equals("") )                        
+                    if ( sendmsg.equals("") )
                         continue;
-                    
+
                     MLog.d("(ClientHandler) sendStack not empty!");
-                    
+
                     Packet3Chat pcb = new Packet3Chat (sendmsg);
                     pcb.send(out);
-                    
+
                 } catch (IOException ioex) {
                     ioex.printStackTrace();
                     break;
                 }
-                
+
             }
-            
+
             server.raiseOnLeaveEvent(lp.getUsername());
-            
+
         } else {
-           MLog.e("Bad protocol. Disconnect.");        
+           MLog.e("Bad protocol. Disconnect.");
         }
-                       
+
         try {
-            socket.close();                
-            MLog.i("Client disconnected: " + socket.getInetAddress().getHostAddress());           
+            socket.close();
+            MLog.i("Client disconnected: " + socket.getInetAddress().getHostAddress());
         } catch (IOException ex) {
             MLog.e("Can't close connection to client (" + socket.getInetAddress().getHostAddress() + ")");
-        }                
-                        
+        }
+
         for ( int i=0; i < stock.length; i++ )
             if ( stock[i] == this ) stock[i] = null;
-        
-        return;                                                                     
-    }        
-    
+
+        return;
+    }
+
 }

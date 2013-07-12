@@ -23,18 +23,18 @@ import org.bukkit.event.player.PlayerPickupItemEvent;
  * @author passi
  */
 public class uvblocklistener implements Listener {
-    
-    public ultravision uv;    
-    
+
+    public ultravision uv;
+
     public uvblocklistener ( ultravision handle ) {
         uv = handle;
-    }   
-    
+    }
+
     public boolean validateAuthorizer( Player p )
-    {   
+    {
         if ( (uv.getAuthorizer() != null && uv.getAuthorizer().isRegistered( p ) && !uv.getAuthorizer().loggedIn( p )) ||
                 (!uv.allowNotRegActions && !uv.getAuthorizer().isRegistered( p )) )
-        {            
+        {
             if( !uv.getAuthorizer().isRegistered(p) )
                 p.sendMessage(ChatColor.RED + "Please register on this server. Use " + ChatColor.GOLD + "/register " + ChatColor.YELLOW + "YOURPASSWORD");
             else
@@ -44,7 +44,7 @@ public class uvblocklistener implements Listener {
         else
             return false;
     }
-    
+
     public boolean validateClickAuth( Player p, Action a )
     {
          if ( (uv.getClickAuth() != null && uv.getClickAuth().isRegistered(p.getName()) &&
@@ -57,80 +57,82 @@ public class uvblocklistener implements Listener {
          else
              return false;
     }
-    
+
     @EventHandler(priority=EventPriority.LOW)
     public void onPlayerInteract(PlayerInteractEvent event) {
-        
-        if (validateAuthorizer( event.getPlayer() ))                    
-            event.setCancelled(true);          
-        
-        else if ( validateClickAuth( event.getPlayer(), event.getAction() ) )        
-            event.setCancelled(true);                    
-        
+
+        if (validateAuthorizer( event.getPlayer() ))
+            event.setCancelled(true);
+
+        else if ( validateClickAuth( event.getPlayer(), event.getAction() ) )
+            event.setCancelled(true);
+
     }
-    
+
     @EventHandler(priority=EventPriority.LOW)
     public void onPlayerDropItem(PlayerDropItemEvent event) {
-        
-        if (validateAuthorizer( event.getPlayer() ))                    
-            event.setCancelled(true);          
-        
-        else if ( validateClickAuth( event.getPlayer(), null ) )        
+
+        if (validateAuthorizer( event.getPlayer() ))
             event.setCancelled(true);
-        
+
+        else if ( validateClickAuth( event.getPlayer(), null ) )
+            event.setCancelled(true);
+
     }
-    
+
     @EventHandler(priority=EventPriority.LOW)
     public void onPlayerPickupItem(PlayerPickupItemEvent event) {
-        
-        if (validateAuthorizer( event.getPlayer() ))                    
-            event.setCancelled(true);          
-        
-        else if ( validateClickAuth( event.getPlayer(), null ) )        
+
+        if (validateAuthorizer( event.getPlayer() ))
             event.setCancelled(true);
-        
+
+        else if ( validateClickAuth( event.getPlayer(), null ) )
+            event.setCancelled(true);
+
     }
-    
+
     @EventHandler(priority=EventPriority.LOW)
     public void onBlockBreak(BlockBreakEvent event) {
-                        
-        if (validateAuthorizer( event.getPlayer() )) {                        
-            
+
+        if (validateAuthorizer( event.getPlayer() )) {
+
             String[] l = null;
             if ( event.getBlock() instanceof Sign )
-                l = ((Sign)event.getBlock()).getLines();                       
-            
-            event.setCancelled(true);           
-            
+                l = ((Sign)event.getBlock()).getLines();
+
+            event.setCancelled(true);
+
+	    if( l == null ) return;
+
             if ( event.getBlock() instanceof Sign )
                 for ( int i=0; i < l.length; i++ )
                     ((Sign)event.getBlock()).setLine(i, l[i]);
-            
-        } else if ( validateClickAuth( event.getPlayer(), null ) ) 
+
+        } else if ( validateClickAuth( event.getPlayer(), null ) )
             event.setCancelled(true);
-        
-    }        
+
+    }
 
     @EventHandler(priority=EventPriority.LOW)
     public void onBlockPlace(BlockPlaceEvent event) {
-        
-        if (validateAuthorizer( event.getPlayer() ))                    
-            event.setCancelled(true);          
-        
-        else if ( validateClickAuth( event.getPlayer(), null ) )        
+
+        if (validateAuthorizer( event.getPlayer() ))
             event.setCancelled(true);
-        
-    }        
-    
+
+        else if ( validateClickAuth( event.getPlayer(), null ) )
+            event.setCancelled(true);
+
+    }
+
     @EventHandler(priority=EventPriority.LOW)
     public void onBlockDamage (BlockDamageEvent event) {
-        
-        if (validateAuthorizer( event.getPlayer() ))                    
-            event.setCancelled(true);          
-        
-        else if ( validateClickAuth( event.getPlayer(), null ) )        
+
+        if (validateAuthorizer( event.getPlayer() ))
             event.setCancelled(true);
-        
+
+        else if ( validateClickAuth( event.getPlayer(), null ) )
+            event.setCancelled(true);
+
     }
-    
+
 }

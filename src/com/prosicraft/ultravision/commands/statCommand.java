@@ -9,6 +9,7 @@ import com.prosicraft.ultravision.base.UVPlayerInfo;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.ultravision;
 import com.prosicraft.ultravision.util.MLog;
+import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -22,10 +23,10 @@ public class statCommand extends extendedCommand {
         // /uvstat [ban|kick|note|warning|mute|praise|time|friend|all] [playername|all]
         // ------------------+ UVSTAT Page (1/2) +--------------
         // Nothing == all all =
-        //      There are 3 bans, 2 warnings and 4 muted players.    
+        //      There are 3 bans, 2 warnings and 4 muted players.
         //      More information using flags:
         //          ban|kick|note|warning|mute|praise|time|friend|all
-        // ban all = 
+        // ban all =
         //      prosicraft by theDido (l,1d 2min 30sec): Griefing in th...
         //      theDido by sekshun8 (g,perm): He actually said that the...
         // ban prosicraft =
@@ -36,7 +37,7 @@ public class statCommand extends extendedCommand {
         //      theDidio -> sekshun8 #1: afsfjsldfkjsldfkjsldfksjdlfjll...
         // warning == note
         // mute all =
-        //      theDido by prosicraft: No Reason provided.    
+        //      theDido by prosicraft: No Reason provided.
         // praise all = (TOP FIVE)
         //      #1 prosicraft: 59 praises
         //      #2 theDido: 50 praises
@@ -44,7 +45,7 @@ public class statCommand extends extendedCommand {
         // time all = (TOP FIVE, TOTAL TIME)
         //      #1 prosicraft: 3 Month 2 Days 1 Minute 1 Sec
         //      #2 theDido: 2 Month...
-        //             
+        //
         // ----------------------------------------------------
         public statCommand(ultravision uv, String[] args) {
                 super(uv, args);
@@ -122,17 +123,21 @@ public class statCommand extends extendedCommand {
                                 }
 
                                 // Eval param 2
-                                List<Player> mayStat = getParent().getServer().matchPlayer(getArg(1));
+				theName = getArg(1);
 
-                                theName = getArg(1);
-                                if (mayStat == null || mayStat.isEmpty()) {
-                                        if ((uI = api.getPlayerInfo(getArg(1))) == null) {
-                                                return err(p, ChatColor.RED + "There's no player called '" + this.getArg(1) + "'.");
+                                List<Player> mayStat = getParent().getServer().matchPlayer( theName );
+                                if (mayStat == null || mayStat.isEmpty())
+				{
+                                        if ((uI = api.getPlayerInfo( theName )) == null)
+					{
+                                                return err(p, ChatColor.RED + "There's no player called '" + theName + "'.");
                                         }
+					mayStat = new ArrayList<>();
+					mayStat.add( api.getPlayer( theName) );
                                 }
 
                                 if (mayStat.size() > 1) {
-                                        p.sendMessage(ChatColor.DARK_AQUA + "There are some players matching '" + this.getArg(1) + "'");
+                                        p.sendMessage(ChatColor.DARK_AQUA + "There are some players matching '" + theName + "'");
                                         String plist = "";
                                         for (Player toKick : mayStat) {
                                                 plist += ChatColor.GRAY + toKick.getName() + ((mayStat.indexOf(toKick) != (mayStat.size() - 1)) ? ChatColor.DARK_GRAY + ", " : "");
@@ -146,41 +151,52 @@ public class statCommand extends extendedCommand {
 
                         }
 
-                        if (uI == null && pl == null) {
-                                return err(p, "No information about no player.");
-                        }
+			if( uI == null )
+			{
+				if( pl == null )
+					return err(p, "No information about no player.");
 
-                        if (uI == null && pl != null) {
-                                uI = api.getPlayerInfo(pl.getName());
+				uI = api.getPlayerInfo(pl.getName());
 
-                        }
+				if( uI == null )
+					return err( p, "Cannot get Player information about player " + pl.getName() + "!" );
+			}
 
                         // now we have the PlayerInfo instance and we can read this out.
 
-                        if (t.equalsIgnoreCase("time")) {
-                                return suc(p, ChatColor.DARK_AQUA + "Total Online time of " + ChatColor.AQUA + getArg(1) + ChatColor.DARK_AQUA + ": " + ChatColor.GOLD + timeInterpreter.getText(uI.getOnlineTime()));
-                        } else if (t.equalsIgnoreCase("registered") || t.equalsIgnoreCase("reg")) {
-                                if (!api.isAuthInit()) {
+                        if (t.equalsIgnoreCase("time"))
+			{
+				return suc(p, ChatColor.DARK_AQUA + "Total Online time of " + ChatColor.AQUA + getArg(1) + ChatColor.DARK_AQUA + ": " + ChatColor.GOLD + timeInterpreter.getText(uI.getOnlineTime()));
+                        }
+			else if (t.equalsIgnoreCase("registered") || t.equalsIgnoreCase("reg"))
+			{
+                                if (!api.isAuthInit())
+				{
                                         return suc(p, ChatColor.YELLOW + "Authorizer is not in use.");
                                 }
-                                if (api.getAuthorizer().isRegistered(theName)) {
+                                if (api.getAuthorizer().isRegistered(theName))
+				{
                                         return suc(p, ChatColor.GREEN + "Player '" + theName + "' is registered.");
-                                } else {
+                                }
+				else
+				{
                                         return suc(p, ChatColor.RED + "Player '" + theName + "' is not registered.");
                                 }
-                        } else if (t.equalsIgnoreCase("ban")) {
+			}
+			else if (t.equalsIgnoreCase("ban"))
+			{
                                 if (api.isBanned(theName)) {
                                         p.sendMessage(ChatColor.GREEN + "Player '" + theName + "' is banned.");
                                 } else p.sendMessage(ChatColor.RED + "Player '" + theName + "' is not banned.");
                                 if (uI.banHistory.isEmpty())
                                         return suc(p, ChatColor.DARK_AQUA + "Player " + ChatColor.AQUA + theName + ChatColor.DARK_AQUA + " has no bans in history.");
-                                else {                                        
+                                else {
                                         for ( UVBan fr : uI.banHistory )
                                                 p.sendMessage( ChatColor.DARK_AQUA + fr.getFormattedInfo() );
                                         return suc ();
                                 }
                         } else if (t.equalsIgnoreCase("friend")) {
-                                String out = "";                                
+                                String out = "";
                                 for ( String fr : uI.friends ) {
                                         out += fr + ", ";
                                 }
@@ -188,13 +204,13 @@ public class statCommand extends extendedCommand {
                                         out = out.substring(0, out.length() - 2);
                                 else
                                         out = "foreveralone";
-                                p.sendMessage(ChatColor.DARK_AQUA + "Player " + ChatColor.AQUA + theName + ChatColor.DARK_AQUA + " has " + ChatColor.GOLD + uI.friends.size() + ChatColor.DARK_AQUA + " friends:");                                                                
+                                p.sendMessage(ChatColor.DARK_AQUA + "Player " + ChatColor.AQUA + theName + ChatColor.DARK_AQUA + " has " + ChatColor.GOLD + uI.friends.size() + ChatColor.DARK_AQUA + " friends:");
                                 return suc (p, ChatColor.WHITE + out);
                         } else {
                                 return err(p, "Stat type '" + t + "' isn't implemented yet.");
                         }
 
-                } catch (Exception ex) {
+                } catch( wrongParentException | wrongPlayerException ex ) {
                         MLog.e("[PRAISECMD] " + ex.getMessage());
                         ex.printStackTrace(System.out);
                         return err(p, "Failed to execute command.");

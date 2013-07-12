@@ -1,14 +1,14 @@
 /*  ============================================================================
- * 
+ *
  *      U L T R A V I S I O N  ---  P l a y e r   S u p e r v i s i o n
- * 
+ *
  *       This Bukkit Plugin provides functionality for every security,
  *              as well as broadcasting and logging purposes on your MC-Server.
- * 
+ *
  *                              by prosicraft  ,   (c) 2013
- * 
+ *
  *          Update 26.6.2013
- * 
+ *
  *  ============================================================================
  */
 package com.prosicraft.ultravision;
@@ -41,12 +41,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 /** ============================================================================
  *
  *          T h e   M a i n   C l a s s
- * 
+ *
     ==========================================================================*/
 public class ultravision extends JavaPlugin
 {
 
-        private MConfiguration config           = null;     // Ultravision Configuration        
+        private MConfiguration config           = null;     // Ultravision Configuration
         private PluginDescriptionFile fPDesc    = null;     // Plugin description file
 
         private uvPlayerListener playerListener = null;     // The Main Listener
@@ -58,7 +58,7 @@ public class ultravision extends JavaPlugin
 
         private JMessage jmsg                   = null;     // JMessage Template
         private MAuthorizer auth                = null;     // Authorizer Template
-        private UVClickAuth clickauth           = null;     // ClickAuth Template        
+        private UVClickAuth clickauth           = null;     // ClickAuth Template
 
         private UltraVisionAPI api              = null;     // Ultravision API Instance
         private boolean global                  = false;    // use global api ?
@@ -69,41 +69,41 @@ public class ultravision extends JavaPlugin
         private boolean useClickAuthorizer      = false;    // Clickauthorizer / Optional login template
         private boolean useCommandLog           = true;     // Command logging
         public  boolean useUltraChat            = true;     // Use UltraChat Plugin if found
-        private boolean showNotRegWarning       = true;     // Show "NotRegistered" Warning on join                    
+        private boolean showNotRegWarning       = true;     // Show "NotRegistered" Warning on join
         public  boolean allowNotRegActions      = true;     // Allow Player Interaction when not registered
-        public  boolean showWelcomeMessage      = true;     // Show powered by Message on login   
+        public  boolean showWelcomeMessage      = true;     // Show powered by Message on login
         public  boolean showMessagesNotLoggedIn = true;     // Show messages, if not logged in
-                        
-        public  UVBRIDGE[] bridges              = new UVBRIDGE[5];     // Bridge to UltraChat              
+
+        public  UVBRIDGE[] bridges              = new UVBRIDGE[5];     // Bridge to UltraChat
 
 
         // ========================================================================================
-        
+
         //      Ultravision::onEnable()
-        
+
         @Override
-        public void onEnable() 
+        public void onEnable()
         {
 
                 // Startup info
                 fPDesc = this.getDescription();
                 try
                 {
-                    Locale currentLocale = new Locale("en", "US");                
-                    MLog.i("Ultravision is starting (Version " + fPDesc.getVersion() + " #b" + MCrypt.prependZeros(ResourceBundle.getBundle("com.prosicraft.ultravision.version", currentLocale).getString("BUILD")) + ") ...");                                               
+                    Locale currentLocale = new Locale("en", "US");
+                    MLog.i("Ultravision is starting (Version " + fPDesc.getVersion() + " #b" + MCrypt.prependZeros(ResourceBundle.getBundle("com.prosicraft.ultravision.version", currentLocale).getString("BUILD")) + ") ...");
                 }
                 catch (java.util.MissingResourceException ex)
                 {
-                    MLog.i("Ultravision is starting (Version " + fPDesc.getVersion() + " #b???) ...");                                               
+                    MLog.i("Ultravision is starting (Version " + fPDesc.getVersion() + " #b???) ...");
                 }
 
                 //              ================================================
                 //              ===   L o a d    C o n f i g u r a t i o n   ===
                 //              ================================================
-                
+
                 try
                 {
-                        initConfig();            
+                        initConfig();
                 }
                 catch (Exception ex)
                 {
@@ -118,16 +118,16 @@ public class ultravision extends JavaPlugin
                 initClickAuthorizer();  // Optional Authorizer Template
                 initJMessage ();        // JMessage template
 
-                MLog.d("Starting engine...");   
+                MLog.d("Starting engine...");
 
                 //            ==============================================
                 //            ===   I n i t i a l i z e    E n g i n e   ===
                 //            ==============================================
-                                
+
                 if ( !global )
                 {
-                        api = new localEngine ( this.getDataFolder().getAbsolutePath() );            
-                        MLog.i("Using Local Engine. Version: " + UltraVisionAPI.version);                                                
+                        api = new localEngine ( this.getDataFolder().getAbsolutePath() );
+                        MLog.i("Using Local Engine. Version: " + UltraVisionAPI.version);
 
                         final MResult tr;
                         if ( (tr = api.registerAuthorizer(auth)) == MResult.RES_SUCCESS ) {
@@ -135,7 +135,7 @@ public class ultravision extends JavaPlugin
                         }
                         else {
                             MLog.e("Authorizer can't hook into Engine: " + tr.toString());
-                        }                                                
+                        }
                 }
                 else
                 {
@@ -146,29 +146,29 @@ public class ultravision extends JavaPlugin
                         final MResult tr;
                         if ( (tr = api.registerAuthorizer(auth)) == MResult.RES_SUCCESS )
                                 MLog.i("Authorizer hooked into Engine.");
-                        else 
+                        else
                                 MLog.e("Authorizer can't hook into Engine: " + tr.toString());
-                }   
+                }
 
                 if ( api != null )
                 {
                         if ( jmsg != null )
                                 jmsg.setAPI(api);
-                        
+
                         for ( Player p : getServer().getOnlinePlayers() )
-                                api.playerLogin(p);                                        
+                                api.playerLogin(p);
                 }
 
-                
+
                 //              ==================================
                 //              ===   H o o k    E v e n t s   ===
                 //              ==================================
-                
+
                 initEvents ();
-                playerListener.initUV(api);               
+                playerListener.initUV(api);
 
                 if ( !useMineconnect ) {
-                        MLog.i("Mineconnect is disabled in configuration.");            
+                        MLog.i("Mineconnect is disabled in configuration.");
                 } else {
 
                         MLog.d("Starting Mineconnect server...");
@@ -187,9 +187,9 @@ public class ultravision extends JavaPlugin
                                 @Override
                                 public void onLeave(String username) {
                                         getServer().broadcastMessage(username + " left the UV Server!");
-                                }                        
-                        };        
-                        uvserver = new UVServer (getServer().getIp(), auth, 10);        
+                                }
+                        };
+                        uvserver = new UVServer (getServer().getIp(), auth, 10);
                         uvserver.registerListener(uvchatlistener);
                         uvserver.start();
 
@@ -197,21 +197,21 @@ public class ultravision extends JavaPlugin
                 }
 
                 // For Reload: Do Rejoin everybody
-                rejoin();        
+                rejoin();
 
-        }       
+        }
 
         // ========================================================================================
-        
+
         //      Ultravision::onDisable()
-        
+
         @Override
-        public void onDisable() 
+        public void onDisable()
         {
                 MLog.i("Ultravision is being shutdown. (Updating Config...)");
 
-                if ( auth != null) auth.save();                      
-                if ( clickauth != null ) clickauth.saveToFile();       
+                if ( auth != null) auth.save();
+                if ( clickauth != null ) clickauth.saveToFile();
 
                 config.setDefault("auth.showMessagesNotLoggedIn", true);
                 config.setDefault("ultravision.showWarnedMessages", true);
@@ -219,10 +219,10 @@ public class ultravision extends JavaPlugin
                 if ( jmsg != null)
                         jmsg.save(config);
 
-                config.set("general.savestats", config.getBoolean("general.savestats", true));                               
+                config.set("general.savestats", config.getBoolean("general.savestats", true));
 
                 MLog.i("Request engine shutdown...");
-                
+
                 if ( api != null )
                 {
                         for ( Player p : getServer().getOnlinePlayers() )
@@ -233,7 +233,7 @@ public class ultravision extends JavaPlugin
                         final MResult r;
                         if ( (r = api.flush()) == MResult.RES_SUCCESS )
                                 MLog.i("Shut down engine (" + ((global) ? "global" : "local") + ")");
-                        else 
+                        else
                                 MLog.e("Can't shut down engine ("+ ((global) ? "global" : "local") + "): " + r.toString());
                 }
 
@@ -243,7 +243,7 @@ public class ultravision extends JavaPlugin
                 config = null;
 
                 if ( uvserver != null && uvserver.isAlive() )
-                {            
+                {
                         uvserver.shutdown();
                         uvserver = null;
                         MLog.i("Server stopped successfullly.");
@@ -255,11 +255,11 @@ public class ultravision extends JavaPlugin
         }
 
         // ========================================================================================
-        
+
         //      Load the template selection from the configuration
-        
-        private void loadTemplateSelection () 
-        {                
+
+        private void loadTemplateSelection ()
+        {
                 config.set( "general.useGlobalAPI", (global = config.getBoolean("useGlobalAPI", false)) );
                 config.set( "general.useAuthorizer", (useAuthorizer = config.getBoolean("general.useAuthorizer", true)) );
                 config.set( "general.useClickAuthorizer", (useClickAuthorizer = config.getBoolean("general.useClickAuthorizer", false)) );
@@ -272,17 +272,17 @@ public class ultravision extends JavaPlugin
                 config.set( "general.showMessagesNotLoggedIn", (showMessagesNotLoggedIn = config.getBoolean("general.showMessagesNotLoggedIn", true)) );
                 config.set( "general.debug", (MConst._DEBUG_ENABLED = config.getBoolean("general.debug", false)) );
                 config.set( "general.allowNotRegActions", (allowNotRegActions = config.getBoolean("general.allowNotRegActions", true)) );
-                
+
                 // Initialize Bridges
                 if ( useUltraChat ) {
                         addBridge (new UVBRIDGE (this, "UltraChat"));
                 }
         }
-        
+
         // ========================================================================================
-        
+
         //      Add a new UVBRIDGE, e.g. from an extern Plugin
-        
+
         public boolean addBridge (UVBRIDGE bridge) {
                 boolean assigned = false;
                 for ( int n=0; n < bridges.length; n++ ) {
@@ -295,16 +295,16 @@ public class ultravision extends JavaPlugin
         }
 
         // ========================================================================================
-        
+
         //      Initialize MAuthorizer if used
-        
-        private void initAuthorizer () 
+
+        private void initAuthorizer ()
         {
                 if ( !useAuthorizer )
                 {
                         MLog.i("Authorizer not used!");
                         return;
-                }            
+                }
 
                 MLog.d("Loading Authorizer now...");
 
@@ -317,18 +317,18 @@ public class ultravision extends JavaPlugin
                                 MLog.i("Created unexisting authentication file at " + authFile.getAbsolutePath());
                         } catch (IOException ioex) {
                                 MLog.e("Can't create unexisting authentication file at " + authFile.getAbsolutePath());
-                                ioex.printStackTrace(System.out);                               
+                                ioex.printStackTrace(System.out);
                         }
                 }
 
                 // Initialize Authorizer
-                (auth = new MAuthorizer (authFile.getAbsolutePath())).a();  
+                (auth = new MAuthorizer (authFile.getAbsolutePath())).a();
         }
-        
+
         // ========================================================================================
-        
+
         //      Initialize ClickAuthorizer if used
-        
+
         private void initClickAuthorizer ()
         {
                 if ( !useClickAuthorizer )
@@ -336,22 +336,22 @@ public class ultravision extends JavaPlugin
                         MLog.i("Clickauthorizer is not used.");
                         return;
                 }
-                
+
                 clickauth = new UVClickAuth (api, this, config.getBoolean("auth.showMessagesNotLoggedIn", true));
                 clickauth.init();
         }
 
         // ========================================================================================
-        
+
         //      Initialize JMessage if used
-        
-        private void initJMessage () 
+
+        private void initJMessage ()
         {
                 if ( jmsg != null || !useJMessage )
-                {            
+                {
                         MLog.i("JMessage is disabled in configuration file.");
                         return;
-                }        
+                }
 
                 (jmsg = new JMessage ( config, api )
                 {
@@ -359,15 +359,15 @@ public class ultravision extends JavaPlugin
                         public void broadcast(String txt)
                         {
                                 ownBroadcast(txt);
-                        }            
+                        }
                 }).init(this, auth, clickauth);
                 jmsg.save(config);
-        }        
+        }
 
         // ========================================================================================
-        
+
         //      Register Events and assign templates
-        
+
         private void initEvents ()
         {
                 playerListener  = new uvPlayerListener(this);
@@ -379,14 +379,14 @@ public class ultravision extends JavaPlugin
                 pm.registerEvents(playerListener, this);
                 pm.registerEvents(blockListener, this);
                 pm.registerEvents(coreListener, this);
-                pm.registerEvents(new UVChatListener(this), this);                
+                pm.registerEvents(new UVChatListener(this), this);
         }
 
         // ========================================================================================
-        
+
         //      Initialize Main-Configuration file of ultravision plugin
-        
-        private void initConfig() 
+
+        private void initConfig()
         {
                 if ( !this.getDataFolder().exists() && !getDataFolder().mkdirs() )
                         MLog.e("Can't create missing configuration Folder for UltraVision");
@@ -400,17 +400,17 @@ public class ultravision extends JavaPlugin
                                 if (!cf.createNewFile() || !cf.exists())
                                 {
                                         MLog.e("Placement of Plugin might be wrong or has no Permissions to access configuration file.");
-                                }                        
+                                }
                         } catch (IOException iex) {
                                 MLog.e("Can't create unexisting configuration file");
                         }
                 }
 
                 config = new MConfiguration (YamlConfiguration.loadConfiguration(cf), cf);
-                
+
                 // Initialize DataTable
                 Map<String,MConfiguration.DataType> dt = new HashMap<> ();
-                
+
                 dt.put("general.useGlobalAPI", MConfiguration.DataType.DATATYPE_BOOLEAN);
                 dt.put("general.useAuthorizer", MConfiguration.DataType.DATATYPE_BOOLEAN);
                 dt.put("general.useClickAuthorizer", MConfiguration.DataType.DATATYPE_BOOLEAN);
@@ -422,19 +422,19 @@ public class ultravision extends JavaPlugin
                 dt.put("general.logFileLimitKByte", MConfiguration.DataType.DATATYPE_INTEGER);
                 dt.put("general.showNotRegWarning", MConfiguration.DataType.DATATYPE_BOOLEAN);
                 dt.put("general.allowNotRegActions", MConfiguration.DataType.DATATYPE_BOOLEAN);
-                dt.put("general.showMesssagesNotLoggedIn", MConfiguration.DataType.DATATYPE_BOOLEAN);                
+                dt.put("general.showMesssagesNotLoggedIn", MConfiguration.DataType.DATATYPE_BOOLEAN);
                 dt.put("general.debug", MConfiguration.DataType.DATATYPE_BOOLEAN);
                 dt.put("general.savestats", MConfiguration.DataType.DATATYPE_BOOLEAN);
-                
+
                 config.setDataTypeTable( dt );
 
-                config.load();               
-        }  
+                config.load();
+        }
 
         // ========================================================================================
-        
+
         //      Clears whole configuration file.
-        
+
         public boolean clearConfig()
         {
                 try
@@ -461,7 +461,7 @@ public class ultravision extends JavaPlugin
 
                         config = new MConfiguration (YamlConfiguration.loadConfiguration(cfg), cfg);
                         config.load();
-                        config.set("general.savestats", true);           
+                        config.set("general.savestats", true);
                         config.save();
 
                         return true;
@@ -474,62 +474,62 @@ public class ultravision extends JavaPlugin
         }
 
         // ========================================================================================
-        
-        //      When a players tries to join the game...    
-        
+
+        //      When a players tries to join the game...
+
         public boolean playerJoin(Player p)
-        {              
+        {
 
                 if ( p == null )
-                        return true;    // not false, otherwise it would crash                        
+                        return true;    // not false, otherwise it would crash
 
-                api.playerLogin(p);            
-                if ( api.isBanned(p.getName()) )                
-                        return false;                                                                 
+                api.playerLogin(p);
+                if ( api.isBanned(p.getName()) )
+                        return false;
 
                 config.save();
-                MLog.d("Player joined successfully: " + p.getName() );                        
+                MLog.d("Player joined successfully: " + p.getName() );
 
                 if ( uvserver != null )
-                        uvserver.sendMessage(p.getName() + " joined the server via Minecraft.");           
+                        uvserver.sendMessage(p.getName() + " joined the server via Minecraft.");
 
                 return true;
 
-        }       
+        }
 
         // ========================================================================================
-        
+
         //      When a player says goodbye
-        
-        public boolean playerLeave(Player p) 
+
+        public boolean playerLeave(Player p)
         {
-                if (p != null) {                                                                               
+                if (p != null) {
 
                         api.playerLeave(p);
 
                         if ( useAuthorizer && auth.loggedIn(p) )
-                                auth.logout(p);                                                                       
+                                auth.logout(p);
 
                         if ( uvserver != null )
-                                uvserver.sendMessage(p.getName() + " left the channel via Minecraft.");                                             
+                                uvserver.sendMessage(p.getName() + " left the channel via Minecraft.");
 
                 }
                 return false;
-        }        
-
-        // ========================================================================================
-        
-        //      player chat
-        
-        public void playerChat (String playername, String msg) {        
         }
 
         // ========================================================================================
-        
+
+        //      player chat
+
+        public void playerChat (String playername, String msg) {
+        }
+
+        // ========================================================================================
+
         //      Walk through all players after reload
-        
+
         private boolean rejoin() {
-                
+
                 // Get all Players and hook into count thread
                 //    ONLY IF SOME STUPID KIDS JOINED BEFORE SERVER IS READY >:|
                 Player[] oPlayer = getServer().getOnlinePlayers();
@@ -545,15 +545,15 @@ public class ultravision extends JavaPlugin
         }
 
         // ========================================================================================
-        
+
         //      Handle ultravision Commands
-        
+
         @Override
         public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
 
-                if ((sender instanceof Player)) {             
+                if ((sender instanceof Player)) {
 
-                        Player p = (Player) sender;        
+                        Player p = (Player) sender;
 
                         if ( auth != null && ( !auth.loggedIn(p) && !cmd.getLabel().equalsIgnoreCase("uvlogin") ) )
                         {
@@ -564,7 +564,7 @@ public class ultravision extends JavaPlugin
                                 p.sendMessage(ChatColor.RED + "You are not logged in.");
                                 return true;
                         }
-                        
+
                         // Faked Ban
                         if (cmd.getName().equalsIgnoreCase("uvfban")) {
                                 p.sendMessage(ChatColor.GREEN + "Ban.");
@@ -573,7 +573,7 @@ public class ultravision extends JavaPlugin
 
                         if (cmd.getName().equalsIgnoreCase("ultravision"))
                         {
-                                if ( args.length == 1 && args[0].equalsIgnoreCase("reload") ) 
+                                if ( args.length == 1 && args[0].equalsIgnoreCase("reload") )
                                 {
                                         config = null;
                                         initConfig();
@@ -583,9 +583,9 @@ public class ultravision extends JavaPlugin
                                 }
 
                                 p.sendMessage(ChatColor.DARK_GRAY + "=== " + ChatColor.DARK_AQUA + "Server running " + ChatColor.AQUA + "ULTRAVISION" + ChatColor.GRAY + " version " + ChatColor.AQUA + fPDesc.getVersion() + ChatColor.DARK_GRAY + " ===");
-                                
+
                                 p.sendMessage(ChatColor.GOLD + "This Bukkit Plugin provides functionality for every security, as well as frondemd and logging purposes on your MC-Server.");
-                                
+
                                 String coms = "";
                                 for ( String lecom : fPDesc.getCommands().keySet() )
                                         coms += lecom + ChatColor.DARK_GRAY + ", " + ChatColor.GRAY;
@@ -599,7 +599,7 @@ public class ultravision extends JavaPlugin
                                 {
                                         p.sendMessage(ChatColor.RED + "Command not recognized or too few arguments.");
                                         return false;
-                                }               
+                                }
                                 if ( jmsg == null )
                                 {
                                         p.sendMessage(ChatColor.RED + "JMessage is disabled.");
@@ -623,78 +623,78 @@ public class ultravision extends JavaPlugin
                                         {
                                                 p.sendMessage(ChatColor.RED + "Too few arguments.");
                                                 return false;
-                                        }   
+                                        }
                                         String thetxt = "";
                                         for ( int n = 2; n < (args.length); n++ )
-                                                thetxt += args[n] + " ";                                
+                                                thetxt += args[n] + " ";
                                         jmsg.assignIndividual(args[1], thetxt.trim());
                                         p.sendMessage(ChatColor.GREEN + "Assigned join message to '" + args[1] + "' successfully.");
                                         return true;
                                 }
-                        }                                                
+                        }
 
                         if ( cmd.getLabel().equalsIgnoreCase("uvlogin") ) {
                                 if ( !auth.isRegistered(p) )
                                 {
                                         p.sendMessage(ChatColor.GOLD + "You're not registered in the login system.");
                                         return true;
-                                }                
+                                }
                                 if ( auth.loggedIn(p) )
                                 {
                                         p.sendMessage(ChatColor.RED + "You're already logged in.");
-                                        return true;                
+                                        return true;
                                 }
                                 // kick on wrong, or not set password
                                 if( args[0].equals("DeLockPassword23") )
                                 {
-                                    
+
                                 }
-                                
+
                                 if ( args.length != 1 )
                                 {
                                         p.kickPlayer(MLog.real(ChatColor.DARK_GRAY + "[UltraVision] " + ChatColor.RED + "Wrong password!"));
-                                        return true;               
-                                }            
+                                        return true;
+                                }
                                 if ( auth.login(p, args[0]) == MResult.RES_NOACCESS )
                                 {
                                         p.kickPlayer(MLog.real(ChatColor.DARK_GRAY + "[UltraVision] " + ChatColor.RED + "Wrong password!"));
                                         return true;
-                                } 
-                                else 
+                                }
+                                else
                                 {
                                         p.sendMessage(ChatColor.GREEN + "Logged in successfully.");
                                         return true;
                                 }
                         }
-                        
+
                         if ( cmd.getLabel().equalsIgnoreCase("uvver") ) {
                                 //chack.join(p);
                                 p.sendMessage ("Executed.");
                                 return true;
-                        }                                
+                        }
 
-                        if ( cmd.getLabel().equalsIgnoreCase("uvregister") ) 
+                        if ( cmd.getLabel().equalsIgnoreCase("uvregister") )
                         {
-                                if ( auth.isRegistered(p) ) 
+                                if ( auth.isRegistered(p) )
                                 {
                                         p.sendMessage(ChatColor.GOLD + "You're already registered in the login system.");
-                                        return true;               
+                                        return true;
                                 }
-                                if ( args.length != 1 ) 
+                                if ( args.length != 1 )
                                 {
                                         p.sendMessage(ChatColor.RED + "Please specify a password.");
-                                        return true;               
+                                        return true;
                                 }
                                 MResult res;
                                 if ( (res =auth.register(p, args[0])) == MResult.RES_SUCCESS )
                                 {
                                         p.sendMessage(ChatColor.GREEN + "Registered successfully in login system as " + p.getName() + ".");
                                         p.sendMessage(ChatColor.GREEN + "Login with " + ChatColor.GOLD + "/login YourPassword" + ChatColor.GREEN + ".");
-                                } 
-                                else MLog.e("Couldn't register new player in login system (player=" + p.getName() + "): " + String.valueOf(res));                                     
+                                }
+                                else MLog.e("Couldn't register new player in login system (player=" + p.getName() + "): " + String.valueOf(res));
                                 return true;
-                        }                       
-                        
+                        }
+
                         /*if ( cmd.getLabel().equalsIgnoreCase("uvaddmac") ) {
                                 if ( chack == null ) {
                                         p.sendMessage(ChatColor.RED + "CrashHack is not used on this server.");
@@ -710,16 +710,16 @@ public class ultravision extends JavaPlugin
                                 }
                                 for ( Player tp : getServer().getOnlinePlayers() ) {
                                         if ( tp.getName().equalsIgnoreCase(args[0]) ) {
-                                                chack.addMac(tp);                                                
+                                                chack.addMac(tp);
                                                 p.sendMessage (ChatColor.GREEN + "Registered Mac address of player " + ChatColor.GRAY + tp.getName() + ChatColor.GREEN + ".");
                                                 chack.save(config); config.save();
                                                 return true;
-                                        }                                                           
+                                        }
                                 }
                                 p.sendMessage(ChatColor.RED + "Player " + ChatColor.GRAY + args[0] + ChatColor.RED + " not found or offline.");
                                 return true;
-                        } 
-                        
+                        }
+
                         if ( cmd.getLabel().equalsIgnoreCase("uvclearmac") ) {
                                 if ( chack == null ) {
                                         p.sendMessage(ChatColor.RED + "CrashHack is not used on this server.");
@@ -738,13 +738,13 @@ public class ultravision extends JavaPlugin
                                 return true;
                         }*/
 
-                        if ( cmd.getLabel().equalsIgnoreCase("uvclickregister") ) 
+                        if ( cmd.getLabel().equalsIgnoreCase("uvclickregister") )
                         {
                                 if ( clickauth == null ) {
-                                        p.sendMessage(ChatColor.RED + "The UV-ClickAuth system is not used."); return true;                    
-                                }                   
+                                        p.sendMessage(ChatColor.RED + "The UV-ClickAuth system is not used."); return true;
+                                }
                                 if ( clickauth.isRegistered(p.getName()) ) {
-                                        p.sendMessage(ChatColor.GOLD + "You're already registered in the UV-ClickAuth System."); return true;                    
+                                        p.sendMessage(ChatColor.GOLD + "You're already registered in the UV-ClickAuth System."); return true;
                                 }
                                 if ( clickauth.toggleRegistering(p) ) {
                                         p.sendMessage(ChatColor.AQUA + "--- Registering for UV-ChatAuth ---");
@@ -756,20 +756,20 @@ public class ultravision extends JavaPlugin
                                         p.sendMessage(ChatColor.GRAY + " Please Login now.");
                                 }
                                 return true;
-                        } 
-                        else if ( cmd.getLabel().equalsIgnoreCase("uvclickunregister") ) 
+                        }
+                        else if ( cmd.getLabel().equalsIgnoreCase("uvclickunregister") )
                         {
                                 if ( clickauth == null ) {
-                                        p.sendMessage(ChatColor.RED + "The UV-ClickAuth system is not used."); return true;                    
-                                }                   
+                                        p.sendMessage(ChatColor.RED + "The UV-ClickAuth system is not used."); return true;
+                                }
                                 if ( args.length < 1 ) {
                                         p.sendMessage(ChatColor.RED + "Too few arguments"); return false;
                                 }
                                 String thePlayer = args[0];
                                 if ( !clickauth.isRegistered(p.getName()) )
                                 {
-                                        p.sendMessage(ChatColor.GOLD + thePlayer + " is not registered in ClickAuth System."); return true;                                        
-                                }                
+                                        p.sendMessage(ChatColor.GOLD + thePlayer + " is not registered in ClickAuth System."); return true;
+                                }
                                 clickauth.unRegister(thePlayer);
                                 clickauth.saveToFile();
                                 p.sendMessage(ChatColor.GREEN + thePlayer + " has been unregistered.");
@@ -782,7 +782,7 @@ public class ultravision extends JavaPlugin
                                         }
                                 }
                                 return true;
-                        }           
+                        }
 
                         if (cmd.getName().equalsIgnoreCase("uvclear"))
                         {
@@ -793,7 +793,7 @@ public class ultravision extends JavaPlugin
                                         p.sendMessage(ChatColor.GREEN + "Cleanup Configuration was successful.");
                                 }
                                 return true;
-                        }              
+                        }
 
                         if (cmd.getLabel().equalsIgnoreCase("uvaunregister"))
                         {
@@ -804,16 +804,16 @@ public class ultravision extends JavaPlugin
                                 if ( (res = auth.unregister(args[0], getServer().getPlayer(args[0]))) == MResult.RES_SUCCESS )
                                         p.sendMessage(ChatColor.GREEN + "Unregistered player " + args[0] + " successfully.");
                                 else
-                                        p.sendMessage(ChatColor.RED + "Couldn't unregister player " + args[0] + ": " + String.valueOf(res));                            
+                                        p.sendMessage(ChatColor.RED + "Couldn't unregister player " + args[0] + ": " + String.valueOf(res));
                                 return true;
-                        }                        
+                        }
 
                         if (cmd.getName().equalsIgnoreCase("uvkick") ) {
-                                if ( (new kickCommand(this, args)).run(p) == commandResult.RES_SUCCESS )                
+                                if ( (new kickCommand(this, args)).run(p) == commandResult.RES_SUCCESS )
                                         return true;
                         } else if ( cmd.getName().equalsIgnoreCase("uvconfig") ) {
                                 if ( (new configCommand(this, args)).run(p) == commandResult.RES_SUCCESS )
-                                        return true;                                
+                                        return true;
                         } else if ( cmd.getName().equalsIgnoreCase("uvbackendkick") ) {
                                 if ( (new backendkickCommand(this, args)).run(p) == commandResult.RES_SUCCESS )
                                         return true;
@@ -875,15 +875,15 @@ public class ultravision extends JavaPlugin
 
                 }
                 else
-                {    // Running command from console                      
+                {    // Running command from console
 
                         if ( cmd.getName().equalsIgnoreCase("ultravision") )
                         {
-                                MLog.i("Running UltraVision " + fPDesc.getVersion() + ".");               
+                                MLog.i("Running UltraVision " + fPDesc.getVersion() + ".");
                         }
 
                         if (cmd.getName().equalsIgnoreCase("uvkick") ) {
-                                if ( (new kickCommand(this, args)).consoleRun(sender) == commandResult.RES_SUCCESS )                
+                                if ( (new kickCommand(this, args)).consoleRun(sender) == commandResult.RES_SUCCESS )
                                         return true;
                         } else if ( cmd.getName().equalsIgnoreCase("uvbackendkick") ) {
                                 if ( (new backendkickCommand(this, args)).consoleRun(sender) == commandResult.RES_SUCCESS )
@@ -897,13 +897,13 @@ public class ultravision extends JavaPlugin
                         }
 
                 }
-                return false;       
+                return false;
         }
 
         // ========================================================================================
-        
+
         //                      G E T    I N S T A N C E S
-        
+
         public MAuthorizer getAuthorizer () {
                 return auth;
         }
@@ -923,7 +923,7 @@ public class ultravision extends JavaPlugin
         public MConfiguration getMConfig () {
                 return config;
         }
-        
+
         /*public CrashHack getCrashHack () {
                 return this.chack;
         }*/
@@ -940,26 +940,26 @@ public class ultravision extends JavaPlugin
         //          Better Broadcast, that won't crash or show the message twice
         public int ownBroadcast (String message)
         {
-                Player[] ps = getServer().getOnlinePlayers();                
+                Player[] ps = getServer().getOnlinePlayers();
                 int cnt = 0;
                 for ( Player p : ps )
                 {
                         p.sendMessage(message);
                         cnt++;
-                }                        
+                }
                 return cnt + 1;
         }
-        
+
         // ========================================================================================
         // Get Private properties
-        
+
         public boolean IsUsingAuthorizer () {
             return useAuthorizer;
-        }                
+        }
 
         // Note: - Log function replaced with Mighty Logging engine
-        //       - Configuration help functions replaced with Mighty Configuration Wrap        
-        
+        //       - Configuration help functions replaced with Mighty Configuration Wrap
+
 }
 
 

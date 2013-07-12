@@ -21,7 +21,7 @@ public interface UltraVisionAPI {
         // ==============================================================
         // =                    M A I N                                 =
         // ==============================================================
-        public String version = "v0.1";
+        public String version = "v0.2";
         public String userDataDir = "//userdata//";
         public String userLogDir = "//userlog//";
 
@@ -60,7 +60,7 @@ public interface UltraVisionAPI {
         public UVBan getBan(Player p, String servername);
         public List<UVBan> getBanHistory(Player p);
 
-        // ====== KICK ======    
+        // ====== KICK ======
         public MResult doKick(CommandSender cs, Player p, String reason);
         public MResult backendKick(Player p, String reason);
         public List<UVKick> getKickHistory(Player p);
@@ -78,7 +78,7 @@ public interface UltraVisionAPI {
         // ======= PRAISE ======
         public MResult praise(CommandSender cs, Player p);  // one command sender can praise only once
         public MResult unPraise(CommandSender cs, Player p);
-        public boolean praised(Player s, Player p); // 
+        public boolean praised(Player s, Player p); //
         public int getPraiseCount(Player p);
 
         // ====== MISC ======

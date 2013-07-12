@@ -21,53 +21,51 @@ import java.util.Stack;
  */
 public class UVServer extends Thread {
 
-    private MAuthorizer auth;
-    private String serverip = "wkserver.dyndns.org";
-    private int port = 5100;    
+    //private String serverip = "wkserver.dyndns.org";
+    private int port = 5100;
     private UVChatStat state = UVChatStat.STAT_BOOT;
     private ServerSocket hostSocket = null;
     private Socket s = null;
     private BufferedReader in = null;
     private PrintWriter out = null;
     private boolean isRunning = false;
-    private UVServer me = this;
-    
+
     private UVClientHandler[] clientHandlers = null;
-    
+
     public Stack sendBuffer = null;
     private List<MCChatListener> listeners = null;
-    
-    public UVServer (String serverip, MAuthorizer auth, int numSlots) {        
-        this.sendBuffer = new Stack<String>();
-        listeners = new ArrayList<MCChatListener>();
+
+    public UVServer (String serverip, MAuthorizer auth, int numSlots) {
+        this.sendBuffer = new Stack<>();
+        listeners = new ArrayList<>();
         clientHandlers = new UVClientHandler[numSlots];
     }
-    
+
     public synchronized void shutdown () {
-        disconnect();   
+        disconnect();
         isRunning = false;
     }
-    
+
     public void disconnect () {
         state = UVChatStat.STAT_STOP;
     }
-    
+
     public void registerListener (MCChatListener uvcl) {
         if (uvcl != null) {
             listeners.add(uvcl);
         }
     }
-    
+
     public void sendMessage (String s) {
-        // broadcast messages                                       
-        for ( int i=0; i < clientHandlers.length; i++ ) {            
+        // broadcast messages
+        for ( int i=0; i < clientHandlers.length; i++ ) {
             if ( clientHandlers[i] != null ) {
                 MLog.d("Checking client " + i + ": " + String.valueOf(clientHandlers[i]) );
                 clientHandlers[i].sendMessage( s );
             }
         }
     }
-    
+
     public int getNextPacket () {
         int res = 0;
         if ( (res = getInt()) == -1 ) {
@@ -75,76 +73,76 @@ public class UVServer extends Thread {
         }
         return res;
     }
-    
+
     public int getInt () {
         if ( state != UVChatStat.STAT_IDLE )
             return -1;
-            
+
         try {
-            
+
             if ( in.ready() ) {
-                
+
                 int res = in.read();
                 return res;
-                
+
             }
             return -1;
-            
+
         } catch (IOException ioex) {
             return -1;
         }
-    }    
-    
-    public String getString (int length) {        
+    }
+
+    public String getString (int length) {
         if ( state != UVChatStat.STAT_IDLE )
             return " [SYS] Connection to server not established.";
-        
+
         try {
-            
+
             if ( in.ready() ) {
-                
+
                 char[] cbuf = new char[length];
                 in.read(cbuf);
-                
+
                 return new String (cbuf);
-                
+
             }
             return "";
-            
+
         } catch (IOException ioex) {
             return " [SYS] Error while reading String.";
-        }        
-    }        
-    
+        }
+    }
+
     @Override
-    public void run() {                        
+    public void run() {
         isRunning = true;
         state = UVChatStat.STAT_BOOT;
-        while (isRunning) {            
+        while (isRunning) {
             try {
-                this.sleep(25);
+                UVServer.sleep(25);
             } catch (InterruptedException iex) {
                 MLog.d("Server interrupted.");
             } catch (Exception ex) {
                 MLog.d("Caught exception,");
-                ex.printStackTrace();
-            }                   
-                        
+		ex.printStackTrace( System.out );
+            }
+
             switch (state) {
-                case STAT_BOOT:                    
+                case STAT_BOOT:
                     try {
                         hostSocket = new ServerSocket (port);
-                        //hostSocket.setSoTimeout(30000);                                                                       
-                        
-                        //in = new BufferedReader ( new InputStreamReader ( s.getInputStream() ) );                        
-                        //out = new PrintWriter ( s.getOutputStream(), true );                                                
-                        state = UVChatStat.STAT_IDLE;                        
+                        //hostSocket.setSoTimeout(30000);
+
+                        //in = new BufferedReader ( new InputStreamReader ( s.getInputStream() ) );
+                        //out = new PrintWriter ( s.getOutputStream(), true );
+                        state = UVChatStat.STAT_IDLE;
                         MLog.d("Connected. State=" + state.toString());
                     } catch (IOException ioex) {
                         System.out.println ("Can't start server at port " + String.valueOf(port) + ": " + ioex.getMessage());
-                        ioex.printStackTrace();
+                        ioex.printStackTrace( System.out );
                         state = UVChatStat.STAT_STOP;
-                    }                    
+                    }
                     break;
                 case STAT_IDLE:
                     //write
@@ -152,56 +150,56 @@ public class UVServer extends Thread {
                         String cur = sendBuffer.pop().toString();
                         MLog.d("(UVChat) Send Data: " + cur);
                         out.print(cur);
-                        out.flush();                        
+                        out.flush();
                     }
-                    
-                    //read                    
+
+                    //read
                     try {
 
                         s = hostSocket.accept();
 
                         for ( int i=0; i < clientHandlers.length; i++ ) {
-                            if ( clientHandlers[i] == null ) {                                 
+                            if ( clientHandlers[i] == null ) {
                                 (clientHandlers[i] = new UVClientHandler(s, clientHandlers, this)).start();
                                 MLog.d(" (UVChat) Put new client (" + s.getInetAddress().getHostAddress() + ") at #" + i);
                                 break;
                             }
-                        }                                                
-                       
+                        }
+
                     } catch (Exception ex) {
                         MLog.e("(UVChat) IOException: " + ex.getMessage());
-                        ex.printStackTrace();
-                    }                                                                                          
-                    
+                        ex.printStackTrace( System.out );
+                    }
+
                     break;
                 case STAT_STOP:
                     try {
-                        
+
                         if ( in != null )
-                            in.close();                        
+                            in.close();
                         if ( out != null )
                             out.close();
-                        
+
                         if ( s != null )
                             s.close();
-                                                
+
                         MLog.d("(UVChat) Stopped UVChat server.");
-                        isRunning = false;                        
+                        isRunning = false;
                     } catch (IOException ioex) {
                         MLog.e("(UVChat) Failed to disconnect: " + ioex.getMessage());
-                        ioex.printStackTrace();
-                    }                    
+                        ioex.printStackTrace( System.out );
+                    }
                     break;
                 default:
                     break;
             }
-            
+
         }
-        
+
         MLog.d("Exited Server loop");
-        
+
     }
-    
+
     public void raiseOnMessageEvent (String msg) {
         if ( listeners == null || listeners.isEmpty() )
             return;
@@ -209,16 +207,16 @@ public class UVServer extends Thread {
             l.onMessage(msg);
         }
     }
-    
+
     public void raiseOnLoginEvent (String username) {
-        MLog.d("(UVServer) Raised OnLogin");                
+        MLog.d("(UVServer) Raised OnLogin");
         if ( listeners == null || listeners.isEmpty() )
             return;
         for ( MCChatListener l : listeners ) {
             l.onLogin(username);
         }
     }
-    
+
     public void raiseOnLeaveEvent (String username) {
         if ( listeners == null || listeners.isEmpty() )
             return;
@@ -226,5 +224,5 @@ public class UVServer extends Thread {
             l.onLeave(username);
         }
     }
-    
+
 }

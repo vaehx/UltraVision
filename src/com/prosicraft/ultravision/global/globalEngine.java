@@ -21,18 +21,18 @@ import org.bukkit.entity.Player;
  *
  * @author passi
  */
-public class globalEngine implements UltraVisionAPI {                  
+public class globalEngine implements UltraVisionAPI {
 
     @Override
     public MResult finalizeFriend(Player p, Player p2) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-    
+
     @Override
     public MResult requestFriend(Player p, Player p2) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-            
+
 
     @Override
     public void playerJoin(Player p) {
@@ -51,7 +51,7 @@ public class globalEngine implements UltraVisionAPI {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    
+
     @Override
     public Map<String, String> getAll(Player p) {
         throw new UnsupportedOperationException("Not supported yet.");
@@ -235,7 +235,7 @@ public class globalEngine implements UltraVisionAPI {
     @Override
     public List<String> getLog(Player p, String pluginfilter, Time timediff) {
         throw new UnsupportedOperationException("Not supported yet.");
-    }        
+    }
 
     @Override
     public UVPlayerInfo getPlayerInfo(String pname) {
@@ -303,6 +303,6 @@ public class globalEngine implements UltraVisionAPI {
     public MResult backendKick(Player p, String reason) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-    
-    
+
+
 }

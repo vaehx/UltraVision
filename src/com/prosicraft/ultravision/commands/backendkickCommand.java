@@ -8,8 +8,6 @@ import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.ultravision;
 import com.prosicraft.ultravision.util.MLog;
 import com.prosicraft.ultravision.util.MResult;
-import java.util.List;
-import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -19,18 +17,18 @@ import org.bukkit.entity.Player;
  * @author passi
  */
 public class backendkickCommand extends extendedCommand {
-    
+
     public backendkickCommand ( ultravision uv, String[] args ) {
         super ( uv, args );
-    }        
+    }
 
     @Override
     public commandResult consoleRun(CommandSender s) {
         try {
-            
+
             // /kick <player>
-            if ( this.numArgs() >= 1 ) { 
-                
+            if ( this.numArgs() >= 1 ) {
+
                 UltraVisionAPI api = ((ultravision)this.getParent()).getAPI();
                 if ( !(api == null) ) {
                     Server srv = getParent().getServer();
@@ -49,31 +47,31 @@ public class backendkickCommand extends extendedCommand {
                         MLog.e("Sorry, we can't find that player '" + getArg(0) + "'");
                     }
                 } else MLog.e("UltraVisionAPI not initialized");
-                
+
                 return commandResult.RES_SUCCESS;
-                
+
             } else {
                 MLog.e("Too few arguments.");
-                return commandResult.RES_ERROR;                
+                return commandResult.RES_ERROR;
             }
-            
+
         } catch ( Exception ex ) {
-            MLog.e("[BKICKCMD] " + ex.getMessage());            
-            return commandResult.RES_ERROR;            
-        } 
+            MLog.e("[BKICKCMD] " + ex.getMessage());
+            return commandResult.RES_ERROR;
+        }
     }
 
 
     @Override
     public commandResult run(Player p) {
-        
+
         try {
-            
+
             // /kick <player>
-            if ( this.numArgs() >= 1 ) { 
-                
+            if ( this.numArgs() >= 1 ) {
+
                 ev(p);
-                
+
                 UltraVisionAPI api = ((ultravision)this.getParent()).getAPI();
                 if ( !(api == null) ) {
                     Server srv = getParent().getServer();
@@ -92,19 +90,19 @@ public class backendkickCommand extends extendedCommand {
                         return err(p, "Sorry, we can't find that player '" + getArg(0) + "'");
                     }
                 } else err(p, "UltraVisionAPI not initialized");
-                
+
                 return commandResult.RES_SUCCESS;
-                
+
             } else {
                 MLog.e("Too few arguments.");
-                return commandResult.RES_ERROR;                
+                return commandResult.RES_ERROR;
             }
-            
-        } catch ( Exception ex ) {
+
+        } catch ( wrongParentException | wrongPlayerException ex ) {
             MLog.e("[BKICKCMD] " + ex.getMessage());
             return err ( p, "Failed to execute command." );
-        } 
-        
-    }        
-    
+        }
+
+    }
+
 }
