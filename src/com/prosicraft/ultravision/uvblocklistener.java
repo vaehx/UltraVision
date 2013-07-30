@@ -63,6 +63,10 @@ public class uvblocklistener implements Listener
 	@EventHandler( priority = EventPriority.LOW )
 	public void onPlayerInteract( PlayerInteractEvent event )
 	{
+		if( event == null )
+			return;
+		if( event.getPlayer() == null )
+			event.setCancelled( true );
 
 		if( validateAuthorizer( event.getPlayer() ) )
 			event.setCancelled( true );
@@ -74,28 +78,38 @@ public class uvblocklistener implements Listener
 	@EventHandler( priority = EventPriority.LOW )
 	public void onPlayerDropItem( PlayerDropItemEvent event )
 	{
+		if( event == null )
+			return;
+		if( event.getPlayer() == null )
+			event.setCancelled( true );
 
 		if( validateAuthorizer( event.getPlayer() ) )
 			event.setCancelled( true );
 		else if( validateClickAuth( event.getPlayer(), null ) )
 			event.setCancelled( true );
-
 	}
 
 	@EventHandler( priority = EventPriority.LOW )
 	public void onPlayerPickupItem( PlayerPickupItemEvent event )
 	{
+		if( event == null )
+			return;
+		if( event.getPlayer() == null )
+			event.setCancelled( true );
 
 		if( validateAuthorizer( event.getPlayer() ) )
 			event.setCancelled( true );
 		else if( validateClickAuth( event.getPlayer(), null ) )
 			event.setCancelled( true );
-
 	}
 
 	@EventHandler( priority = EventPriority.LOW )
 	public void onBlockBreak( BlockBreakEvent event )
 	{
+		if( event == null )
+			return;
+		if( event.getPlayer() == null )
+			event.setCancelled( true );
 
 		if( validateAuthorizer( event.getPlayer() ) )
 		{
@@ -116,28 +130,33 @@ public class uvblocklistener implements Listener
 		}
 		else if( validateClickAuth( event.getPlayer(), null ) )
 			event.setCancelled( true );
-
 	}
 
 	@EventHandler( priority = EventPriority.LOW )
 	public void onBlockPlace( BlockPlaceEvent event )
 	{
+		if( event == null )
+			return;
+		if( event.getPlayer() == null )
+			event.setCancelled( true );
 
 		if( validateAuthorizer( event.getPlayer() ) )
 			event.setCancelled( true );
 		else if( validateClickAuth( event.getPlayer(), null ) )
 			event.setCancelled( true );
-
 	}
 
 	@EventHandler( priority = EventPriority.LOW )
 	public void onBlockDamage( BlockDamageEvent event )
 	{
+		if( event == null )
+			return;
+		if( event.getPlayer() == null )
+			event.setCancelled( true );
 
 		if( validateAuthorizer( event.getPlayer() ) )
 			event.setCancelled( true );
 		else if( validateClickAuth( event.getPlayer(), null ) )
 			event.setCancelled( true );
-
 	}
 }
