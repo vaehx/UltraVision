@@ -333,6 +333,9 @@ public class ultravision extends JavaPlugin
 
 		// Initialize Authorizer
 		( auth = new MAuthorizer( authFile.getAbsolutePath() ) ).a();
+
+		// Initialize Login Attempt counter
+
 	}
 
 	//**********************************************************************************************

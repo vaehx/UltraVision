@@ -49,15 +49,34 @@ public class uvblocklistener implements Listener
 
 	public boolean validateClickAuth( Player p, Action a )
 	{
-		if( ( uv.getClickAuth() != null && uv.getClickAuth().isRegistered( p.getName() )
-			&& !uv.getClickAuth().isLoggedIn( p.getName() ) && a != Action.RIGHT_CLICK_BLOCK )
-			|| ( !uv.allowNotRegActions && !uv.getClickAuth().isRegistered( p.getName() ) ) )
+		// Check if ClickAuth is used
+		if( uv.getClickAuth() == null )
+			return false;
+
+		// Check if player is registered at all
+		if( !uv.getClickAuth().isRegistered( p.getName() ) )
 		{
-			p.sendMessage( ChatColor.RED + "Please register on this server." );
-			return true;
+			// Check if players are allowed to do anything without being registered
+			if( uv.allowNotRegActions )
+				return false;
+			else
+			{
+				p.sendMessage( ChatColor.RED + "Please register on this server." );
+				return true;
+			}
 		}
 		else
-			return false;
+		{
+			// check if player is logged in already
+			if( uv.getClickAuth().isLoggedIn( p.getName() ) )
+				return false;
+
+			// Check if user is currently logging in
+			if( a == Action.RIGHT_CLICK_BLOCK )
+				return false;
+		}
+
+		return true;
 	}
 
 	@EventHandler( priority = EventPriority.LOW )
