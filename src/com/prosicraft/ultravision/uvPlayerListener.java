@@ -167,6 +167,12 @@ public class uvPlayerListener implements Listener
 	@EventHandler( priority = EventPriority.LOWEST )
 	public void onPlayerCommandPreprocess( PlayerCommandPreprocessEvent event )
 	{
+		if( parent.disableIngameOp && event.getMessage().contains( "/op" ) )
+		{
+			event.getPlayer().sendMessage( ChatColor.RED + "Oops. Ingame opping is disabled on this server!" );
+			event.setCancelled( true );
+		}
+
 		final boolean loggedIn = loggedIn( event.getPlayer() );
 		if( ( !event.getMessage().contains( "/login" ) ) && !loggedIn )
 		{

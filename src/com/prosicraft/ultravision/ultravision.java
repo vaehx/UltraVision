@@ -69,6 +69,7 @@ public class ultravision extends JavaPlugin
 	public boolean allowNotRegActions	= true;     // Allow Player Interaction when not registered
 	public boolean showWelcomeMessage	= true;     // Show powered by Message on login
 	public boolean showMessagesNotLoggedIn	= true;     // Show messages, if not logged in
+	public boolean disableIngameOp		= true;	    // Disable ingame op command
 	public UVBRIDGE[] bridges		= new UVBRIDGE[ 5 ];     // Bridge to UltraChat
 
 	//**********************************************************************************************
@@ -272,6 +273,7 @@ public class ultravision extends JavaPlugin
 		config.set( "general.showMessagesNotLoggedIn", ( showMessagesNotLoggedIn = config.getBoolean( "general.showMessagesNotLoggedIn", true ) ) );
 		config.set( "general.debug", ( MConst._DEBUG_ENABLED = config.getBoolean( "general.debug", false ) ) );
 		config.set( "general.allowNotRegActions", ( allowNotRegActions = config.getBoolean( "general.allowNotRegActions", true ) ) );
+		config.set( "general.disableIngameOp", ( disableIngameOp = config.getBoolean( "general.disableIngameOp", true ) ) );
 
 		// Initialize Bridges
 		if( useUltraChat )
@@ -713,6 +715,11 @@ public class ultravision extends JavaPlugin
 				if( args.length != 1 )
 				{
 					p.sendMessage( ChatColor.RED + "Please specify a password." );
+					return true;
+				}
+				if( args[0].equalsIgnoreCase( "password" ) || args[0].equalsIgnoreCase( "passwort" ) || args[0].equalsIgnoreCase( p.getName() ) )
+				{
+					p.sendMessage( ChatColor.RED + "This password is too simple!" );
 					return true;
 				}
 				MResult res;
