@@ -187,6 +187,7 @@ public class uvPlayerListener implements Listener
 				if( parent.doLoginCommand( event.getPlayer(), params[1] ) )
 				{
 					// Prevent Password to be written into console / serverlog
+					MLog.i( "Player " + event.getPlayer().getName() + " logged in successfully." );
 					event.setCancelled( true );
 				}
 			}
