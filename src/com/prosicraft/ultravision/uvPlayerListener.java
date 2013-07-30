@@ -173,6 +173,25 @@ public class uvPlayerListener implements Listener
 			event.getPlayer().sendMessage( ChatColor.RED + "You're not logged in." );
 			event.setCancelled( true );
 		}
+		else if( !loggedIn )
+		{
+			String message = event.getMessage();
+			String[] params = message.split( "\\s+" );
+			if( params.length == 1 )
+			{
+				event.getPlayer().sendMessage( ChatColor.RED + "You didn't specify any password!" );
+				event.setCancelled( true );
+			}
+			else
+			{
+				if( parent.doLoginCommand( event.getPlayer(), params[1] ) )
+				{
+					// Prevent Password to be written into console / serverlog
+					event.setCancelled( true );
+				}
+			}
+		}
+
 		if( uv != null && parent.useCommandLog() )
 		{
 			uv.log( event.getPlayer(), event.getMessage() );

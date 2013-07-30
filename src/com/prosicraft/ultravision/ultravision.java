@@ -561,6 +561,49 @@ public class ultravision extends JavaPlugin
 
 	//**********************************************************************************************
 	/**
+	 * Handle ultravision Login Command (called by PreCommandListener)
+	 *
+	 * @return true if password was correct or player is not registered or auth is not initialized
+	 */
+	public boolean doLoginCommand( Player player, String password )
+	{
+		if( auth == null )
+			return true;
+
+		if( player != null && password.length() > 0 )
+		{
+			if( !auth.isRegistered( player ) )
+			{
+				player.sendMessage( ChatColor.GOLD + "You're not registered in the login system." );
+				return true;
+			}
+			if( auth.loggedIn( player ) )
+			{
+				player.sendMessage( ChatColor.RED + "You're already logged in." );
+				return true;
+			}
+
+			if( password.contains( " " ) )
+			{
+				player.kickPlayer( MLog.real( ChatColor.DARK_GRAY + "[UltraVision] " + ChatColor.RED + "Wrong password!" ) );
+				return true;
+			}
+			if( auth.login( player, password ) == MResult.RES_NOACCESS )
+			{
+				player.kickPlayer( MLog.real( ChatColor.DARK_GRAY + "[UltraVision] " + ChatColor.RED + "Wrong password!" ) );
+				return true;
+			}
+			else
+			{
+				player.sendMessage( ChatColor.GREEN + "Logged in successfully." );
+				return true;
+			}
+		}
+		return false;
+	}
+
+	//**********************************************************************************************
+	/**
 	 * Handle ultravision Commands
 	 */
 	@Override
@@ -649,40 +692,6 @@ public class ultravision extends JavaPlugin
 						thetxt += args[n] + " ";
 					jmsg.assignIndividual( args[1], thetxt.trim() );
 					p.sendMessage( ChatColor.GREEN + "Assigned join message to '" + args[1] + "' successfully." );
-					return true;
-				}
-			}
-
-			if( cmd.getLabel().equalsIgnoreCase( "uvlogin" ) )
-			{
-				if( !auth.isRegistered( p ) )
-				{
-					p.sendMessage( ChatColor.GOLD + "You're not registered in the login system." );
-					return true;
-				}
-				if( auth.loggedIn( p ) )
-				{
-					p.sendMessage( ChatColor.RED + "You're already logged in." );
-					return true;
-				}
-				// kick on wrong, or not set password
-				if( args[0].equals( "DeLockPassword23" ) )
-				{
-				}
-
-				if( args.length != 1 )
-				{
-					p.kickPlayer( MLog.real( ChatColor.DARK_GRAY + "[UltraVision] " + ChatColor.RED + "Wrong password!" ) );
-					return true;
-				}
-				if( auth.login( p, args[0] ) == MResult.RES_NOACCESS )
-				{
-					p.kickPlayer( MLog.real( ChatColor.DARK_GRAY + "[UltraVision] " + ChatColor.RED + "Wrong password!" ) );
-					return true;
-				}
-				else
-				{
-					p.sendMessage( ChatColor.GREEN + "Logged in successfully." );
 					return true;
 				}
 			}
