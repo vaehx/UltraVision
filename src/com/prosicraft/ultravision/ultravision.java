@@ -25,10 +25,10 @@ import com.prosicraft.ultravision.local.localEngine;
 import com.prosicraft.ultravision.util.*;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
-import java.util.ResourceBundle;
+import java.util.Properties;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -252,8 +252,18 @@ public class ultravision extends JavaPlugin
 		fPDesc = this.getDescription();
 		try
 		{
-			Locale currentLocale = new Locale( "en", "US" );
-			MLog.i( "Ultravision is starting (Version " + fPDesc.getVersion() + " #b" + MCrypt.prependZeros( ResourceBundle.getBundle( "com.prosicraft.ultravision.version", currentLocale ).getString( "BUILD" ) ) + ") ..." );
+			Properties buildProperties = new Properties();
+			try
+			{
+				buildProperties.load( ultravision.class.getResourceAsStream( "/com/prosicraft/ultravision/version.properties" ) );
+				String buildVersion = buildProperties.getProperty( "BUILD" );
+
+				MLog.i( "Ultravision is starting (Version " + fPDesc.getVersion() + " #b" + MCrypt.prependZeros( buildVersion ) + ") ..." );
+			}
+			catch( IOException e )
+			{
+				MLog.e( "This build seems like a damaged one" );
+			}
 		}
 		catch( java.util.MissingResourceException ex )
 		{
