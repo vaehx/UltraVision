@@ -110,11 +110,14 @@ public class ultravision extends JavaPlugin
 			api = new localEngine( this.getDataFolder().getAbsolutePath() );
 			MLog.i( "Using Local Engine. Version: " + UltraVisionAPI.version );
 
-			final MResult tr;
-			if( ( tr = api.registerAuthorizer( auth ) ) == MResult.RES_SUCCESS )
-				MLog.i( "Authorizer hooked into Engine." );
-			else
-				MLog.e( "Authorizer can't hook into Engine: " + tr.toString() );
+			if( useAuthorizer )
+			{
+				final MResult tr;
+				if( ( tr = api.registerAuthorizer( auth ) ) == MResult.RES_SUCCESS )
+					MLog.i( "Authorizer hooked into Engine." );
+				else
+					MLog.e( "Authorizer can't hook into Engine: " + tr.toString() );
+			}
 		}
 		else
 		{
@@ -122,11 +125,14 @@ public class ultravision extends JavaPlugin
 			MLog.i( "Using global Engine. Version: " + UltraVisionAPI.version );
 			MLog.w( "Global Engine isn't supported yet." );
 
-			final MResult tr;
-			if( ( tr = api.registerAuthorizer( auth ) ) == MResult.RES_SUCCESS )
-				MLog.i( "Authorizer hooked into Engine." );
-			else
-				MLog.e( "Authorizer can't hook into Engine: " + tr.toString() );
+			if( useAuthorizer )
+			{
+				final MResult tr;
+				if( ( tr = api.registerAuthorizer( auth ) ) == MResult.RES_SUCCESS )
+					MLog.i( "Authorizer hooked into Engine." );
+				else
+					MLog.e( "Authorizer can't hook into Engine: " + tr.toString() );
+			}
 		}
 
 		// Check if everything went well. If so apply API to Jmessage and other templates
