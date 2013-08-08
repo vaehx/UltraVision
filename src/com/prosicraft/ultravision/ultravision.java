@@ -98,7 +98,6 @@ public class ultravision extends JavaPlugin
 		initClickAuthorizer();
 		initJMessage();
 
-
 		// Now start the Engine
 		MLog.d( "Starting engine..." );
 
@@ -111,9 +110,13 @@ public class ultravision extends JavaPlugin
 			{
 				final MResult tr;
 				if( ( tr = api.registerAuthorizer( auth ) ) == MResult.RES_SUCCESS )
+				{
 					MLog.i( "Authorizer hooked into Engine." );
+				}
 				else
+				{
 					MLog.e( "Authorizer can't hook into Engine: " + tr.toString() );
+				}
 			}
 		}
 		else
@@ -353,9 +356,6 @@ public class ultravision extends JavaPlugin
 
 		// Initialize Authorizer
 		( auth = new MAuthorizer( authFile.getAbsolutePath() ) ).a();
-
-		// Initialize Login Attempt counter
-
 	}
 
 	//**********************************************************************************************
