@@ -25,6 +25,7 @@ import com.prosicraft.ultravision.local.localEngine;
 import com.prosicraft.ultravision.util.*;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -254,7 +255,14 @@ public class ultravision extends JavaPlugin
 			Properties buildProperties = new Properties();
 			try
 			{
-				buildProperties.load( ultravision.class.getResourceAsStream( "/com/prosicraft/ultravision/version.properties" ) );
+				InputStream resourceStream = ultravision.class.getResourceAsStream( "/com/prosicraft/ultravision/version.properties" );
+				if( resourceStream == null )
+				{
+					MLog.i( "Cannot retrieve UltraVision Build number. This may occur when reloading UV in runtime." );
+					return;
+				}
+
+				buildProperties.load( resourceStream );
 				String buildVersion = buildProperties.getProperty( "BUILD" );
 
 				MLog.i( "Ultravision is starting (Version " + fPDesc.getVersion() + " #b" + MCrypt.prependZeros( buildVersion ) + ") ..." );
@@ -1023,7 +1031,7 @@ public class ultravision extends JavaPlugin
 
 	//**********************************************************************************************
 	//                      G E T    I N S T A N C E S
-	
+
 	/**
 	 * Gets the authorizer
 	 * @return null if authorizer isnt used, otherwise the instance
