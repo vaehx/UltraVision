@@ -1817,19 +1817,7 @@ public class localEngine implements UltraVisionAPI
 
 	public UVLocalPlayer valid( Player p )
 	{
-		UVLocalPlayer uP;
-		if( !isAuthInit() )
-		{
-			return null;
-		}
-
-		if( ( uP = this.getUVPlayer( p ) ) == null )
-		{
-			//this.players.add( new UVLocalPlayer (p, plugDir) );
-			//MLog.i("Registered new player '" + p.getName() + "'.");
-		}
-
-		return uP;
+		return this.getUVPlayer( p );
 	}
 
 	public UVLocalPlayer valid( CommandSender cs )

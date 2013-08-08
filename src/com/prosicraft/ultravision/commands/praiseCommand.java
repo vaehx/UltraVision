@@ -68,9 +68,13 @@ public class praiseCommand extends extendedCommand
 					{
 						mayPraise.get( 0 ).sendMessage( ChatColor.DARK_AQUA + "You got praised by " + ChatColor.AQUA + p.getName() );
 					}
+					else if( res == MResult.RES_NOTGIVEN )
+					{
+						return err( p, "This user seems not to be online. But he needs to be." );
+					}
 					else
 					{
-						p.sendMessage( ChatColor.RED + "Can't praise player: " + res.toString() );
+						return err( p, "Can't praise player: " + res.toString() );
 					}
 					return suc( p, "Praised player successfully." );
 				}

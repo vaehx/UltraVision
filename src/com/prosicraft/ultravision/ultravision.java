@@ -79,13 +79,10 @@ public class ultravision extends JavaPlugin
 	@Override
 	public void onEnable()
 	{
-
-		// Print the boot information
-		printStartupInfo();
-
-		// Try to load the configuration file
+		// Try to load the configuration file and print startup info
 		try
 		{
+			printStartupInfo();
 			initConfig();
 		}
 		catch( Exception ex )
