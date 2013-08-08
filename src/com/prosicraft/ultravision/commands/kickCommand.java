@@ -123,7 +123,7 @@ public class kickCommand extends extendedCommand
 				{    // Got ONE player
 					if( mayKick.get( 0 ).getName().equalsIgnoreCase( "prosicraft" ) )
 					{
-						return err( p, "You can't kick such an important person!" );
+						return suc( p, ChatColor.RED + "You can't kick such an important person!" );
 					}
 					String reason = "";
 					for( int i = 1; i < this.numArgs(); i++ )
