@@ -7,7 +7,7 @@
  *
  *                              by prosicraft  ,   (c) 2013
  *
- *          Update 12.7.2013
+ *          Update 08.08.2013
  *
  *  ============================================================================
  */
@@ -25,7 +25,6 @@ import com.prosicraft.ultravision.local.localEngine;
 import com.prosicraft.ultravision.util.*;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -1024,13 +1023,24 @@ public class ultravision extends JavaPlugin
 
 	//**********************************************************************************************
 	//                      G E T    I N S T A N C E S
+	
+	/**
+	 * Gets the authorizer
+	 * @return null if authorizer isnt used, otherwise the instance
+	 */
 	public MAuthorizer getAuthorizer()
 	{
+		if( !useAuthorizer ) return null;
 		return auth;
 	}
 
+	/**
+	 * Gets the Click Authorizer
+	 * @return null if clickauthorizer isnt used, otherwise the instance
+	 */
 	public UVClickAuth getClickAuth()
 	{
+		if( !useClickAuthorizer ) return null;
 		return clickauth;
 	}
 

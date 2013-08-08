@@ -32,21 +32,42 @@ public class uvblocklistener implements Listener
 		uv = handle;
 	}
 
+	/**
+	 * Checks if player is permitted to do something
+	 * @param p the player
+	 * @return true if event has to be cancelled
+	 */
 	public boolean validateAuthorizer( Player p )
 	{
-		if( ( uv.getAuthorizer() != null && uv.getAuthorizer().isRegistered( p ) && !uv.getAuthorizer().loggedIn( p ) )
-			|| ( !uv.allowNotRegActions && !uv.getAuthorizer().isRegistered( p ) ) )
+		if( uv.getAuthorizer() == null )
+			return false;
+		
+		if( !uv.getAuthorizer().isRegistered( p.getName() ) )
 		{
-			if( !uv.getAuthorizer().isRegistered( p ) )
-				p.sendMessage( ChatColor.RED + "Please register on this server. Use " + ChatColor.GOLD + "/register " + ChatColor.YELLOW + "YOURPASSWORD" );
+			if( uv.allowNotRegActions )
+				return false;
 			else
-				p.sendMessage( ChatColor.RED + "Your are not logged in." );
-			return true;
+			{
+				p.sendMessage( ChatColor.RED + "Please register on this server." );
+				return true;
+			}
 		}
 		else
-			return false;
+		{
+			if( uv.getAuthorizer().loggedIn( p ) )
+				return false;			
+		}
+		
+		// by default cancel event
+		return true;
 	}
 
+	/**
+	 * Check if player is permitted to do something
+	 * @param p the player
+	 * @param a the action (if given)
+	 * @return true if event has to be cancelled
+	 */
 	public boolean validateClickAuth( Player p, Action a )
 	{
 		// Check if ClickAuth is used
