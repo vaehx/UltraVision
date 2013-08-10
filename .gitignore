@@ -1,0 +1,9 @@
+# netbeans #
+build/
+nbproject/private/
+nbproject/genfiles.properties
+nbproject/build-impl.xml
+config.yml
+manifest.mf
+Vault.jar
+dist/
