@@ -1087,6 +1087,10 @@ public class ultravision extends JavaPlugin
 			p.sendMessage( message );
 			cnt++;
 		}
+
+		// Send message to console as well
+		MLog.i( message );
+
 		return cnt + 1;
 	}
 
