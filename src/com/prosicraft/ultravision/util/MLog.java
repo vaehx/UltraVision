@@ -14,14 +14,14 @@ public class MLog
 	public static final String ANSI_PURPLE = "\u001B[35m";
 	public static final String ANSI_CYAN = "\u001B[36m";
 	public static final String ANSI_WHITE = "\u001B[37m";	
-	public static final String ANSI_LIGHTBLACK = "\u001B[90m";
-	public static final String ANSI_LIGHTRED = "\u001B[91m";
-	public static final String ANSI_LIGHTGREEN = "\u001B[92m";
-	public static final String ANSI_LIGHTYELLOW = "\u001B[93m";
-	public static final String ANSI_LIGHTBLUE = "\u001B[94m";
-	public static final String ANSI_LIGHTPURPLE = "\u001B[95m";
-	public static final String ANSI_LIGHTCYAN = "\u001B[96m";
-	public static final String ANSI_LIGHTWHITE = "\u001B[97m";
+	public static final String ANSI_LIGHTBLACK = "\u001B[1;30m";
+	public static final String ANSI_LIGHTRED = "\u001B[1;31m";
+	public static final String ANSI_LIGHTGREEN = "\u001B[1;32m";
+	public static final String ANSI_LIGHTYELLOW = "\u001B[1;33m";
+	public static final String ANSI_LIGHTBLUE = "\u001B[1;34m";
+	public static final String ANSI_LIGHTPURPLE = "\u001B[1;35m";
+	public static final String ANSI_LIGHTCYAN = "\u001B[1;36m";
+	public static final String ANSI_LIGHTWHITE = "\u001B[1;37m";
 	
 	public static void i( String txt, ChatColor col )
 	{				
@@ -143,6 +143,12 @@ public class MLog
 	{
 		if( src == null )
 			return null;
-		return src.replaceAll( "&([0-9a-f])", "\u00A7$1" );
+		String target = src.replaceAll( "&([0-9a-f])", "\u00A7$1" );
+		target = target.replaceAll( "&m", ChatColor.MAGIC + "" );
+		target = target.replaceAll( "&l", ChatColor.BOLD + "" );
+		target = target.replaceAll( "&u", ChatColor.UNDERLINE + "" );
+		target = target.replaceAll( "&i", ChatColor.ITALIC + "" );
+		target = target.replaceAll( "&s", ChatColor.STRIKETHROUGH + "" );
+		return target;
 	}
 }

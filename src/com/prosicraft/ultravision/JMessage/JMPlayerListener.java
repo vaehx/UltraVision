@@ -141,7 +141,7 @@ public class JMPlayerListener implements Listener
 		}
 		catch( Exception ex )
 		{
-			MLog.w( "No Economy plugin found, or Vault isn't enabled!" );
+			MLog.d( "No Economy plugin found, or Vault isn't enabled!" );
 		}
 
 		return res;

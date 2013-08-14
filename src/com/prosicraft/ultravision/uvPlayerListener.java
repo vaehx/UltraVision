@@ -36,11 +36,13 @@ public class uvPlayerListener implements Listener
 		boolean res = true;
 		if( auth != null )
 			res = auth.loggedIn( p );
+
 		if( parent.getClickAuth() != null )
 		{
 			if( res && !parent.getClickAuth().isLoggedIn( p.getName() ) )
 				res = false;
 		}
+
 		return res;
 	}
 
@@ -51,13 +53,13 @@ public class uvPlayerListener implements Listener
 			res = auth.isRegistered( p );
 		else
 			MLog.d( "auth is null" );
+
 		if( parent.getClickAuth() != null )
 		{
 			if( !res && parent.getClickAuth().isRegistered( p.getName() ) )
 				res = true;
 		}
-		else
-			MLog.d( "clickauth is null" );
+
 		return res;
 	}
 
@@ -66,15 +68,7 @@ public class uvPlayerListener implements Listener
 	{
 		if( e.getPlayer() instanceof Player )
 		{
-			// Check Mac Address With CrashHack
-                        /*if (parent.getCrashHack() != null)
-			 {
-			 String msg = parent.getCrashHack().join(e.getPlayer());
-			 if (!msg.equalsIgnoreCase("valid"))
-			 {
-			 e.setKickMessage(MLog.real(ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.RED + msg));
-			 }
-			 }*/
+			uv.onPlayerJoin( e.getPlayer() );
 
 			// Check if player is already online
 			for( Player p : parent.getServer().getOnlinePlayers() )
@@ -121,10 +115,14 @@ public class uvPlayerListener implements Listener
 	{
 		if( e.getPlayer() instanceof Player )
 		{
+			parent.getAPI().addPlayerLogLine( e.getPlayer().getName(), "** Joined successfully (ip " + e.getPlayer().getAddress().toString() + ")" );
+			if( parent.getAPI().isPlayerWarned( e.getPlayer().getName() ) )
+			{
+				parent.getAPI().addPlayerLogLine( e.getPlayer().getName(), "* player is warned." );
+			}
+
 			if( parent.showWelcomeMessage )
 				e.getPlayer().sendMessage( ChatColor.DARK_GRAY + " ==== " + ChatColor.GRAY + "This Server is" + ChatColor.DARK_AQUA + " powered by " + ChatColor.AQUA + "UltraVision" + ChatColor.DARK_GRAY + " ====" );
-
-			uv.onPlayerJoin( e.getPlayer() );
 
 			if( !registered( e.getPlayer() ) )
 			{

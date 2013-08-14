@@ -573,6 +573,7 @@ public class ultravision extends JavaPlugin
 		{
 			for( int i = 0; i < oPlayer.length; i++ )
 			{
+				api.onPlayerJoin( oPlayer[i] );
 				playerJoin( oPlayer[i] );
 			}
 		}

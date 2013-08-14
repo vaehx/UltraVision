@@ -86,17 +86,19 @@ public class UVLocalEngine implements UltraVisionAPI
 		}
 
 		MLog.d( "Player not there. Try to load from file." );
-		if( null == readPlayer( playerName, false ) )
+		if( null == readPlayer( playerName, true ) )
 			return null;
 
 		for( UVLocalPlayer player : players )
 		{
 			if( player.getCraftPlayer().getName().equalsIgnoreCase( playerName ) )
 			{
+				MLog.d( "Got player successfully." );
 				return player;
 			}
 		}
 
+		MLog.d( "Cannot find player though..." );
 		return null;
 	}
 
@@ -424,6 +426,8 @@ public class UVLocalEngine implements UltraVisionAPI
 		// Check if the file exists but it is empty (means we recently created a new one)
 		if( ud.length() == 0 )
 		{
+			MLog.d( "File is empty." );
+
 			// then add Default player information chunks
 			resultInformation = new UVPlayerInfo();
 
@@ -447,11 +451,12 @@ public class UVLocalEngine implements UltraVisionAPI
 				Player bukkitPlayer;
 				if( null == ( bukkitPlayer = ultravisionPlugin.getServer().getPlayer( playerName ) ) )
 				{
-					bukkitPlayer = (Player)ultravisionPlugin.getServer().getOfflinePlayer( playerName );
+					bukkitPlayer = ultravisionPlugin.getServer().getOfflinePlayer( playerName ).getPlayer();
 				}
 
 				if( null == bukkitPlayer )
 				{
+					MLog.d( "Cannot create a new file for player '" + playerName + "' as he was never on the server." );
 					return null;
 				}
 
@@ -486,7 +491,6 @@ public class UVLocalEngine implements UltraVisionAPI
 
 		try
 		{
-
 			UVFileInformation fi = new UVFileInformation( UVFileInformation.uVersion );
 
 			resultInformation = new UVPlayerInfo();
@@ -517,10 +521,7 @@ public class UVLocalEngine implements UltraVisionAPI
 					//MLog.d("File version is '" + fi.getVersion() + "' at " + MConfiguration.normalizePath(ud));
 				}
 
-
-				String nm = "";
-
-				if( !( nm = readString( fid, 16 ).trim() ).equalsIgnoreCase( playerName ) )
+				if( !( readString( fid, 16 ).trim() ).equalsIgnoreCase( playerName ) )
 				{
 					return null;
 				}
@@ -529,7 +530,6 @@ public class UVLocalEngine implements UltraVisionAPI
 
 				int isMute = fid.read();
 				resultInformation.isMute = ( ( isMute == 0 ) ? false : true );
-				byte[] buf = new byte[ 4 ];
 
 				try
 				{
@@ -561,8 +561,6 @@ public class UVLocalEngine implements UltraVisionAPI
 					{
 						break;
 					}
-
-					//MLog.d("Read ch (" + ch + ")");
 
 					if( ch.equalsIgnoreCase( "oprais" ) )
 					{
@@ -651,12 +649,41 @@ public class UVLocalEngine implements UltraVisionAPI
 
 			}
 
+			// Add player recently read if not there already
+			boolean playerFound = false;
+			for( UVLocalPlayer player : players  )
+			{
+				if( player.getCraftPlayer().getName().equalsIgnoreCase( playerName ) )
+				{
+					playerFound = true;
+					break;
+				}
+			}
+
+			if( !playerFound )
+			{
+				Player bukkitPlayer = null;
+				if( null == ( bukkitPlayer = ultravisionPlugin.getServer().getPlayer( playerName ) ) )
+				{
+					bukkitPlayer = ultravisionPlugin.getServer().getOfflinePlayer( playerName ).getPlayer();
+				}
+
+				if( bukkitPlayer == null )
+					MLog.d( "Cannot add player to memory as he never has been on the server." );
+				else
+				{
+					UVLocalPlayer newPlayer = new UVLocalPlayer( bukkitPlayer, pluginDirectory, resultInformation );
+					players.add( newPlayer );
+					MLog.i( "Added new player named '" + playerName + "' to memory." );
+				}
+			}
+
 			fid.close();
 
 		}
 		catch( IOException ioex )
 		{
-			MLog.e( "Can't user data file: " + ioex.getMessage() );
+			MLog.e( "Can't read user data file: " + ioex.getMessage() );
 			ioex.printStackTrace( System.out );
 			return null;
 		}
@@ -673,19 +700,16 @@ public class UVLocalEngine implements UltraVisionAPI
 		// check if found - if not create a new one
 		if( localPlayer == null )
 		{
-			localPlayer = new UVLocalPlayer( p, pluginDirectory, new UVPlayerInfo() );
+			UVPlayerInfo localPlayerInfo = readPlayer( p.getName(), true );
+			localPlayer = new UVLocalPlayer( p, pluginDirectory, localPlayerInfo );
+			players.add( localPlayer );
 			savePlayer( localPlayer.getCraftPlayer().getName() );
+			MLog.d( "Added Player '" + p.getName() + "' to memory due to join!" );
 		}
 
 		if( localPlayer.i.lastOnline == null )
 		{
 			localPlayer.i.lastOnline = localPlayer.i.lastLogin;
-		}
-
-		localPlayer.log( "** Joined successfully (ip " + p.getAddress().toString() + ", uid:" + p.getUniqueId() + ")" );
-		if( isPlayerWarned( p.getName() ) )
-		{
-			localPlayer.log( "* player is warned." );
 		}
 	}
 
@@ -793,7 +817,7 @@ public class UVLocalEngine implements UltraVisionAPI
 	public boolean isPlayerBanned( String playerName )
 	{
 		UVPlayerInfo ui = getPlayerInfo( playerName );
-		if( ui.ban != null )
+		if( ui != null && ui.ban != null )
 		{
 			MLog.d( "isBanned::getTimeRemain() = '" + ui.ban.getTimeRemain() + "'" );
 			if( ui.ban.getTimeRemain() == null )
