@@ -58,13 +58,10 @@ public class delfriendCommand extends extendedCommand
 					MResult res;
 					UltraVisionAPI api = ( ( ultravision ) this.getParent() ).getAPI();
 
-					if( !api.getFriends( p ).contains( mayFriend.get( 0 ).getName() ) )
+					if( !api.getPlayerFriends( p.getName() ).contains( mayFriend.get( 0 ).getName() ) )
 						return suc( p, "You are not in friendship with " + mayFriend.get( 0 ).getName() );
 
-					if( ( res = api.delFriend( p, mayFriend.get( 0 ) ) ) == MResult.RES_SUCCESS )
-					{
-					}
-					else
+					if( ( res = api.delPlayerFriend( p.getName(), mayFriend.get( 0 ).getName() ) ) != MResult.RES_SUCCESS )
 					{
 						p.sendMessage( ChatColor.RED + "Can't remove player as friend: " + res.toString() );
 					}

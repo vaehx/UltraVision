@@ -8,6 +8,7 @@ import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.ultravision;
 import com.prosicraft.ultravision.util.MLog;
 import com.prosicraft.ultravision.util.MResult;
+import java.util.Arrays;
 import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -63,7 +64,7 @@ public class kickCommand extends extendedCommand
 					reason = reason.trim();
 					MResult res;
 					UltraVisionAPI api = ( ( ultravision ) this.getParent() ).getAPI();
-					if( ( res = api.doKick( s, mayKick.get( 0 ), ( ( getArgs().length >= 2 ) ? reason : "No reason provided." ) ) ) == MResult.RES_SUCCESS )
+					if( ( res = api.kickPlayer( s, mayKick.get( 0 ).getName(), ( ( getArgs().length >= 2 ) ? reason : "No reason provided." ) ) ) == MResult.RES_SUCCESS )
 					{
 						( (ultravision) getParent() ).ownBroadcast( ChatColor.AQUA + mayKick.get( 0 ).getName() + ChatColor.DARK_GRAY + " kicked by " + ChatColor.AQUA + s.getName() + ChatColor.DARK_GRAY + "." );
 						( (ultravision) getParent() ).ownBroadcast( ChatColor.DARK_GRAY + "Reason: " + ChatColor.GOLD + ( ( numArgs() >= 2 ) ? reason : "No reason." ) );
@@ -132,7 +133,7 @@ public class kickCommand extends extendedCommand
 					reason = reason.trim();
 					MResult res;
 					UltraVisionAPI api = ( ( ultravision ) this.getParent() ).getAPI();
-					if( ( res = api.doKick( p, mayKick.get( 0 ), ( ( getArgs().length >= 2 ) ? reason : "No reason provided." ) ) ) == MResult.RES_SUCCESS )
+					if( ( res = api.kickPlayer( p, mayKick.get( 0 ).getName(), ( ( getArgs().length >= 2 ) ? reason : "No reason provided." ) ) ) == MResult.RES_SUCCESS )
 					{
 						( (ultravision) getParent() ).ownBroadcast( ChatColor.AQUA + mayKick.get( 0 ).getName() + ChatColor.DARK_GRAY + " kicked by " + ChatColor.AQUA + p.getName() + ChatColor.DARK_GRAY + "." );
 						( (ultravision) getParent() ).ownBroadcast( ChatColor.DARK_GRAY + "Reason: " + ChatColor.GOLD + ( ( numArgs() >= 2 ) ? reason : "No reason." ) );

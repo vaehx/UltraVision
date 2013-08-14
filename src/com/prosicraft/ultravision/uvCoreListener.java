@@ -1,6 +1,6 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * UltraVision Core Listener
+ * Handles Plugins of UltraBox to be hooked via UVBridge
  */
 package com.prosicraft.ultravision;
 
@@ -17,23 +17,32 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class uvCoreListener implements Listener
 {
 
-	private ultravision core = null;
+	private ultravision plugin = null;
 
 	public uvCoreListener( ultravision uv )
 	{
-		core = uv;
+		plugin = uv;
 	}
 
+	/**
+	 * Handles Plugin enabled event and hooks Bridges
+	 *
+	 * @param e
+	 */
 	@EventHandler( priority = EventPriority.NORMAL )
 	public void onPluginEnable( PluginEnableEvent e )
 	{
-		if( core.bridges.length > 0 )
+		if( plugin.bridges.length <= 0 )
 		{
-			for( int n = 0; n < core.bridges.length; n++ )
+			return;
+		}
+
+		for( int n = 0; n < plugin.bridges.length; n++ )
+		{
+			if( plugin.bridges[n] != null )
 			{
-				if( core.bridges[n] != null )
-					if( !core.bridges[n].isConnected() )
-						core.bridges[n].open( ( JavaPlugin ) e.getPlugin() );
+				if( !plugin.bridges[n].isConnected() )
+					plugin.bridges[n].open( ( JavaPlugin ) e.getPlugin() );
 			}
 		}
 	}

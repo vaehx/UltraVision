@@ -1,11 +1,11 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Base interface for UltraVision Engine
  */
 package com.prosicraft.ultravision.base;
 
 import com.prosicraft.ultravision.util.MAuthorizer;
 import com.prosicraft.ultravision.util.MResult;
+import java.io.IOException;
 import java.sql.Time;
 import java.util.List;
 import java.util.Map;
@@ -18,147 +18,466 @@ import org.bukkit.entity.Player;
  */
 public interface UltraVisionAPI
 {
+	/**
+	 * UltraVision API Version
+	 */
+	public String version = "v0.3";
 
-	// ==============================================================
-	// =                    M A I N                                 =
-	// ==============================================================
-	public String version = "v0.2";
+	/**
+	 * Directory for saving player data
+	 */
 	public String userDataDir = "//userdata//";
+
+	/**
+	 * Command-logfile for players
+	 */
 	public String userLogDir = "//userlog//";
+
+	/****************************************************************************************/
+
+	/**
+	 * Save all users and clear lists
+	 */
+	public boolean shutdown();
 
 	/**
 	 * Collect all informations about a Player
-	 *
-	 * @param p The Player
+	 * @param player The Player
 	 * @return Map of informations
 	 */
-	public Map<String, String> getAll( Player p );
+	public Map<String, String> getAllPlayerInformation( String playerName );
 
-	public MResult flush();
+	/**
+	 * Get the UVPlayer Instance of a player
+	 * @param playerName
+	 * @return
+	 */
+	public Player getPlayer( String playerName );
 
-	public Player getPlayer( String pname );
+	/**
+	 * Get Information about a player
+	 * @param playerName
+	 * @return
+	 */
+	public UVPlayerInfo getPlayerInfo( String playerName );
 
-	public UVPlayerInfo getPlayerInfo( String pname );
+	/****************************************************************************************/
 
-	// ==============================================================
-	// =                   AUTHENTICATION IMPLEMENT                 =
-	// ==============================================================
-	public void playerLogin( Player p );
+	/**
+	 * Save player files
+	 * @param playerName
+	 */
+	public MResult savePlayer( String playerName );
 
-	public void playerJoin( Player p );
+	/**
+	 * Read player data from files
+	 * @param playerName
+	 */
+	public UVPlayerInfo readPlayer( String playerName, boolean forceNewFile );
 
-	public void playerLeave( Player p );
+	/****************************************************************************************/
 
-	public MResult registerAuthorizer( MAuthorizer authorizer );
+	/**
+	 * When player joins the server
+	 * @param p
+	 */
+	public void onPlayerJoin( Player p );
 
+	/**
+	 * When player gave correct password
+	 * @param p
+	 */
+	public void onPlayerLogin( Player p );
+
+	/**
+	 * When player leaves the game
+	 * @param p
+	 */
+	public void onPlayerLeave( Player p );
+
+	/****************************************************************************************/
+
+	/**
+	 * Register an authorizer instance
+	 * @param authorizer
+	 * @return
+	 */
+	public MResult setAuthorizer( MAuthorizer authorizer );
+
+	/**
+	 * Get the authorizer Instance
+	 * @return
+	 */
 	public MAuthorizer getAuthorizer();
 
-	public boolean isAuthInit();
+	/**
+	 * Check if Authorizer is inited and used
+	 * @return
+	 */
+	public boolean isAuthorizerEnabled();
 
-	// ==============================================================
-	// =                  KICK / BAN / PRAISE                       =
-	// ==============================================================
-	// ====== BAN =======
-	public MResult doBan( CommandSender cs, Player p, String reason );
+	/****************************************************************************************/
 
-	public MResult doBan( CommandSender cs, Player p, String reason, boolean global );
+	/**
+	 * Do a local Ban (forever-temp-ban)
+	 *
+	 * @param commandSender The One who perfomed this command
+	 * @param playerName the players name
+	 * @param reason
+	 * @return
+	 */
+	public MResult banPlayerLocally( CommandSender commandSender, String playerName, String reason );
 
-	public MResult doTempBan( CommandSender cs, Player p, String reason, Time time, boolean global );
+	/**
+	 * Do a global Ban (forever-temp-ban)
+	 *
+	 * @param commandSender the One who perfomed the command
+	 * @param playerName the players name
+	 * @param reason
+	 * @param global
+	 * @return
+	 */
+	public MResult banPlayer( CommandSender commandSender, String playerName, String reason, boolean global );
 
-	public MResult doTempBan( CommandSender cs, String pname, String reason, Time time, boolean global );
+	/**
+	 * Ban a player for a specified time by given Player name
+	 * If time is not set, the Ban will be infinite
+	 *
+	 * @param commandSender the one who perfomed this command
+	 * @param playerName the name of the player
+	 * @param reason
+	 * @param time
+	 * @param global
+	 * @return
+	 */
+	public MResult banPlayerTemporarily( CommandSender commandSender, String playerName, String reason, Time time, boolean global );
 
-	public MResult pardon( CommandSender cs, String pname, String note );
+	/**
+	 * Pardon a banned player
+	 *
+	 * @param commandSender the one who perfomed the command
+	 * @param pname
+	 * @param note
+	 * @return
+	 */
+	public MResult pardonPlayer( CommandSender commandSender, String playerName, String note );
 
-	public boolean isBanned( String pname );
+	/**
+	 * Check if Player is banned or not
+	 *
+	 * @param playerName
+	 * @return
+	 */
+	public boolean isPlayerBanned( String playerName );
 
-	public List<UVBan> getBans( Player p );
+	/**
+	 * Get a list of bans where specified player was was banned
+	 * In local system this will always return only one result.
+	 *
+	 * @param p
+	 * @return
+	 */
+	public List<UVBan> getPlayerBans( String playerName );
 
-	public UVBan getBan( Player p, String servername );
+	/**
+	 * Get the current ban on given server
+	 * In local system servername is not used.
+	 *
+	 * @param p
+	 * @param servername
+	 * @return
+	 */
+	public UVBan getPlayerBan( String playerName, String servername );
 
-	public List<UVBan> getBanHistory( Player p );
+	/**
+	 * Get older Bans (tempbans)
+	 *
+	 * @param p
+	 * @return
+	 */
+	public List<UVBan> getPlayerBanHistory( String playerName );
 
-	// ====== KICK ======
-	public MResult doKick( CommandSender cs, Player p, String reason );
+	/****************************************************************************************/
 
-	public MResult backendKick( Player p, String reason );
+	/**
+	 * Kick a player
+	 *
+	 * @param commandSender the one who perfomed the command
+	 * @param p
+	 * @param reason
+	 * @return
+	 */
+	public MResult kickPlayer( CommandSender commandSender, String playerName, String reason );
 
-	public List<UVKick> getKickHistory( Player p );
+	/**
+	 * Do a Hard-Kick.
+	 * This forces any player instance to leave the server altough the connection is lost.
+	 *
+	 * @param p
+	 * @param reason
+	 * @return
+	 */
+	public MResult kickPlayerHard( String playerName, String reason );
 
-	// ====== WARN ======
-	public MResult setWarn( CommandSender cs, Player p, String reason );
+	/**
+	 * Get kick History of a player
+	 * @param p
+	 * @return
+	 */
+	public List<UVKick> getPlayerKickHistory( String playerName );
 
-	public MResult setWarn( CommandSender cs, Player p, String reason, Time tdiff );
+	/****************************************************************************************/
 
-	public MResult setTempWarn( CommandSender cs, Player p, String reason, Time timediff );
+	/**
+	 * Warn a player forever
+	 * @param cs
+	 * @param p
+	 * @param reason
+	 * @return
+	 */
+	public MResult warnPlayer( CommandSender commandSender, String playerName, String reason );
 
-	public MResult unsetWarn( CommandSender cs, Player p );
+	/**
+	 * Warn a player for given time
+	 * @param cs
+	 * @param playerName
+	 * @param reason
+	 * @param timediff
+	 * @return
+	 */
+	public MResult warnPlayerTemporarily( CommandSender commandSender, String playerName, String reason, Time time );
 
-	public boolean isWarned( Player p );
+	/**
+	 * Unwarn a player
+	 * @param cs
+	 * @param p
+	 * @return
+	 */
+	public MResult unwarnPlayer( CommandSender commandSender, String playerName );
 
-	public String getWarnReason( Player p );
+	/**
+	 * Check if a player is warned
+	 * @param playerName
+	 * @return
+	 */
+	public boolean isPlayerWarned( String playerName );
 
-	public UVWarning getWarning( Player p );
+	/**
+	 * Get the reason for a warning
+	 * @param playerName
+	 * @return
+	 */
+	public String getPlayerWarnReason( String playerName );
 
-	public List<UVWarning> getWarnHistory( Player p );
+	/**
+	 * Get the instance of a warning
+	 * @param playerName
+	 * @return
+	 */
+	public UVWarning getPlayerWarning( String playerName );
 
-	// ======= PRAISE ======
-	public MResult praise( CommandSender cs, Player p );  // one command sender can praise only once
+	/**
+	 * Get older warnings
+	 * @param p
+	 * @return
+	 */
+	public List<UVWarning> getPlayerWarnHistory( String playerName );
 
-	public MResult unPraise( CommandSender cs, Player p );
+	/****************************************************************************************/
 
-	public boolean praised( Player s, Player p ); //
+	/**
+	 * Praise a player
+	 * @param cs
+	 * @param p
+	 * @return
+	 */
+	public MResult praisePlayer( CommandSender commandSender, String playerName );  // one command sender can praise only once
 
-	public int getPraiseCount( Player p );
+	/**
+	 * Unpraise a player
+	 * @param commandSender
+	 * @param playerName
+	 * @return
+	 */
+	public MResult unpraisePlayer( CommandSender commandSender, String playerName );
 
-	// ====== MISC ======
-	public MResult addNote( CommandSender cs, Player p, String note );
+	/**
+	 * check if a player is praised by another player
+	 * @param s
+	 * @param p
+	 * @return
+	 */
+	public boolean isPlayerPraisedBy( String playerName, String otherPlayerName );
 
-	public MResult delNote( CommandSender cs, Player p, int id );
+	/**
+	 * The the total count of praises for a player
+	 * @param p
+	 * @return
+	 */
+	public int getPlayerPraiseCount( String playerName );
 
-	public Map<String, String> getNotes( Player p );
+	/****************************************************************************************/
 
-	public MResult setMute( CommandSender cs, Player p );
+	/**
+	 * Add a note to a player
+	 * @param cs
+	 * @param p
+	 * @param note
+	 * @return
+	 */
+	public MResult addPlayerNote( CommandSender commandSender, String playerName, String note );
 
-	public boolean isMute( Player p );
+	/**
+	 * removes a note from a player with given id
+	 * @param commandSender
+	 * @param playerName
+	 * @param id
+	 * @return
+	 */
+	public MResult delPlayerNote( CommandSender commandSender, String playerName, int id );
 
-	// ==============================================================
-	// =                        TIMEDIFF                            =
-	// ==============================================================
-	public MResult setTime( Time time, Player p );
+	/**
+	 * get all players notes
+	 * @param p
+	 * @return
+	 */
+	public Map<String, String> getPlayerNotes( String playerName );
 
-	public MResult addTime( Time time, Player p );
+	/**
+	 * Mute a player
+	 * @param cs
+	 * @param p
+	 * @return
+	 */
+	public MResult mutePlayer( CommandSender commandSender, String playerName );
 
-	public MResult subTime( Time time, Player p );
+	/**
+	 * Check if a player has been muted
+	 * @param p
+	 * @return
+	 */
+	public boolean isPlayerMuted( String playerName );
 
-	public Time getOnlineTime( Player p );
+	/****************************************************************************************/
 
-	// ==============================================================
-	// =                    COMMAND LOGGER                          =
-	// ==============================================================
-	public MResult log( Player p, String message );
+	/**
+	 * Set the online time of a player
+	 * @param time
+	 * @param p
+	 * @return
+	 */
+	public MResult setPlayerOnlineTime( Time time, String playerName );
 
-	public MResult clearLog( Player p );
+	/**
+	 * Add amount to time of player is online
+	 * @param time
+	 * @param playerName
+	 * @return
+	 */
+	public MResult addPlayerOnlineTime( Time time, String playerName );
 
-	public List<String> getLog( Player p, Time timefrom, Time timeto );
+	/**
+	 * Subtract from time of player is online
+	 * @param time
+	 * @param p
+	 * @return
+	 */
+	public MResult subPlayerOnlineTime( Time time, String playerName );
 
-	public List<String> getLog( Player p, String pluginfilter );
+	/**
+	 * get the online time, a player is online
+	 * @param p
+	 * @return
+	 */
+	public Time getPlayerOnlineTime( String playerName );
 
-	public List<String> getLog( Player p, String pluginfilter, Time timediff );
+	/****************************************************************************************/
 
-	// ==============================================================
-	// =                  USER PROFILES                             =
-	// ==============================================================
-	public MResult requestFriend( Player p, Player p2 );
+	/**
+	 * Write something to a player log
+	 * @param p
+	 * @param message
+	 * @return
+	 */
+	public MResult addPlayerLogLine( String playerName, String message );
 
-	public MResult finalizeFriend( Player p, Player p2 );
+	/**
+	 * Clear the log of a player
+	 * @param p
+	 * @return
+	 */
+	public MResult clearPlayerLog( String playerName );
 
-	public MResult cancelFriend( Player p, Player p2 );
+	/**
+	 * get the log entries from a player in given time range
+	 * @param p
+	 * @param timefrom
+	 * @param timeto
+	 * @return
+	 */
+	public List<String> getPlayerLog( String playerName, Time timeFrom, Time timeTo );
 
-	public MResult delFriend( Player p, Player p2 );
+	/**
+	 * Get the log entries of a player filtered by plugin
+	 * @param p
+	 * @param pluginfilter
+	 * @return
+	 */
+	public List<String> getPlayerLog( String playerName, String pluginFilter );
 
-	public List<String> getFriends( Player p );
+	/****************************************************************************************/
 
-	public MResult setProperty( Player p, String prop );
+	/**
+	 * Send friendship request to a player
+	 * @param p
+	 * @param p2
+	 * @return
+	 */
+	public MResult requestFriendship( String performingPlayerName, String requestedPlayerName );
 
-	public List<String> getProperties( Player p );
+	/**
+	 * Accept the friendship
+	 * @param p
+	 * @param p2
+	 * @return
+	 */
+	public MResult acceptFriendship( String requestedPlayerName, String performingPlayerName );
+
+	/**
+	 * Reject a friendship request
+	 * @param p
+	 * @param p2
+	 * @return
+	 */
+	public MResult rejectFriendship( String requestedPlayerName, String performingPlayerName );
+
+	/**
+	 * Remove a friend
+	 * @param p
+	 * @param p2
+	 * @return
+	 */
+	public MResult delPlayerFriend( String performingPlayerName, String friendName );
+
+	/**
+	 * Get a list of all friends a player has
+	 * @param p
+	 * @return
+	 */
+	public List<String> getPlayerFriends( String playerName );
+
+	/**
+	 * Set a custom property for a user
+	 * @param p
+	 * @param prop
+	 * @return
+	 */
+	public MResult setPlayerProperty( String playerName, String property );
+
+	/**
+	 * Get the list of all custom player properties
+	 * @param playerName
+	 * @return
+	 */
+	public List<String> getPlayerProperties( String playerName );
 }

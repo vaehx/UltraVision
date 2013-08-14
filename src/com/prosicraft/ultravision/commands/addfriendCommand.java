@@ -58,13 +58,13 @@ public class addfriendCommand extends extendedCommand
 					MResult res;
 					UltraVisionAPI api = ( ( ultravision ) this.getParent() ).getAPI();
 
-					if( api.getFriends( p ).contains( mayFriend.get( 0 ).getName() ) )
+					if( api.getPlayerFriends( p.getName() ).contains( mayFriend.get( 0 ).getName() ) )
 						return suc( p, "You are already in friendship with " + mayFriend.get( 0 ).getName() );
 
 					if( p.getName().equalsIgnoreCase( mayFriend.get( 0 ).getName() ) )
 						return suc( p, ChatColor.RED + "You can't add yourself as a friend." );
 
-					if( ( res = api.requestFriend( p, mayFriend.get( 0 ) ) ) == MResult.RES_SUCCESS )
+					if( ( res = api.requestFriendship( p.getName(), mayFriend.get( 0 ).getName() ) ) == MResult.RES_SUCCESS )
 					{
 						mayFriend.get( 0 ).sendMessage( ChatColor.AQUA + p.getName() + ChatColor.DARK_AQUA + " wants to be a friend of you." );
 						mayFriend.get( 0 ).sendMessage( ChatColor.DARK_AQUA + "Please answer with " + ChatColor.GOLD + "/accfriend " + p.getName() + " yes" + ChatColor.DARK_AQUA + " or " + ChatColor.GOLD + "no" );

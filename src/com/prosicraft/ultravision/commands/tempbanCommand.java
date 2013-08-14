@@ -81,7 +81,7 @@ public class tempbanCommand extends extendedCommand
 					Time tt = new Time( thetime );
 					UltraVisionAPI api = ( ( ultravision ) this.getParent() ).getAPI();
 
-					if( ( res = api.doTempBan( p, mayKick.get( 0 ), ( ( getArgs().length >= 2 ) ? reason.trim() : "No reason provided." ), tt, false ) ) == MResult.RES_SUCCESS )
+					if( ( res = api.banPlayerTemporarily( p, mayKick.get( 0 ).getName(), ( ( getArgs().length >= 2 ) ? reason.trim() : "No reason provided." ), tt, false ) ) == MResult.RES_SUCCESS )
 					{
 						int c = ( ( ultravision ) getParent() ).ownBroadcast( ChatColor.AQUA + mayKick.get( 0 ).getName() + ChatColor.DARK_AQUA + " banned by " + ChatColor.AQUA + p.getName() + ChatColor.DARK_AQUA + " for " + timeInterpreter.getText( thetime ) + " (local)." );
 						( ( ultravision ) getParent() ).ownBroadcast( ChatColor.DARK_AQUA + "Reason: " + ChatColor.AQUA + ( ( numArgs() >= 2 ) ? reason.trim() : "No reason." ) );
@@ -114,7 +114,7 @@ public class tempbanCommand extends extendedCommand
 					Time tt = new Time( thetime );
 					UltraVisionAPI api = ( ( ultravision ) this.getParent() ).getAPI();
 
-					if( ( res = api.doTempBan( p, getArg( 0 ), ( ( getArgs().length >= 2 ) ? reason.trim() : "No reason provided." ), tt, false ) ) == MResult.RES_SUCCESS )
+					if( ( res = api.banPlayerTemporarily( p, getArg( 0 ), ( ( getArgs().length >= 2 ) ? reason.trim() : "No reason provided." ), tt, false ) ) == MResult.RES_SUCCESS )
 					{
 						int c = ( ( ultravision ) getParent() ).ownBroadcast( ChatColor.AQUA + getArg( 0 ) + ChatColor.DARK_AQUA + " banned by " + ChatColor.AQUA + p.getName() + ChatColor.DARK_AQUA + " for " + timeInterpreter.getText( thetime ) + " (local)." );
 						( ( ultravision ) getParent() ).ownBroadcast( ChatColor.DARK_AQUA + "Reason: " + ChatColor.AQUA + ( ( numArgs() >= 2 ) ? reason.trim() : "No reason." ) );

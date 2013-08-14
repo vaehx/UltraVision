@@ -30,7 +30,6 @@ public class UVClickAuth
 	private UltraVisionAPI api;
 	private UVClickAuthListener listener;
 	private JavaPlugin pl;
-	private boolean enabled;
 
 	public UVClickAuth( UltraVisionAPI uapi, JavaPlugin pl, boolean messages )
 	{
@@ -39,12 +38,10 @@ public class UVClickAuth
 
 		listener = new UVClickAuthListener( this, messages );
 		pl.getServer().getPluginManager().registerEvents( listener, pl );
-		this.enabled = false;    // this module needs to be initialized
 	}
 
 	public void init()
 	{
-		this.enabled = loadCodeFromFile();
 		// For Reload: Check all online players
 		for( Player p : pl.getServer().getOnlinePlayers() )
 		{
@@ -459,6 +456,6 @@ public class UVClickAuth
 
 	public void doTheKick( Player p )
 	{
-		api.backendKick( p, "You're not permitted to play on this server." );
+		api.kickPlayerHard( p.getName(), "You're not permitted to play on this server." );
 	}
 }

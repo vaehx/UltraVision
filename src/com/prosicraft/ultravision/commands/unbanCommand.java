@@ -41,7 +41,7 @@ public class unbanCommand extends extendedCommand
 					reason += this.getArg( i ).trim() + " ";
 				MResult res;
 				UltraVisionAPI api = ( ( ultravision ) this.getParent() ).getAPI();
-				if( ( res = api.pardon( p, getArg( 0 ), ( ( getArgs().length >= 2 ) ? reason.trim() : "No reason provided." ) ) ) == MResult.RES_SUCCESS )
+				if( ( res = api.pardonPlayer( p, getArg( 0 ), ( ( getArgs().length >= 2 ) ? reason.trim() : "No reason provided." ) ) ) == MResult.RES_SUCCESS )
 				{
 					( ( ultravision ) getParent() ).ownBroadcast( ChatColor.AQUA + getArg( 0 ) + ChatColor.DARK_AQUA + " pardoned by " + ChatColor.AQUA + p.getName() + ChatColor.DARK_AQUA + " (local). " );
 					( ( ultravision ) getParent() ).ownBroadcast( ChatColor.DARK_AQUA + "Reason: " + ChatColor.AQUA + ( ( numArgs() >= 2 ) ? reason.trim() : "No reason." ) );

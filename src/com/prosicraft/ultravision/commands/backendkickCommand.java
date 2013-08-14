@@ -46,7 +46,7 @@ public class backendkickCommand extends extendedCommand
 							reason += this.getArg( i ).trim() + " ";
 						reason = reason.trim();
 						MResult tres = MResult.RES_UNKNOWN;
-						if( api.backendKick( p, reason ) == MResult.RES_SUCCESS )
+						if( api.kickPlayerHard( p.getName(), reason ) == MResult.RES_SUCCESS )
 						{
 							MLog.i( "Backend Kicked Player successfully." );
 						}
@@ -103,7 +103,7 @@ public class backendkickCommand extends extendedCommand
 							reason += this.getArg( i ).trim() + " ";
 						reason = reason.trim();
 						MResult tres = MResult.RES_UNKNOWN;
-						if( api.backendKick( pl, reason ) == MResult.RES_SUCCESS )
+						if( api.kickPlayerHard( pl.getName(), reason ) == MResult.RES_SUCCESS )
 						{
 							return suc( p, "Backend Kicked Player successfully." );
 						}

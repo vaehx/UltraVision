@@ -61,10 +61,10 @@ public class praiseCommand extends extendedCommand
 					MResult res;
 					UltraVisionAPI api = ( ( ultravision ) this.getParent() ).getAPI();
 
-					if( api.praised( p, mayPraise.get( 0 ) ) )
+					if( api.isPlayerPraisedBy( p.getName(), mayPraise.get( 0 ).getName() ) )
 						return suc( p, "You already praised this player. Use /unpraise to unpraise." );
 
-					if( ( res = api.praise( p, mayPraise.get( 0 ) ) ) == MResult.RES_SUCCESS )
+					if( ( res = api.praisePlayer( p, mayPraise.get( 0 ).getName() ) ) == MResult.RES_SUCCESS )
 					{
 						mayPraise.get( 0 ).sendMessage( ChatColor.DARK_AQUA + "You got praised by " + ChatColor.AQUA + p.getName() );
 					}

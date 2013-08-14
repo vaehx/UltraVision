@@ -63,14 +63,14 @@ public class delnoteCommand extends extendedCommand
 					String thenote;
 					try
 					{
-						thenote = ( api.getNotes( mayNote.get( 0 ) ).get( api.getNotes( mayNote.get( 0 ) ).keySet().toArray()[id].toString() ) );
+						thenote = ( api.getPlayerNotes( mayNote.get( 0 ).getName() ).get( api.getPlayerNotes( mayNote.get( 0 ).getName() ).keySet().toArray()[id].toString() ) );
 					}
 					catch( ArrayIndexOutOfBoundsException | NullPointerException ex )
 					{
 						return err( p, "There is no Note with id " + ChatColor.GOLD + id );
 					}
 
-					if( ( res = api.delNote( p, mayNote.get( 0 ), id ) ) == MResult.RES_SUCCESS )
+					if( ( res = api.delPlayerNote( p, mayNote.get( 0 ).getName(), id ) ) == MResult.RES_SUCCESS )
 					{
 						mayNote.get( 0 ).sendMessage( ChatColor.DARK_AQUA + "You've lost a note: " + ChatColor.WHITE + thenote );
 					}

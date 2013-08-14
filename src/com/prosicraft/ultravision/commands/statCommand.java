@@ -193,7 +193,7 @@ public class statCommand extends extendedCommand
 			}
 			else if( t.equalsIgnoreCase( "registered" ) || t.equalsIgnoreCase( "reg" ) )
 			{
-				if( !api.isAuthInit() )
+				if( !api.isAuthorizerEnabled() )
 				{
 					return suc( p, ChatColor.YELLOW + "Authorizer is not in use." );
 				}
@@ -208,7 +208,7 @@ public class statCommand extends extendedCommand
 			}
 			else if( t.equalsIgnoreCase( "ban" ) )
 			{
-				if( api.isBanned( theName ) )
+				if( api.isPlayerBanned( theName ) )
 				{
 					p.sendMessage( ChatColor.GREEN + "Player '" + theName + "' is banned." );
 				}

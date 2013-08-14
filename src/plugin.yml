@@ -1,7 +1,7 @@
 ## ultravision plugin file
 
 name: Ultravision
-version: 2013h-1.6.2-dev
+version: 2013h-1.6.2-dev3
 description: Ultravision is a Player Supervision Plugin for highly improved server frontend business.
 author: prosicraft
 website: http://minecraft.net
@@ -29,7 +29,7 @@ commands:
         usage: /<command>
         permission: ultravision.admin.ingamelog
         aliases: [ingamelog, log, vis, supervise]
-    uvclear:
+    uvclearconfig:
         description: Lets the user clear the configuration in runtime.
         usage: /<command>
         permission: ultravision.uvclear        
@@ -210,17 +210,3 @@ commands:
         usage: /<command> <login|leave|msg> [<Player> <text>]
         permission: ultravision.admin.fake
         aliases: [fake]
-    uvver:
-        description: Checks identity of player. Debug only
-        usage: /<command>
-        aliases: [v,vr]
-    uvaddmac:
-        description: Adds Mac address to CrashHack
-        usage: /<command> <player>
-        permission: ultravision.admin.addmac
-        aliases: [addmac]
-    uvclearmac:
-        description: Clears Mac address from CrashHack
-        usage: /<command> <player>
-        permission: ultravision.admin.clearmac
-        aliases: [clearmac]

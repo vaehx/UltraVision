@@ -27,10 +27,8 @@ public class noteCommand extends extendedCommand
 	@Override
 	public commandResult run( Player p )
 	{
-
 		try
 		{
-
 			// /note <player> <reason...>
 			if( numArgs() >= 2 )
 			{
@@ -62,7 +60,7 @@ public class noteCommand extends extendedCommand
 					MResult res;
 					UltraVisionAPI api = ( ( ultravision ) this.getParent() ).getAPI();
 
-					if( ( res = api.addNote( p, mayNote.get( 0 ), reason ) ) == MResult.RES_SUCCESS )
+					if( ( res = api.addPlayerNote( p, mayNote.get( 0 ).getName(), reason ) ) == MResult.RES_SUCCESS )
 					{
 						mayNote.get( 0 ).sendMessage( ChatColor.DARK_AQUA + "You've got a note: " + ChatColor.WHITE + reason );
 					}
@@ -72,19 +70,16 @@ public class noteCommand extends extendedCommand
 					}
 					return suc( p, "Applied note to player successfully." );
 				}
-
 			}
 			else
 			{
 				return err( p, "Too few arguments." );
 			}
-
 		}
 		catch( wrongParentException | wrongPlayerException ex )
 		{
 			MLog.e( "[NOTECMD] " + ex.getMessage() );
 			return err( p, "Failed to execute command." );
 		}
-
 	}
 }

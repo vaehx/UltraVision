@@ -66,7 +66,7 @@ public class banCommand extends extendedCommand
 						return suc( p, ChatColor.RED + "No permanent ban without a reason." );
 					MResult res;
 					UltraVisionAPI api = ( ( ultravision ) this.getParent() ).getAPI();
-					if( ( res = api.doBan( p, mayKick.get( 0 ), ( ( getArgs().length >= 2 ) ? reason.trim() : "No reason provided." ) ) ) == MResult.RES_SUCCESS )
+					if( ( res = api.banPlayerLocally( p, mayKick.get( 0 ).getName(), ( ( getArgs().length >= 2 ) ? reason.trim() : "No reason provided." ) ) ) == MResult.RES_SUCCESS )
 					{
 						( ( ultravision ) getParent() ).ownBroadcast( ChatColor.AQUA + mayKick.get( 0 ).getName() + ChatColor.DARK_AQUA + " permanently " + ChatColor.DARK_GRAY + " banned by " + ChatColor.AQUA + p.getName() + ChatColor.DARK_GRAY + " (local)." );
 						( ( ultravision ) getParent() ).ownBroadcast( ChatColor.DARK_GRAY + "Reason: " + ChatColor.GOLD + ( ( numArgs() >= 2 ) ? reason.trim() : "No reason." ) );

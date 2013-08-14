@@ -7,7 +7,7 @@
  *
  *                              by prosicraft  ,   (c) 2013
  *
- *          Update 08.08.2013
+ *          Update 14.08.2013
  *
  *  ============================================================================
  */
@@ -21,7 +21,7 @@ import com.prosicraft.ultravision.chat.MCChatListener;
 import com.prosicraft.ultravision.chat.UVServer;
 import com.prosicraft.ultravision.commands.*;
 import com.prosicraft.ultravision.global.globalEngine;
-import com.prosicraft.ultravision.local.localEngine;
+import com.prosicraft.ultravision.local.UVLocalEngine;
 import com.prosicraft.ultravision.util.*;
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +32,7 @@ import java.util.Properties;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -70,7 +71,7 @@ public class ultravision extends JavaPlugin
 	public boolean showWelcomeMessage	= true;     // Show powered by Message on login
 	public boolean showMessagesNotLoggedIn	= true;     // Show messages, if not logged in
 	public boolean disableIngameOp		= true;	    // Disable ingame op command
-	public UVBRIDGE[] bridges		= new UVBRIDGE[ 5 ];     // Bridge to UltraChat
+	public UVBRIDGE[] bridges		= new UVBRIDGE[ 5 ];     // Bridge to UltraBox Plugins
 
 	//**********************************************************************************************
 	/**
@@ -100,55 +101,48 @@ public class ultravision extends JavaPlugin
 
 		// Now start the Engine
 		MLog.d( "Starting engine..." );
-
-		if( !global )
-		{
-			api = new localEngine( this.getDataFolder().getAbsolutePath() );
-			MLog.i( "Using Local Engine. Version: " + UltraVisionAPI.version );
-
-			if( useAuthorizer )
-			{
-				final MResult tr;
-				if( ( tr = api.registerAuthorizer( auth ) ) == MResult.RES_SUCCESS )
-				{
-					MLog.i( "Authorizer hooked into Engine." );
-				}
-				else
-				{
-					MLog.e( "Authorizer can't hook into Engine: " + tr.toString() );
-				}
-			}
-		}
-		else
+		if( global )
 		{
 			api = new globalEngine();
 			MLog.i( "Using global Engine. Version: " + UltraVisionAPI.version );
 			MLog.w( "Global Engine isn't supported yet." );
+		}
+		else
+		{
+			api = new UVLocalEngine( this.getDataFolder().getAbsolutePath(), this );
+			MLog.i( "Using Local Engine. Version: " + UltraVisionAPI.version );
+		}
 
-			if( useAuthorizer )
+		// Check if everything went well
+		if( api == null )
+		{
+			MLog.e( "Could not load API! (Unknown Error). Disabling..." );
+			getServer().getPluginManager().disablePlugin( this );
+			return;
+		}
+
+		// Hook Authorizer into Engine
+		if( useAuthorizer )
+		{
+			final MResult tr;
+			if( ( tr = api.setAuthorizer( auth ) ) == MResult.RES_SUCCESS )
 			{
-				final MResult tr;
-				if( ( tr = api.registerAuthorizer( auth ) ) == MResult.RES_SUCCESS )
-					MLog.i( "Authorizer hooked into Engine." );
-				else
-					MLog.e( "Authorizer can't hook into Engine: " + tr.toString() );
+				MLog.i( "Authorizer hooked into Engine." );
+			}
+			else
+			{
+				MLog.e( "Authorizer can't hook into Engine: " + tr.toString() );
 			}
 		}
 
-		// Check if everything went well. If so apply API to Jmessage and other templates
-		if( api != null )
+		// Apply API to Jmessage and other templates
+		if( jmsg != null )
 		{
-			if( jmsg != null )
-				jmsg.setAPI( api );
-
-			for( Player p : getServer().getOnlinePlayers() )
-				api.playerLogin( p );
+			jmsg.setAPI( api );
 		}
-
 
 		// Hook the several Events into our listeners
 		initEvents();
-		playerListener.initUV( api );
 
 		// Start the Mineconnect Chat Server
 		if( !useMineconnect )
@@ -185,6 +179,7 @@ public class ultravision extends JavaPlugin
 		}
 
 		// In case of Reload: Do Rejoin everybody
+		// This also calls api.playerJoin()
 		rejoin();
 
 	}
@@ -200,31 +195,36 @@ public class ultravision extends JavaPlugin
 
 		if( auth != null )
 			auth.save();
+
 		if( clickauth != null )
 			clickauth.saveToFile();
 
 		config.setDefault( "auth.showMessagesNotLoggedIn", true );
 		config.setDefault( "ultravision.showWarnedMessages", true );
 
+		// Save Jmessage config
 		if( jmsg != null )
 			jmsg.save( config );
 
 		config.set( "general.savestats", config.getBoolean( "general.savestats", true ) );
 
+		// Shut down Engine
 		MLog.i( "Request engine shutdown..." );
-
 		if( api != null )
 		{
 			for( Player p : getServer().getOnlinePlayers() )
 			{
-				api.playerLeave( p );
+				api.onPlayerLeave( p );
 			}
 
-			final MResult r;
-			if( ( r = api.flush() ) == MResult.RES_SUCCESS )
+			if( !api.shutdown() )
+			{
 				MLog.i( "Shut down engine (" + ( ( global ) ? "global" : "local" ) + ")" );
+			}
 			else
-				MLog.e( "Can't shut down engine (" + ( ( global ) ? "global" : "local" ) + "): " + r.toString() );
+			{
+				MLog.e( "Can't shut down engine (" + ( ( global ) ? "global" : "local" ) + ")." );
+			}
 		}
 
 		config.save();
@@ -232,14 +232,15 @@ public class ultravision extends JavaPlugin
 		fPDesc = null;
 		config = null;
 
-		if( uvserver != null && uvserver.isAlive() )
+		// Stop the Mineconnect server
+		if( useMineconnect && uvserver != null && uvserver.isAlive() )
 		{
 			uvserver.shutdown();
 			uvserver = null;
-			MLog.i( "Server stopped successfullly." );
+			MLog.i( "Mineconnect Server stopped successfullly." );
 		}
 		else
-			MLog.i( "Server already shut down or disabled." );
+			MLog.i( "Mineconnect Server already shut down or disabled." );
 	}
 
 	//**********************************************************************************************
@@ -270,11 +271,13 @@ public class ultravision extends JavaPlugin
 			catch( IOException e )
 			{
 				MLog.e( "This build seems like a damaged one" );
+				e.printStackTrace( System.out );
 			}
 		}
 		catch( java.util.MissingResourceException ex )
 		{
 			MLog.i( "Ultravision is starting (Version " + fPDesc.getVersion() + " #b???) ..." );
+			MLog.d( "Cannot retrieve Build version due to resource not found." );
 		}
 	}
 
@@ -282,7 +285,7 @@ public class ultravision extends JavaPlugin
 	/**
 	 * Load the template selection from the configuration
 	 */
-	private void loadTemplateSelection()
+	public void loadTemplateSelection()
 	{
 		config.set( "general.useGlobalAPI", ( global = config.getBoolean( "useGlobalAPI", false ) ) );
 		config.set( "general.useAuthorizer", ( useAuthorizer = config.getBoolean( "general.useAuthorizer", true ) ) );
@@ -370,7 +373,7 @@ public class ultravision extends JavaPlugin
 			return;
 		}
 
-		clickauth = new UVClickAuth( api, this, config.getBoolean( "auth.showMessagesNotLoggedIn", true ) );
+		clickauth = new UVClickAuth( api, this, showMessagesNotLoggedIn );
 		clickauth.init();
 	}
 
@@ -419,16 +422,18 @@ public class ultravision extends JavaPlugin
 	/**
 	 * Initialize Main-Configuration file of ultravision plugin
 	 */
-	private void initConfig()
+	public void initConfig()
 	{
+		// Create Plugin Folder if not existing
 		if( !this.getDataFolder().exists() && !getDataFolder().mkdirs() )
+		{
 			MLog.e( "Can't create missing configuration Folder for UltraVision" );
+		}
 
+		// Load config file or create if not exist
 		File cf = new File( this.getDataFolder(), "config.yml" );
-
 		if( !cf.exists() )
 		{
-
 			try
 			{
 				MLog.w( "Configuration File doesn't exist. Trying to recreate it..." );
@@ -470,7 +475,7 @@ public class ultravision extends JavaPlugin
 
 	//**********************************************************************************************
 	/**
-	 * Clears whole configuration file.
+	 * Clears whole configuration filea and creates new one
 	 */
 	public boolean clearConfig()
 	{
@@ -513,15 +518,16 @@ public class ultravision extends JavaPlugin
 	//**********************************************************************************************
 	/**
 	 * When a players tries to join the game...
+	 *
+	 * @param p Player who joins
 	 */
 	public boolean playerJoin( Player p )
 	{
-
 		if( p == null )
 			return true;    // not false, otherwise it would crash
 
-		api.playerLogin( p );
-		if( api.isBanned( p.getName() ) )
+		api.onPlayerLogin( p );
+		if( api.isPlayerBanned( p.getName() ) )
 			return false;
 
 		config.save();
@@ -531,45 +537,35 @@ public class ultravision extends JavaPlugin
 			uvserver.sendMessage( p.getName() + " joined the server via Minecraft." );
 
 		return true;
-
 	}
 
 	//**********************************************************************************************
 	/**
 	 * When a player says goodbye
+	 *
+	 * @param p Player who leaves
 	 */
 	public boolean playerLeave( Player p )
 	{
 		if( p != null )
 		{
-
-			api.playerLeave( p );
+			api.onPlayerLeave( p );
 
 			if( useAuthorizer && auth.loggedIn( p ) )
 				auth.logout( p );
 
 			if( uvserver != null )
 				uvserver.sendMessage( p.getName() + " left the channel via Minecraft." );
-
 		}
 		return false;
 	}
 
 	//**********************************************************************************************
 	/**
-	 * player chat
-	 */
-	public void playerChat( String playername, String msg )
-	{
-	}
-
-	//**********************************************************************************************
-	/**
-	 * Walk through all players after reload
+	 * Join all players after reload
 	 */
 	private boolean rejoin()
 	{
-
 		// Get all Players and hook into count thread
 		//    ONLY IF SOME STUPID KIDS JOINED BEFORE SERVER IS READY >:|
 		Player[] oPlayer = getServer().getOnlinePlayers();
@@ -588,6 +584,8 @@ public class ultravision extends JavaPlugin
 	/**
 	 * Handle ultravision Login Command (called by PreCommandListener)
 	 *
+	 * @param player the Player who issued the login command
+	 * @param password the password given by the player
 	 * @return true if password was correct or player is not registered or auth is not initialized
 	 */
 	public boolean doLoginCommand( Player player, String password )
@@ -630,404 +628,164 @@ public class ultravision extends JavaPlugin
 	//**********************************************************************************************
 	/**
 	 * Handle ultravision Commands
+	 *
+	 * @param sender
+	 * @param cmd
+	 * @param commandLabel
+	 * @param args
 	 */
 	@Override
 	public boolean onCommand( CommandSender sender, Command cmd, String commandLabel, String[] args )
 	{
-
-		if( ( sender instanceof Player ) )
+		// Handle Player Commands
+		if( sender instanceof Player )
 		{
+			Player p = (Player)sender;
+			Class commandClass = null;
 
-			Player p = ( Player ) sender;
-
-			if( auth != null && ( !auth.loggedIn( p ) && !cmd.getLabel().equalsIgnoreCase( "uvlogin" ) ) )
-			{
-				p.sendMessage( ChatColor.RED + "You are not logged in." );
-				return true;
-			}
-			else if( clickauth != null && ( !clickauth.isLoggedIn( p.getName() ) && !cmd.getLabel().equalsIgnoreCase( "uvlogin" ) ) )
-			{
-				p.sendMessage( ChatColor.RED + "You are not logged in." );
-				return true;
-			}
-
-			// Faked Ban
+			// Faked Ban also handles /ban -commands
 			if( cmd.getName().equalsIgnoreCase( "uvfban" ) )
 			{
 				p.sendMessage( ChatColor.GREEN + "Ban." );
 				return true;
 			}
 
-			if( cmd.getName().equalsIgnoreCase( "ultravision" ) )
+			if( cmd.getName().equalsIgnoreCase( "ultravision" ) ) commandClass = ultravisionCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvkick" ) ) commandClass = kickCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvconfig" ) ) commandClass = configCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvbackendkick" ) ) commandClass = backendkickCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvwarn" ) ) commandClass = warnCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvtempwarn" ) ) commandClass = tempwarnCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvunwarn" ) ) commandClass = unwarnCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvpraise" ) ) commandClass = praiseCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvunpraise" ) ) commandClass = unpraiseCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvban" ) ) commandClass = banCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvunban" ) ) commandClass = unbanCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvtempban" ) ) commandClass = tempbanCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvgc" ) ) commandClass = gcCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvnote" ) ) commandClass = noteCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvdelnote" ) ) commandClass = delnoteCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvaddfriend" ) ) commandClass = addfriendCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvacceptfriend" ) ) commandClass = accfriendCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvdelfriend" ) ) commandClass = delfriendCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvstat" ) ) commandClass = statCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvingamelog" ) ) commandClass = ingamelogCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvsay" ) ) commandClass = sayCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvspamsay" ) ) commandClass = spamsayCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvclickregister") ) commandClass = clickRegisterCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvclickunregister" ) ) commandClass = clickUnregisterCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvregister" ) ) commandClass = registerCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvaunregister" ) ) commandClass = unregisterCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvclearconfig" ) ) commandClass = clearConfigCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "jmessage" ) ) commandClass = jmessageCommand.class;
+
+			// Now run command if not null
+			// otherwise we don't handle this command!
+			if( commandClass != null )
 			{
-				if( args.length == 1 && args[0].equalsIgnoreCase( "reload" ) )
-				{
-					config = null;
-					initConfig();
-					loadTemplateSelection();
-					p.sendMessage( ChatColor.GREEN + "Reloaded Config" );
-					return true;
-				}
-
-				p.sendMessage( ChatColor.DARK_GRAY + "=== " + ChatColor.DARK_AQUA + "Server running " + ChatColor.AQUA + "ULTRAVISION" + ChatColor.GRAY + " version " + ChatColor.AQUA + fPDesc.getVersion() + ChatColor.DARK_GRAY + " ===" );
-
-				p.sendMessage( ChatColor.GOLD + "This Bukkit Plugin provides functionality for every security, as well as frondemd and logging purposes on your MC-Server." );
-
-				String coms = "";
-				for( String lecom : fPDesc.getCommands().keySet() )
-					coms += lecom + ChatColor.DARK_GRAY + ", " + ChatColor.GRAY;
-				coms = coms.substring( 0, coms.length() - 2 );
-				p.sendMessage( ChatColor.DARK_GRAY + "Commands: " + ChatColor.GRAY + coms );
+				this.runCommand( args, p, commandClass );
 				return true;
 			}
-
-			if( cmd.getName().equalsIgnoreCase( "jmessage" ) )
-			{
-				if( args.length == 0 || ( !args[0].equalsIgnoreCase( "reload" ) && !args[0].equalsIgnoreCase( "assign" ) && !args[0].equalsIgnoreCase( "preview" ) ) )
-				{
-					p.sendMessage( ChatColor.RED + "Command not recognized or too few arguments." );
-					return false;
-				}
-				if( jmsg == null )
-				{
-					p.sendMessage( ChatColor.RED + "JMessage is disabled." );
-					return true;
-				}
-				if( args[0].equalsIgnoreCase( "reload" ) )
-				{
-					jmsg.load( config );
-					p.sendMessage( ChatColor.GREEN + "Reloaded JMessage config." );
-					return true;
-				}
-				else if( args[0].equalsIgnoreCase( "preview" ) )
-				{
-					jmsg.doJoinTest( p );
-					jmsg.doLeaveTest( p );
-					return true;
-				}
-				else
-				{
-					if( args.length < 3 )
-					{
-						p.sendMessage( ChatColor.RED + "Too few arguments." );
-						return false;
-					}
-					String thetxt = "";
-					for( int n = 2; n < ( args.length ); n++ )
-						thetxt += args[n] + " ";
-					jmsg.assignIndividual( args[1], thetxt.trim() );
-					p.sendMessage( ChatColor.GREEN + "Assigned join message to '" + args[1] + "' successfully." );
-					return true;
-				}
-			}
-
-			if( cmd.getLabel().equalsIgnoreCase( "uvver" ) )
-			{
-				//chack.join(p);
-				p.sendMessage( "Executed." );
-				return true;
-			}
-
-			if( cmd.getLabel().equalsIgnoreCase( "uvregister" ) )
-			{
-				if( auth.isRegistered( p ) )
-				{
-					p.sendMessage( ChatColor.GOLD + "You're already registered in the login system." );
-					return true;
-				}
-				if( args.length != 1 )
-				{
-					p.sendMessage( ChatColor.RED + "Please specify a password." );
-					return true;
-				}
-				if( args[0].equalsIgnoreCase( "password" ) || args[0].equalsIgnoreCase( "passwort" ) || args[0].equalsIgnoreCase( p.getName() ) )
-				{
-					p.sendMessage( ChatColor.RED + "This password is too simple!" );
-					return true;
-				}
-				MResult res;
-				if( ( res = auth.register( p, args[0] ) ) == MResult.RES_SUCCESS )
-				{
-					p.sendMessage( ChatColor.GREEN + "Registered successfully in login system as " + p.getName() + "." );
-					p.sendMessage( ChatColor.GREEN + "Login with " + ChatColor.GOLD + "/login YourPassword" + ChatColor.GREEN + "." );
-				}
-				else
-					MLog.e( "Couldn't register new player in login system (player=" + p.getName() + "): " + String.valueOf( res ) );
-				return true;
-			}
-
-			/*if ( cmd.getLabel().equalsIgnoreCase("uvaddmac") ) {
-			 if ( chack == null ) {
-			 p.sendMessage(ChatColor.RED + "CrashHack is not used on this server.");
-			 return true;
-			 }
-			 if ( args.length < 1 ) {
-			 p.sendMessage(ChatColor.RED + "Too few arguments.");
-			 return false;
-			 }
-			 if ( chack.hasMac(args[0]) ) {
-			 p.sendMessage(ChatColor.RED + "Player " + ChatColor.GRAY + args[0] + ChatColor.RED + " already registered. Use /clearmac to clear.");
-			 return true;
-			 }
-			 for ( Player tp : getServer().getOnlinePlayers() ) {
-			 if ( tp.getName().equalsIgnoreCase(args[0]) ) {
-			 chack.addMac(tp);
-			 p.sendMessage (ChatColor.GREEN + "Registered Mac address of player " + ChatColor.GRAY + tp.getName() + ChatColor.GREEN + ".");
-			 chack.save(config); config.save();
-			 return true;
-			 }
-			 }
-			 p.sendMessage(ChatColor.RED + "Player " + ChatColor.GRAY + args[0] + ChatColor.RED + " not found or offline.");
-			 return true;
-			 }
-
-			 if ( cmd.getLabel().equalsIgnoreCase("uvclearmac") ) {
-			 if ( chack == null ) {
-			 p.sendMessage(ChatColor.RED + "CrashHack is not used on this server.");
-			 return true;
-			 }
-			 if ( args.length < 1 ) {
-			 p.sendMessage(ChatColor.RED + "Too few arguments.");
-			 return false;
-			 }
-			 if ( !chack.hasMac(args[0]) ) {
-			 p.sendMessage(ChatColor.RED + "Player " + ChatColor.GRAY + args[0] + ChatColor.RED + " not registered in CrashHack.");
-			 return true;
-			 }
-			 chack.clearMac(args[0]);
-			 p.sendMessage(ChatColor.GREEN + "Mac of player " + ChatColor.GRAY + args[0] + ChatColor.GREEN + " has been unregistered.");
-			 return true;
-			 }*/
-
-			if( cmd.getLabel().equalsIgnoreCase( "uvclickregister" ) )
-			{
-				if( clickauth == null )
-				{
-					p.sendMessage( ChatColor.RED + "The UV-ClickAuth system is not used." );
-					return true;
-				}
-				if( clickauth.isRegistered( p.getName() ) )
-				{
-					p.sendMessage( ChatColor.GOLD + "You're already registered in the UV-ClickAuth System." );
-					return true;
-				}
-				if( clickauth.toggleRegistering( p ) )
-				{
-					p.sendMessage( ChatColor.AQUA + "--- Registering for UV-ChatAuth ---" );
-					p.sendMessage( ChatColor.GRAY + " Place Blocks with distance from each other." );
-					p.sendMessage( ChatColor.GRAY + " Remember the location of the Blocks, relatively." );
-					p.sendMessage( ChatColor.GRAY + " Finish by typing " + ChatColor.AQUA + "/caregister" + ChatColor.GRAY + " again." );
-				}
-				else
-				{
-					p.sendMessage( ChatColor.AQUA + "--- Finished UV-ClickAuth Registering ---" );
-					p.sendMessage( ChatColor.GRAY + " Please Login now." );
-				}
-				return true;
-			}
-			else if( cmd.getLabel().equalsIgnoreCase( "uvclickunregister" ) )
-			{
-				if( clickauth == null )
-				{
-					p.sendMessage( ChatColor.RED + "The UV-ClickAuth system is not used." );
-					return true;
-				}
-				if( args.length < 1 )
-				{
-					p.sendMessage( ChatColor.RED + "Too few arguments" );
-					return false;
-				}
-				String thePlayer = args[0];
-				if( !clickauth.isRegistered( p.getName() ) )
-				{
-					p.sendMessage( ChatColor.GOLD + thePlayer + " is not registered in ClickAuth System." );
-					return true;
-				}
-				clickauth.unRegister( thePlayer );
-				clickauth.saveToFile();
-				p.sendMessage( ChatColor.GREEN + thePlayer + " has been unregistered." );
-				for( int i = 0; i < getServer().getOnlinePlayers().length; i++ )
-				{
-					if( getServer().getOnlinePlayers()[i].getName().equalsIgnoreCase( thePlayer ) )
-					{
-						getServer().getOnlinePlayers()[i].sendMessage( ChatColor.GOLD + "You have been unregistered from ClickAuth." );
-						break;
-					}
-				}
-				return true;
-			}
-
-			if( cmd.getName().equalsIgnoreCase( "uvclear" ) )
-			{
-				p.sendMessage( ChatColor.GOLD + "Trying to cleanup Configuration..." );
-				if( !this.clearConfig() )
-				{
-					p.sendMessage( ChatColor.RED + "Failed to cleanup Configuration..." );
-				}
-				else
-				{
-					p.sendMessage( ChatColor.GREEN + "Cleanup Configuration was successful." );
-				}
-				return true;
-			}
-
-			if( cmd.getLabel().equalsIgnoreCase( "uvaunregister" ) )
-			{
-				if( args.length != 1 )
-				{
-					p.sendMessage( ChatColor.RED + "Too few arguments." );
-					return true;
-				}
-				MResult res;
-				if( ( res = auth.unregister( args[0], getServer().getPlayer( args[0] ) ) ) == MResult.RES_SUCCESS )
-					p.sendMessage( ChatColor.GREEN + "Unregistered player " + args[0] + " successfully." );
-				else
-					p.sendMessage( ChatColor.RED + "Couldn't unregister player " + args[0] + ": " + String.valueOf( res ) );
-				return true;
-			}
-
-			if( cmd.getName().equalsIgnoreCase( "uvkick" ) )
-			{
-				if( ( new kickCommand( this, args ) ).run( p ) == commandResult.RES_SUCCESS )
-					return true;
-			}
-			else if( cmd.getName().equalsIgnoreCase( "uvconfig" ) )
-			{
-				if( ( new configCommand( this, args ) ).run( p ) == commandResult.RES_SUCCESS )
-					return true;
-			}
-			else if( cmd.getName().equalsIgnoreCase( "uvbackendkick" ) )
-			{
-				if( ( new backendkickCommand( this, args ) ).run( p ) == commandResult.RES_SUCCESS )
-					return true;
-			}
-			else if( cmd.getName().equalsIgnoreCase( "uvwarn" ) )
-			{
-				if( ( new warnCommand( this, args ) ).run( p ) == commandResult.RES_SUCCESS )
-					return true;
-			}
-			else if( cmd.getName().equalsIgnoreCase( "uvtempwarn" ) )
-			{
-				if( ( new warnCommand( this, args ) ).run( p ) == commandResult.RES_SUCCESS )
-					return true;
-			}
-			else if( cmd.getName().equalsIgnoreCase( "uvunwarn" ) )
-			{
-				if( ( new unwarnCommand( this, args ) ).run( p ) == commandResult.RES_SUCCESS )
-					return true;
-			}
-			else if( cmd.getName().equalsIgnoreCase( "uvpraise" ) )
-			{
-				if( ( new praiseCommand( this, args ) ).run( p ) == commandResult.RES_SUCCESS )
-					return true;
-			}
-			else if( cmd.getName().equalsIgnoreCase( "uvunpraise" ) )
-			{
-				if( ( new unpraiseCommand( this, args ) ).run( p ) == commandResult.RES_SUCCESS )
-					return true;
-			}
-			else if( cmd.getName().equalsIgnoreCase( "uvban" ) )
-			{
-				if( ( new banCommand( this, args ) ).run( p ) == commandResult.RES_SUCCESS )
-					return true;
-			}
-			else if( cmd.getName().equalsIgnoreCase( "uvunban" ) )
-			{
-				if( ( new unbanCommand( this, args ) ).run( p ) == commandResult.RES_SUCCESS )
-					return true;
-			}
-			else if( cmd.getName().equalsIgnoreCase( "uvtempban" ) )
-			{
-				if( ( new tempbanCommand( this, args ) ).run( p ) == commandResult.RES_SUCCESS )
-					return true;
-			}
-			else if( cmd.getName().equalsIgnoreCase( "uvgc" ) )
-			{
-				if( ( new gcCommand( this, args ) ).run( p ) == commandResult.RES_SUCCESS )
-					return true;
-			}
-			else if( cmd.getName().equalsIgnoreCase( "uvnote" ) )
-			{
-				if( ( new noteCommand( this, args ) ).run( p ) == commandResult.RES_SUCCESS )
-					return true;
-			}
-			else if( cmd.getName().equalsIgnoreCase( "uvdelnote" ) )
-			{
-				if( ( new delnoteCommand( this, args ) ).run( p ) == commandResult.RES_SUCCESS )
-					return true;
-			}
-			else if( cmd.getName().equalsIgnoreCase( "uvaddfriend" ) )
-			{
-				if( ( new addfriendCommand( this, args ) ).run( p ) == commandResult.RES_SUCCESS )
-					return true;
-			}
-			else if( cmd.getName().equalsIgnoreCase( "uvacceptfriend" ) )
-			{
-				if( ( new accfriendCommand( this, args ) ).run( p ) == commandResult.RES_SUCCESS )
-					return true;
-			}
-			else if( cmd.getName().equalsIgnoreCase( "uvdelfriend" ) )
-			{
-				if( ( new delfriendCommand( this, args ) ).run( p ) == commandResult.RES_SUCCESS )
-					return true;
-			}
-			else if( cmd.getName().equalsIgnoreCase( "uvstat" ) )
-			{
-				if( ( new statCommand( this, args ) ).run( p ) == commandResult.RES_SUCCESS )
-					return true;
-			}
-			else if( cmd.getName().equalsIgnoreCase( "uvingamelog" ) )
-			{
-				if( ( new ingamelogCommand( this, args ) ).run( p ) == commandResult.RES_SUCCESS )
-					return true;
-			}
-			else if( cmd.getName().equalsIgnoreCase( "uvsay" ) )
-			{
-				if( ( new sayCommand( this, args ) ).run( p ) == commandResult.RES_SUCCESS )
-					return true;
-			}
-			else if( cmd.getName().equalsIgnoreCase( "uvspamsay" ) )
-			{
-				if( ( new spamsayCommand( this, args ) ).run( p ) == commandResult.RES_SUCCESS )
-					return true;
-			}
-
 		}
 		else
 		{    // Running command from console
+
+			ConsoleCommandSender console = (ConsoleCommandSender)sender;
+			Class commandClass = null;
 
 			if( cmd.getName().equalsIgnoreCase( "ultravision" ) )
 			{
 				MLog.i( "Running UltraVision " + fPDesc.getVersion() + "." );
 			}
 
-			if( cmd.getName().equalsIgnoreCase( "uvkick" ) )
+			if( cmd.getName().equalsIgnoreCase( "uvkick" ) ) commandClass = kickCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvbackendkick" ) ) commandClass = backendkickCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvsay" ) ) commandClass = sayCommand.class;
+
+			else if( cmd.getName().equalsIgnoreCase( "uvspamsay" ) ) commandClass = spamsayCommand.class;
+
+			// Now run the command if not null
+			if( commandClass != null )
 			{
-				if( ( new kickCommand( this, args ) ).consoleRun( sender ) == commandResult.RES_SUCCESS )
-					return true;
-			}
-			else if( cmd.getName().equalsIgnoreCase( "uvbackendkick" ) )
-			{
-				if( ( new backendkickCommand( this, args ) ).consoleRun( sender ) == commandResult.RES_SUCCESS )
-					return true;
-			}
-			else if( cmd.getName().equalsIgnoreCase( "uvsay" ) )
-			{
-				if( ( new sayCommand( this, args ) ).consoleRun( sender ) == commandResult.RES_SUCCESS )
-					return true;
-			}
-			else if( cmd.getName().equalsIgnoreCase( "uvspamsay" ) )
-			{
-				if( ( new spamsayCommand( this, args ) ).consoleRun( sender ) == commandResult.RES_SUCCESS )
-					return true;
+				this.runConsoleCommand( args, console, commandClass );
+				return true;
 			}
 
 		}
 		return false;
 	}
 
+	/**
+	 * Runs a command by specified class
+	 *
+	 * @param <T>
+	 * @return
+	 */
+	public <T extends extendedCommand> boolean runCommand( String[] args, Player p, Class<T> clazz )
+	{
+		try
+		{
+			return ( clazz.newInstance().run( p ) == commandResult.RES_SUCCESS );
+		}
+		catch( Exception ex )
+		{
+			MLog.e( "Cannot find class for command or something went wrong in this command: " + clazz.getName() );
+			ex.printStackTrace( System.out );
+			return false;
+		}
+	}
+
+	/**
+	 * Runs a command by specified class on console
+	 *
+	 * @param <T>
+	 * @return
+	 */
+	public <T extends extendedCommand> boolean runConsoleCommand( String[] args, ConsoleCommandSender console, Class<T> clazz )
+	{
+		try
+		{
+			return ( clazz.newInstance().consoleRun( console ) == commandResult.RES_SUCCESS );
+		}
+		catch( Exception ex )
+		{
+			MLog.e( "Cannot find class for consolecommand or something went wrong in this command: " + clazz.getName() );
+			ex.printStackTrace( System.out );
+			return false;
+		}
+	}
+
 	//**********************************************************************************************
-	//                      G E T    I N S T A N C E S
+	//                      G E T / S E T   P R I V A T E    I N S T A N C E S
 
 	/**
 	 * Gets the authorizer
@@ -1049,34 +807,55 @@ public class ultravision extends JavaPlugin
 		return clickauth;
 	}
 
+	/**
+	 * Gets the API Instance
+	 */
 	public UltraVisionAPI getAPI()
 	{
 		return api;
 	}
 
+	/**
+	 * Gets the Messager instance
+	 * @return
+	 */
 	public JMessage getMessager()
 	{
 		return jmsg;
 	}
 
+	/**
+	 * Gets configuration
+	 * @return
+	 */
 	public MConfiguration getMConfig()
 	{
 		return config;
 	}
 
-	public boolean showNotRegWarning()
+	/**
+	 * Set the configuration
+	 * @param config
+	 */
+	public void setMConfig( MConfiguration config )
 	{
-		return showNotRegWarning;
+		this.config = config;
 	}
 
-	public boolean useCommandLog()
+	/**
+	 * Get the Plugin description File
+	 * @return
+	 */
+	public PluginDescriptionFile getfPDesc()
 	{
-		return useCommandLog;
+		return fPDesc;
 	}
 
 	//**********************************************************************************************
 	/**
 	 * Better Broadcast, that won't crash or show the message twice
+	 *
+	 * @param message The Message to be broadcasted
 	 */
 	public int ownBroadcast( String message )
 	{
@@ -1096,10 +875,28 @@ public class ultravision extends JavaPlugin
 
 	//**********************************************************************************************
 	/**
-	 * Get Private properties
+	 * Get state whether to use Authorizer or not
 	 */
 	public boolean IsUsingAuthorizer()
 	{
 		return useAuthorizer;
+	}
+
+	/**
+	 * Get state whether to show warning when player is not registered or not
+	 * @return
+	 */
+	public boolean showNotRegWarning()
+	{
+		return showNotRegWarning;
+	}
+
+	/**
+	 * Get state whether to use commandlogging or not
+	 * @return
+	 */
+	public boolean useCommandLog()
+	{
+		return useCommandLog;
 	}
 }

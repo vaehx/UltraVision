@@ -72,7 +72,7 @@ public class tempwarnCommand extends extendedCommand
 
 					MResult res;
 					UltraVisionAPI api = ( ( ultravision ) getParent() ).getAPI();
-					if( ( res = api.setTempWarn( p, mayWarn.get( 0 ), ( ( numArgs() >= 2 ) ? reason : "No reason provided." ), tt ) ) == MResult.RES_SUCCESS )
+					if( ( res = api.warnPlayerTemporarily( p, mayWarn.get( 0 ).getName(), ( ( numArgs() >= 2 ) ? reason : "No reason provided." ), tt ) ) == MResult.RES_SUCCESS )
 					{
 						( ( ultravision ) getParent() ).ownBroadcast( ChatColor.AQUA + "Player " + mayWarn.get( 0 ).getName() + " has been warned by " + p.getName() + " for " + timeInterpreter.getText( thetime ) + "." );
 					}

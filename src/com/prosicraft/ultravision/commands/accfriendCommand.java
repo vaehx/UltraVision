@@ -69,12 +69,9 @@ public class accfriendCommand extends extendedCommand
 							return suc( p, ChatColor.RED + "No valid specification: '" + getArg( 1 ) + "'" );
 					}
 
-					if( api.praised( p, mayFriend.get( 0 ) ) )
-						return suc( p, "You are already in friendship with " + mayFriend.get( 0 ).getName() );
-
 					if( accept )
 					{
-						if( ( res = api.finalizeFriend( p, mayFriend.get( 0 ) ) ) == MResult.RES_SUCCESS )
+						if( ( res = api.acceptFriendship( p.getName(), mayFriend.get( 0 ).getName() ) ) == MResult.RES_SUCCESS )
 						{
 							mayFriend.get( 0 ).sendMessage( ChatColor.AQUA + p.getName() + ChatColor.DARK_AQUA + " is now your friend." );
 						}
@@ -86,7 +83,7 @@ public class accfriendCommand extends extendedCommand
 					}
 					else
 					{
-						if( ( res = api.cancelFriend( p, mayFriend.get( 0 ) ) ) != MResult.RES_SUCCESS )
+						if( ( res = api.rejectFriendship( p.getName(), mayFriend.get( 0 ).getName() ) ) != MResult.RES_SUCCESS )
 						{
 							p.sendMessage( ChatColor.RED + "Can't cancel friendship request: " + res.toString() );
 						}

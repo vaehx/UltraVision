@@ -25,332 +25,326 @@ public class globalEngine implements UltraVisionAPI
 {
 
 	@Override
-	public MResult finalizeFriend( Player p, Player p2 )
+	public Map<String, String> getAllPlayerInformation( String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult requestFriend( Player p, Player p2 )
+	public Player getPlayer( String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public void playerJoin( Player p )
+	public UVPlayerInfo getPlayerInfo( String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult doTempBan( CommandSender cs, String pname, String reason, Time time, boolean global )
+	public MResult savePlayer( String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public Player getPlayer( String pname )
+	public UVPlayerInfo readPlayer( String playerName, boolean forceNewFile )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public Map<String, String> getAll( Player p )
+	public void onPlayerJoin( Player p )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult registerAuthorizer( MAuthorizer authorizer )
+	public void onPlayerLogin( Player p )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void onPlayerLeave( Player p )
+	{
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public MResult setAuthorizer( MAuthorizer authorizer )
+	{
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public MAuthorizer getAuthorizer()
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public boolean isAuthInit()
+	public boolean isAuthorizerEnabled()
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult doBan( CommandSender cs, Player p, String reason )
+	public MResult banPlayerLocally( CommandSender commandSender, String playerName, String reason )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult doBan( CommandSender cs, Player p, String reason, boolean global )
+	public MResult banPlayer( CommandSender commandSender, String playerName, String reason, boolean global )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult doTempBan( CommandSender cs, Player p, String reason, Time time, boolean global )
+	public MResult banPlayerTemporarily( CommandSender commandSender, String playerName, String reason, Time time, boolean global )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult pardon( CommandSender cs, String pname, String note )
+	public MResult pardonPlayer( CommandSender commandSender, String playerName, String note )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public boolean isBanned( String pname )
+	public boolean isPlayerBanned( String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public List<UVBan> getBans( Player p )
+	public List<UVBan> getPlayerBans( String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public List<UVBan> getBanHistory( Player p )
+	public UVBan getPlayerBan( String playerName, String servername )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult doKick( CommandSender cs, Player p, String reason )
+	public List<UVBan> getPlayerBanHistory( String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public List<UVKick> getKickHistory( Player p )
+	public MResult kickPlayer( CommandSender commandSender, String playerName, String reason )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult setWarn( CommandSender cs, Player p, String reason )
+	public MResult kickPlayerHard( String playerName, String reason )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult setWarn( CommandSender cs, Player p, String reason, Time tdiff )
+	public List<UVKick> getPlayerKickHistory( String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult setTempWarn( CommandSender cs, Player p, String reason, Time timediff )
+	public MResult warnPlayer( CommandSender commandSender, String playerName, String reason )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult unsetWarn( CommandSender cs, Player p )
+	public MResult warnPlayerTemporarily( CommandSender commandSender, String playerName, String reason, Time time )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public boolean isWarned( Player p )
+	public MResult unwarnPlayer( CommandSender commandSender, String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public String getWarnReason( Player p )
+	public boolean isPlayerWarned( String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public UVWarning getWarning( Player p )
+	public String getPlayerWarnReason( String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public List<UVWarning> getWarnHistory( Player p )
+	public UVWarning getPlayerWarning( String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult praise( CommandSender cs, Player p )
+	public List<UVWarning> getPlayerWarnHistory( String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public int getPraiseCount( Player p )
+	public MResult praisePlayer( CommandSender commandSender, String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult addNote( CommandSender cs, Player p, String note )
+	public MResult unpraisePlayer( CommandSender commandSender, String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult delNote( CommandSender cs, Player p, int id )
+	public boolean isPlayerPraisedBy( String playerName, String otherPlayerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public Map<String, String> getNotes( Player p )
+	public int getPlayerPraiseCount( String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult setMute( CommandSender cs, Player p )
+	public MResult addPlayerNote( CommandSender commandSender, String playerName, String note )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public boolean isMute( Player p )
+	public MResult delPlayerNote( CommandSender commandSender, String playerName, int id )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult setTime( Time time, Player p )
+	public Map<String, String> getPlayerNotes( String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult addTime( Time time, Player p )
+	public MResult mutePlayer( CommandSender commandSender, String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult subTime( Time time, Player p )
+	public boolean isPlayerMuted( String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public Time getOnlineTime( Player p )
+	public MResult setPlayerOnlineTime( Time time, String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult log( Player p, String message )
+	public MResult addPlayerOnlineTime( Time time, String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult clearLog( Player p )
+	public MResult subPlayerOnlineTime( Time time, String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public List<String> getLog( Player p, Time timefrom, Time timeto )
+	public Time getPlayerOnlineTime( String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public List<String> getLog( Player p, String pluginfilter )
+	public MResult addPlayerLogLine( String playerName, String message )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public List<String> getLog( Player p, String pluginfilter, Time timediff )
+	public MResult clearPlayerLog( String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public UVPlayerInfo getPlayerInfo( String pname )
+	public List<String> getPlayerLog( String playerName, Time timeFrom, Time timeTo )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult cancelFriend( Player p, Player p2 )
+	public List<String> getPlayerLog( String playerName, String pluginFilter )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult delFriend( Player p, Player p2 )
+	public MResult requestFriendship( String performingPlayerName, String requestedPlayerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public List<String> getFriends( Player p )
+	public MResult acceptFriendship( String requestedPlayerName, String performingPlayerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult setProperty( Player p, String prop )
+	public MResult rejectFriendship( String requestedPlayerName, String performingPlayerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public List<String> getProperties( Player p )
+	public MResult delPlayerFriend( String performingPlayerName, String friendName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public MResult flush()
+	public List<String> getPlayerFriends( String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public UVBan getBan( Player p, String servername )
+	public MResult setPlayerProperty( String playerName, String property )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public void playerLogin( Player p )
+	public List<String> getPlayerProperties( String playerName )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public void playerLeave( Player p )
+	public boolean shutdown()
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
-	}
-
-	@Override
-	public MResult unPraise( CommandSender cs, Player p )
-	{
-		throw new UnsupportedOperationException( "Not supported yet." );
-	}
-
-	@Override
-	public boolean praised( Player s, Player p )
-	{
-		throw new UnsupportedOperationException( "Not supported yet." );
-	}
-
-	@Override
-	public MResult backendKick( Player p, String reason )
-	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 }

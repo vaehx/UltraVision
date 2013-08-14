@@ -29,7 +29,7 @@ import org.bukkit.entity.Player;
 public class UVLocalPlayer
 {
 
-	public CraftPlayer cp = null;
+	public CraftPlayer craftPlayer = null;
 	public UVPlayerInfo i = null;
 	public File logFile = null;
 	private String nl = System.getProperty( "line.separator" );
@@ -45,7 +45,7 @@ public class UVLocalPlayer
 	 */
 	public UVLocalPlayer( CraftServer server, EntityPlayer ep, String logp, UVPlayerInfo pi )
 	{
-		cp = new CraftPlayer( server, ep );
+		craftPlayer = new CraftPlayer( server, ep );
 		logpath = logp;
 		logFile = new File( logpath + UltraVisionAPI.userLogDir, ep.getName() + ".log" );
 		i = pi;
@@ -87,7 +87,7 @@ public class UVLocalPlayer
 	 */
 	public UVLocalPlayer( Player p, String logp, UVPlayerInfo pi )
 	{
-		cp = new CraftPlayer( ( CraftServer ) p.getServer(), ( ( CraftPlayer ) p ).getHandle() );
+		craftPlayer = new CraftPlayer( ( CraftServer ) p.getServer(), ( ( CraftPlayer ) p ).getHandle() );
 		logpath = logp;
 		logFile = new File( logpath + UltraVisionAPI.userLogDir, p.getName() + ".log" );
 		i = pi;
@@ -182,7 +182,7 @@ public class UVLocalPlayer
 				}
 				catch( IOException ioex )
 				{
-					MLog.e( "Can't open User file of user '" + cp.getName() + "' AFTER CLEAR." );
+					MLog.e( "Can't open User file of user '" + craftPlayer.getName() + "' AFTER CLEAR." );
 				}
 			}
 			i.logOut.append( dateFormat.format( date ) + ": " + txt + nl );
@@ -193,5 +193,14 @@ public class UVLocalPlayer
 			reopenLog();
 			log( txt );
 		}
+	}
+
+	/**
+	 * Get the Craft Player Instance
+	 * @return
+	 */
+	public CraftPlayer getCraftPlayer()
+	{
+		return craftPlayer;
 	}
 }

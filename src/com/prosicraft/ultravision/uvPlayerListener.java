@@ -27,12 +27,8 @@ public class uvPlayerListener implements Listener
 	public uvPlayerListener( ultravision parent )
 	{
 		this.parent = parent;
+		this.uv = parent.getAPI();
 		auth = parent.getAuthorizer();
-	}
-
-	public void initUV( UltraVisionAPI uva )
-	{
-		uv = uva;
 	}
 
 	public boolean loggedIn( Player p )
@@ -88,7 +84,7 @@ public class uvPlayerListener implements Listener
 					MLog.i( "Player " + p.getName() + " got hacked. Kick." );
 					e.setKickMessage( MLog.real( ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + "You're hacking a user!" ) );
 					e.setResult( PlayerLoginEvent.Result.KICK_OTHER );
-					uv.playerLeave( e.getPlayer() );
+					uv.onPlayerLeave( e.getPlayer() );
 					return;
 				}
 			}
@@ -98,13 +94,13 @@ public class uvPlayerListener implements Listener
 			{
 				e.setKickMessage( MLog.real( ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + "Invalid username. (No special characters allowed!)" ) );
 				e.setResult( PlayerLoginEvent.Result.KICK_OTHER );
-				uv.playerLeave( e.getPlayer() );
+				uv.onPlayerLeave( e.getPlayer() );
 			}
 
 			// Check if player is banned
 			if( !parent.playerJoin( e.getPlayer() ) )
 			{
-				UVBan theBan = uv.getBan( e.getPlayer(), parent.getServer().getServerName() );
+				UVBan theBan = uv.getPlayerBan( e.getPlayer().getName(), parent.getServer().getServerName() );
 
 				if( theBan == null )
 				{
@@ -114,7 +110,7 @@ public class uvPlayerListener implements Listener
 
 				e.setKickMessage( MLog.real( ChatColor.DARK_GRAY + "[UltraVision] " + ChatColor.AQUA + "You're banned. Reason: " + theBan.getReason() + " (" + ( ( theBan.isGlobal() ) ? "global, " : "local, " ) + ( ( !theBan.isTempBan() ) ? "perma" : theBan.getFormattedTimeRemain() + " left" ) + ")" ) );
 				e.setResult( PlayerLoginEvent.Result.KICK_OTHER );
-				uv.playerLeave( e.getPlayer() );
+				uv.onPlayerLeave( e.getPlayer() );
 			}
 
 		}
@@ -128,7 +124,7 @@ public class uvPlayerListener implements Listener
 			if( parent.showWelcomeMessage )
 				e.getPlayer().sendMessage( ChatColor.DARK_GRAY + " ==== " + ChatColor.GRAY + "This Server is" + ChatColor.DARK_AQUA + " powered by " + ChatColor.AQUA + "UltraVision" + ChatColor.DARK_GRAY + " ====" );
 
-			uv.playerJoin( e.getPlayer() );
+			uv.onPlayerJoin( e.getPlayer() );
 
 			if( !registered( e.getPlayer() ) )
 			{
@@ -201,7 +197,7 @@ public class uvPlayerListener implements Listener
 
 		if( uv != null && parent.useCommandLog() )
 		{
-			uv.log( event.getPlayer(), event.getMessage() );
+			uv.addPlayerLogLine( event.getPlayer().getName(), event.getMessage() );
 		}
 	}
 
