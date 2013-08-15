@@ -30,10 +30,10 @@ public class unregisterCommand extends extendedCommand
 		{
 			// /unregister <player>
 			this.ev( p );
-			UVClickAuth clickauth = ( (ultravision)getParent() ).getClickAuth();
-			if( clickauth == null )
+			MAuthorizer auth = ( (ultravision)getParent() ).getAuthorizer();
+			if( auth == null || !( (ultravision)getParent() ).IsUsingAuthorizer() )
 			{
-				return suc( p, ChatColor.YELLOW + "The UV-ClickAuth system is not used." );
+				return suc( p, ChatColor.YELLOW + "The Authorizer system is not used." );
 			}
 
 			if( numArgs() < 1 )
@@ -43,7 +43,6 @@ public class unregisterCommand extends extendedCommand
 
 			String thePlayer = getArg( 0 );
 			MResult res;
-			MAuthorizer auth = ( (ultravision)getParent() ).getAuthorizer();
 			if( ( res = auth.unregister( thePlayer, getServer().getPlayer( thePlayer ) ) ) == MResult.RES_SUCCESS )
 			{
 				return suc( p, "Unregistered player " + thePlayer + " successfully." );

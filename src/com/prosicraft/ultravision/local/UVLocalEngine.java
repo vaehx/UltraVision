@@ -76,7 +76,6 @@ public class UVLocalEngine implements UltraVisionAPI
 	 */
 	public UVLocalPlayer getUVLocalPlayer( String playerName )
 	{
-		MLog.d( "Trying to retrieve Local Player..." );
 		for( UVLocalPlayer player : players )
 		{
 			if( player.getCraftPlayer().getName().equalsIgnoreCase( playerName ) )
@@ -85,7 +84,6 @@ public class UVLocalEngine implements UltraVisionAPI
 			}
 		}
 
-		MLog.d( "Player not there. Try to load from file." );
 		if( null == readPlayer( playerName, true ) )
 			return null;
 
@@ -98,7 +96,6 @@ public class UVLocalEngine implements UltraVisionAPI
 			}
 		}
 
-		MLog.d( "Cannot find player though..." );
 		return null;
 	}
 

@@ -26,6 +26,7 @@ import com.prosicraft.ultravision.util.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -755,7 +756,9 @@ public class ultravision extends JavaPlugin
 	{
 		try
 		{
-			return ( clazz.newInstance().run( p ) == commandResult.RES_SUCCESS );
+			Constructor commandClassConstructor = clazz.getConstructor( ultravision.class, String[].class );
+			T newInstance = (T)commandClassConstructor.newInstance( this, args );
+			return ( newInstance.run( p ) == commandResult.RES_SUCCESS );
 		}
 		catch( Exception ex )
 		{
