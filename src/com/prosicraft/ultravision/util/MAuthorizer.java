@@ -169,8 +169,12 @@ public class MAuthorizer
 
 	public MResult unregister( String pName, Player p )
 	{
-		if( pName.equals( "" ) || !isRegistered( pName ) )
-			return MResult.RES_NOTINIT;
+		if( pName.equals( "" ) )
+			return MResult.RES_NOTGIVEN;
+
+		if( !isRegistered( p ) )
+			return MResult.RES_ALREADY;
+
 		a.remove( pName );
 		if( p != null )
 		{

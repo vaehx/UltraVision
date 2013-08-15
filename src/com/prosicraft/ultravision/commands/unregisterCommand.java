@@ -47,6 +47,10 @@ public class unregisterCommand extends extendedCommand
 			{
 				return suc( p, "Unregistered player " + thePlayer + " successfully." );
 			}
+			else if( res == MResult.RES_ALREADY )
+			{
+				return suc( p, ChatColor.YELLOW + "This player is not registered." );
+			}
 			else
 			{
 				return err( p, "Couldn't unregister player " + thePlayer + ": " + String.valueOf( res ) );
