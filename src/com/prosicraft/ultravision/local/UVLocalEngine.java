@@ -19,11 +19,11 @@ import java.sql.Time;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import net.minecraft.server.v1_6_R2.Packet255KickDisconnect;
+import net.minecraft.server.v1_6_R3.Packet255KickDisconnect;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
-import org.bukkit.craftbukkit.v1_6_R2.CraftServer;
+import org.bukkit.craftbukkit.v1_6_R3.CraftServer;
 import org.bukkit.entity.Player;
 
 /**
@@ -899,11 +899,13 @@ public class UVLocalEngine implements UltraVisionAPI
 			+ "an" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + reason + " (local" + ( ( time == null ) ? "" : ", for " + timeInterpreter.getText( time.getTime() ) ) + ") BY " + uPBanner.craftPlayer.getName() ) );
 
 		// And kick player
-		localPlayer.craftPlayer.getHandle().playerConnection.player.extinguish();
+		/*localPlayer.craftPlayer.getHandle().playerConnection.player.extinguish();
 		localPlayer.craftPlayer.getHandle().playerConnection.sendPacket( new Packet255KickDisconnect( MLog.real( ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + ( ( time == null ) ? "B" : "Tempb" ) + "an" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + reason + " (local" + ( ( time == null ) ? "" : ", for " + timeInterpreter.getText( time.getTime() ) ) + ")" ) ) );
 		localPlayer.craftPlayer.getHandle().playerConnection.networkManager.d();
 		( ( CraftServer ) localPlayer.craftPlayer.getServer() ).getHandle().disconnect( localPlayer.craftPlayer.getHandle() );
-		localPlayer.craftPlayer.getHandle().playerConnection.disconnected = true;
+		localPlayer.craftPlayer.getHandle().playerConnection.disconnected = true; */
+                localPlayer.craftPlayer.getServer().getPlayer( localPlayer.getCraftPlayer().getName() ).kickPlayer( ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + ( ( time == null ) ? "B" : "Tempb" ) + "an" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + reason + " (local" + ( ( time == null ) ? "" : ", for " + timeInterpreter.getText( time.getTime() ) ) + ")" );
+                //localPlayer.craftPlayer.kickPlayer( MLog.real( ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + ( ( time == null ) ? "B" : "Tempb" ) + "an" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + reason + " (local" + ( ( time == null ) ? "" : ", for " + timeInterpreter.getText( time.getTime() ) ) + ")" ) );
 
 		return MResult.RES_SUCCESS;
 	}
@@ -1006,11 +1008,12 @@ public class UVLocalEngine implements UltraVisionAPI
 		MLog.real( ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + reason + " BY " + cs.getName() );
 		uP.log( ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + reason + " BY " + cs.getName() );
 
-		( uP.getCraftPlayer() ).getHandle().playerConnection.player.extinguish();
+		/*( uP.getCraftPlayer() ).getHandle().playerConnection.player.extinguish();
 		( uP.getCraftPlayer() ).getHandle().playerConnection.sendPacket( new Packet255KickDisconnect( MLog.real( ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + reason ) ) );
 		( uP.getCraftPlayer() ).getHandle().playerConnection.networkManager.d();
 		( (CraftServer)uP.getCraftPlayer().getServer() ).getHandle().disconnect( uP.getCraftPlayer().getHandle() );
-		( uP.getCraftPlayer() ).getHandle().playerConnection.disconnected = true;
+		( uP.getCraftPlayer() ).getHandle().playerConnection.disconnected = true;*/
+                uP.getCraftPlayer().getServer().getPlayer( uP.getCraftPlayer().getName() ).kickPlayer( ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + reason );
 
 		if( !( cs instanceof Player ) )
 		{
