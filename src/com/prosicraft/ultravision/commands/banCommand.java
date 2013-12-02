@@ -31,7 +31,7 @@ public class banCommand extends extendedCommand
 		try
 		{
 
-			// /ban <player> [reason]   --> localban
+			// /rban <player> [reason]   --> localban
 			if( this.numArgs() >= 1 )
 			{
 

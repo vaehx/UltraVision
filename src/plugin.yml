@@ -1,7 +1,7 @@
 ## ultravision plugin file
 
 name: Ultravision
-version: 2013g-1.6.4-rel2
+version: 2013h-1.7.1-dev1
 description: Ultravision is a Player Supervision Plugin for highly improved server frontend business.
 author: prosicraft
 website: http://minecraft.net
@@ -160,16 +160,16 @@ commands:
         usage: /<command> <playername>
         permission: ultravision.user.unpraise
         aliases: [unpraise]
-    uvmute:
-        description: Mutes a player from chat. (local)
-        usage: /<command> <playername> [reason]
-        permission: ultravision.mod.mute
-        aliases: [mute]
-    uvunmute:
-        description: Unmutes a player from chat. (local)
-        usage: /<command> <playername>
-        permission: ultravision.mod.unmute
-        aliases: [unmute]
+   # uvmute:
+    #    description: Mutes a player from chat. (local)
+    #    usage: /<command> <playername> [reason]
+    #   permission: ultravision.mod.mute
+    #   aliases: [mute]
+  # uvunmute:
+   #    description: Unmutes a player from chat. (local)
+   #    usage: /<command> <playername>
+   #    permission: ultravision.mod.unmute
+   #    aliases: [unmute]
     uvaddfriend:
         description: Adds a friend.
         usage: /<command> <friendname>

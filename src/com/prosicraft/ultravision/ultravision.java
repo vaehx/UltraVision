@@ -27,7 +27,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import org.bukkit.ChatColor;
@@ -73,6 +75,7 @@ public class ultravision extends JavaPlugin
 	public boolean showMessagesNotLoggedIn	= true;     // Show messages, if not logged in
 	public boolean disableIngameOp		= true;	    // Disable ingame op command
 	public UVBRIDGE[] bridges		= new UVBRIDGE[ 5 ];     // Bridge to UltraBox Plugins
+	public List<String> debugPlayers	= new ArrayList<>();
 
 	//**********************************************************************************************
 	/**
@@ -299,8 +302,9 @@ public class ultravision extends JavaPlugin
 		config.set( "general.showNotRegWarning", ( showNotRegWarning = config.getBoolean( "general.showNotRegWarning", true ) ) );
 		config.set( "general.showMessagesNotLoggedIn", ( showMessagesNotLoggedIn = config.getBoolean( "general.showMessagesNotLoggedIn", true ) ) );
 		config.set( "general.debug", ( MConst._DEBUG_ENABLED = config.getBoolean( "general.debug", false ) ) );
+		config.set( "general.debugPlayers", ( debugPlayers = config.getStringList( "general.debugPlayers" , new ArrayList<String>() ) ) );
 		config.set( "general.allowNotRegActions", ( allowNotRegActions = config.getBoolean( "general.allowNotRegActions", true ) ) );
-		config.set( "general.disableIngameOp", ( disableIngameOp = config.getBoolean( "general.disableIngameOp", true ) ) );
+		config.set( "general.disableIngameOp", ( disableIngameOp = config.getBoolean( "general.disableIngameOp", true ) ) );		
 
 		// Initialize Bridges
 		if( useUltraChat )
@@ -706,6 +710,8 @@ public class ultravision extends JavaPlugin
 
 			else if( cmd.getName().equalsIgnoreCase( "uvclearconfig" ) ) commandClass = clearConfigCommand.class;
 
+			else if( cmd.getName().equalsIgnoreCase( "uvfake" ) ) commandClass = fakeCommand.class;
+			
 			else if( cmd.getName().equalsIgnoreCase( "jmessage" ) ) commandClass = jmessageCommand.class;
 
 			// Now run command if not null

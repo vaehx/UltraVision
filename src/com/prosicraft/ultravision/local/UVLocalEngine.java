@@ -19,11 +19,9 @@ import java.sql.Time;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import net.minecraft.server.v1_6_R3.Packet255KickDisconnect;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
-import org.bukkit.craftbukkit.v1_6_R3.CraftServer;
 import org.bukkit.entity.Player;
 
 /**
@@ -40,6 +38,8 @@ public class UVLocalEngine implements UltraVisionAPI
 	private ultravision ultravisionPlugin	= null; // The UltraVision Plugin
 	private List<UVLocalPlayer> players	= null;	// player memory
 	private String pluginDirectory		= "";	// The path to the plugin Directory
+	
+	public List<String> debugPlayers	= new ArrayList<>(); // players registered for debug output
 
 	/**********************************************************************/
 	/**
@@ -68,6 +68,22 @@ public class UVLocalEngine implements UltraVisionAPI
 		return result;
 	}
 
+	/**********************************************************************/
+	public void logDebug( Player p, String message )
+	{
+		if( p != null && MConst._DEBUG_ENABLED )
+		{
+			for( String debugPlayerNameIterator : debugPlayers )
+			{
+				if( p.getName().equalsIgnoreCase( debugPlayerNameIterator ) )
+				{
+					p.sendMessage( ChatColor.DARK_GRAY + "uvdbg: " + ChatColor.GRAY + message );
+					return;
+				}
+			}
+		}
+	}
+	
 	/**********************************************************************/
 	/**
 	 * Search for a UVLocalPlayer that matches given name
@@ -867,9 +883,16 @@ public class UVLocalEngine implements UltraVisionAPI
 		{
 			return MResult.RES_NOTINIT;
 		}
+                
+		// Check if command executor is given and accessable
+                if( cs == null )
+                {
+			MLog.e( "Cannot ban Player Temporarily: Command Executor parameter (cs) not set!" );
+			return MResult.RES_NOTGIVEN;
+                }
 
 		UVPlayerInfo localPlayerInformation = localPlayer.i;
-		if( authorizer.isRegistered( (Player)cs ) && !authorizer.loggedIn( (Player)cs ) )
+		if( authorizer != null && ( authorizer.isRegistered( (Player)cs ) && !authorizer.loggedIn( (Player)cs ) ) )
 		{
 			return MResult.RES_NOACCESS;
 		}
@@ -914,7 +937,7 @@ public class UVLocalEngine implements UltraVisionAPI
 	@Override
 	public MResult pardonPlayer( CommandSender cs, String playerName, String note )
 	{
-		if( authorizer.isRegistered( (Player) cs ) && !authorizer.loggedIn( (Player) cs ) )
+		if( authorizer != null && ( authorizer.isRegistered( (Player) cs ) && !authorizer.loggedIn( (Player) cs ) ) )
 		{
 			return MResult.RES_NOACCESS;
 		}
@@ -1043,11 +1066,13 @@ public class UVLocalEngine implements UltraVisionAPI
 			uP.quitlog();
 		}
 
-		( uP.getCraftPlayer() ).getHandle().playerConnection.player.extinguish();
+		/*( uP.getCraftPlayer() ).getHandle().playerConnection.player.extinguish();
 		( uP.getCraftPlayer() ).getHandle().playerConnection.sendPacket( new Packet255KickDisconnect( MLog.real( ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + reason ) ) );
 		( uP.getCraftPlayer() ).getHandle().playerConnection.networkManager.d();
 		( ( CraftServer )uP.getCraftPlayer().getServer() ).getHandle().disconnect( uP.getCraftPlayer().getHandle() );
 		( uP.getCraftPlayer() ).getHandle().playerConnection.disconnected = true;
+		*/
+		uP.getCraftPlayer().getServer().getPlayer( uP.getCraftPlayer().getName() ).kickPlayer( ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + reason );
 
 		return MResult.RES_SUCCESS;
 	}
@@ -1324,16 +1349,24 @@ public class UVLocalEngine implements UltraVisionAPI
 	@Override
 	public MResult mutePlayer( CommandSender cs, String playerName )
 	{
+		if( cs == null )
+		{
+			MLog.e( "Failed execute mutePlayer in local Engine: command sender parameter (cs) not given" );
+			return MResult.RES_NOTGIVEN;
+		}
+		
+		if( cs instanceof ConsoleCommandSender )
+		{
+			MLog.e( "MutePlayer() cannot be run on console yet!" );
+			return MResult.RES_NOACCESS;
+		}
+		
 		UVLocalPlayer uP;
 		if( ( uP = getUVLocalPlayer( playerName ) ) == null )
 		{
+			logDebug( (Player)cs, "Cannot retrieve UVLocalPlayer called '" + playerName + "' while trying to mute player." );
 			return MResult.RES_NOTGIVEN;
-		}
-
-		if( cs instanceof ConsoleCommandSender )
-		{
-			return MResult.RES_NOACCESS;
-		}
+		}		
 
 		if( uP.i.isMute )
 		{
