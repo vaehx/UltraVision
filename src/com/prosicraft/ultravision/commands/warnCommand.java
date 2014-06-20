@@ -4,6 +4,7 @@
  */
 package com.prosicraft.ultravision.commands;
 
+import com.prosicraft.ultravision.base.PlayerIdent;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.ultravision;
 import com.prosicraft.ultravision.util.MLog;
@@ -60,7 +61,7 @@ public class warnCommand extends extendedCommand
 						reason += getArg( i ).trim();
 					MResult res;
 					UltraVisionAPI api = ( ( ultravision ) getParent() ).getAPI();
-					if( ( res = api.warnPlayer( p, mayWarn.get( 0 ).getName(), ( ( numArgs() >= 2 ) ? reason : "No reason provided." ) ) ) == MResult.RES_SUCCESS )
+					if( ( res = api.warnPlayer( p, new PlayerIdent(mayWarn.get( 0 )), ( ( numArgs() >= 2 ) ? reason : "No reason provided." ) ) ) == MResult.RES_SUCCESS )
 					{
 						( ( ultravision ) getParent() ).ownBroadcast( ChatColor.AQUA + "Player " + mayWarn.get( 0 ).getName() + " has been warned by " + p.getName() + "." );
 					}

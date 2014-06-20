@@ -14,6 +14,7 @@
 package com.prosicraft.ultravision;
 
 import com.prosicraft.ultravision.JMessage.JMessage;
+import com.prosicraft.ultravision.base.PlayerIdent;
 import com.prosicraft.ultravision.base.UVChatListener;
 import com.prosicraft.ultravision.base.UVClickAuth;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
@@ -532,7 +533,7 @@ public class ultravision extends JavaPlugin
 			return true;    // not false, otherwise it would crash
 
 		api.onPlayerLogin( p );
-		if( api.isPlayerBanned( p.getName() ) )
+		if( api.isPlayerBanned( new PlayerIdent(p) ) )
 			return false;
 
 		config.save();

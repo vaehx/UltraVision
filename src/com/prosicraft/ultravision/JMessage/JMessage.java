@@ -4,6 +4,7 @@
  */
 package com.prosicraft.ultravision.JMessage;
 
+import com.prosicraft.ultravision.base.PlayerIdent;
 import com.prosicraft.ultravision.base.UVClickAuth;
 import com.prosicraft.ultravision.base.UVPlayerInfo;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
@@ -162,7 +163,7 @@ public class JMessage
 			return "";
 		
 		DateFormat dateFormat = new SimpleDateFormat( "yyyy/MM/dd HH:mm:ss" );		
-		UVPlayerInfo pi = uv.getPlayerInfo( p.getName() );
+		UVPlayerInfo pi = uv.getPlayerInfo( new PlayerIdent(p) );
 		if( pi == null )
 		{
 			MLog.w( "Could not retrieve UVPlayerInfo for user '" + p.getName() + "'" );

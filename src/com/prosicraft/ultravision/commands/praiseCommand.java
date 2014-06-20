@@ -1,9 +1,12 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * This file is part of the UltraVision Craftbukkit Plugin by prosicraft.
+ * 
+ * (c) 2010-2014 prosicraft
+ * All rights reserved.
  */
 package com.prosicraft.ultravision.commands;
 
+import com.prosicraft.ultravision.base.PlayerIdent;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.ultravision;
 import com.prosicraft.ultravision.util.MLog;
@@ -61,10 +64,10 @@ public class praiseCommand extends extendedCommand
 					MResult res;
 					UltraVisionAPI api = ( ( ultravision ) this.getParent() ).getAPI();
 
-					if( api.isPlayerPraisedBy( p.getName(), mayPraise.get( 0 ).getName() ) )
+					if( api.isPlayerPraisedBy( new PlayerIdent(p), new PlayerIdent(mayPraise.get( 0 )) ) )
 						return suc( p, "You already praised this player. Use /unpraise to unpraise." );
 
-					if( ( res = api.praisePlayer( p, mayPraise.get( 0 ).getName() ) ) == MResult.RES_SUCCESS )
+					if( ( res = api.praisePlayer( p, new PlayerIdent(mayPraise.get( 0 )) ) ) == MResult.RES_SUCCESS )
 					{
 						mayPraise.get( 0 ).sendMessage( ChatColor.DARK_AQUA + "You got praised by " + ChatColor.AQUA + p.getName() );
 					}

@@ -5,6 +5,7 @@
  */
 package com.prosicraft.ultravision.local;
 
+import com.prosicraft.ultravision.base.PlayerIdent;
 import com.prosicraft.ultravision.base.UVPlayerInfo;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.util.MConst;
@@ -30,6 +31,7 @@ public class UVLocalPlayer
 {
 
 	public CraftPlayer craftPlayer = null;
+        public PlayerIdent playerIdent = null;
 	public UVPlayerInfo i = null;
 	public File logFile = null;
 	private String nl = System.getProperty( "line.separator" );
@@ -46,9 +48,11 @@ public class UVLocalPlayer
 	public UVLocalPlayer( CraftServer server, EntityPlayer ep, String logp, UVPlayerInfo pi )
 	{
 		craftPlayer = new CraftPlayer( server, ep );
+                playerIdent = new PlayerIdent();
+                playerIdent.Set(craftPlayer.getUniqueId());
 		logpath = logp;
-		logFile = new File( logpath + UltraVisionAPI.userLogDir, ep.getName() + ".log" );
-		i = pi;
+		logFile = new File( logpath + UltraVisionAPI.userLogDir, playerIdent.toString() + ".log" );
+		i = pi;                
 
 		if( !logFile.exists() )
 		{
@@ -75,6 +79,7 @@ public class UVLocalPlayer
 		catch( IOException ioex )
 		{
 			MLog.e( "Can't open User file of user '" + ep.displayName + "'" );
+                        ioex.printStackTrace(System.out);
 		}
 	}
 
@@ -94,9 +99,12 @@ public class UVLocalPlayer
 		}
 		
 		craftPlayer = new CraftPlayer( ( CraftServer ) p.getServer(), ( ( CraftPlayer ) p ).getHandle() );
-		logpath = logp;
-		logFile = new File( logpath + UltraVisionAPI.userLogDir, p.getName() + ".log" );
-		i = pi;
+		playerIdent = new PlayerIdent();
+                playerIdent.Set(craftPlayer.getUniqueId());
+                logpath = logp;
+		logFile = new File( logpath + UltraVisionAPI.userLogDir, playerIdent.toString() + ".log" );
+		i = pi;                
+                
 		if( !logFile.exists() )
 		{
 			try
@@ -118,7 +126,7 @@ public class UVLocalPlayer
 		}
 		catch( IOException ioex )
 		{
-			MLog.e( "Can't open User file of user '" + p.getName() + "'" );
+			MLog.e( "Can't open User file of user '" + p.getName() + "' (" + playerIdent.toString() + ")" );
 		}
 	}
 
@@ -188,7 +196,7 @@ public class UVLocalPlayer
 				}
 				catch( IOException ioex )
 				{
-					MLog.e( "Can't open User file of user '" + craftPlayer.getName() + "' AFTER CLEAR." );
+					MLog.e( "Can't open User file of user '" + craftPlayer.getName() + "' (" + playerIdent.toString() + ") AFTER CLEAR." );
 				}
 			}
 			i.logOut.append( dateFormat.format( date ) + ": " + txt + nl );
@@ -209,4 +217,14 @@ public class UVLocalPlayer
 	{
 		return craftPlayer;
 	}
+                
+        public String GetName()
+        {
+            return craftPlayer.getName();            
+        }
+                
+        public PlayerIdent GetIdent()
+        {
+            return playerIdent;
+        }
 }

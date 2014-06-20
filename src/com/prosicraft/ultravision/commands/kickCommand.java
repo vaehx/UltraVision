@@ -1,14 +1,16 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * This file is part of the UltraVision Craftbukkit Plugin by prosicraft.
+ * 
+ * (c) 2010-2014 prosicraft
+ * All rights reserved.
  */
 package com.prosicraft.ultravision.commands;
 
+import com.prosicraft.ultravision.base.PlayerIdent;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.ultravision;
 import com.prosicraft.ultravision.util.MLog;
 import com.prosicraft.ultravision.util.MResult;
-import java.util.Arrays;
 import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -64,7 +66,7 @@ public class kickCommand extends extendedCommand
 					reason = reason.trim();
 					MResult res;
 					UltraVisionAPI api = ( ( ultravision ) this.getParent() ).getAPI();
-					if( ( res = api.kickPlayer( s, mayKick.get( 0 ).getName(), ( ( getArgs().length >= 2 ) ? reason : "No reason provided." ) ) ) == MResult.RES_SUCCESS )
+					if( ( res = api.kickPlayer( s, new PlayerIdent(mayKick.get( 0 )), ( ( getArgs().length >= 2 ) ? reason : "No reason provided." ) ) ) == MResult.RES_SUCCESS )
 					{
 						( (ultravision) getParent() ).ownBroadcast( ChatColor.AQUA + mayKick.get( 0 ).getName() + ChatColor.DARK_GRAY + " kicked by " + ChatColor.AQUA + s.getName() + ChatColor.DARK_GRAY + "." );
 						( (ultravision) getParent() ).ownBroadcast( ChatColor.DARK_GRAY + "Reason: " + ChatColor.GOLD + ( ( numArgs() >= 2 ) ? reason : "No reason." ) );
@@ -133,7 +135,7 @@ public class kickCommand extends extendedCommand
 					reason = reason.trim();
 					MResult res;
 					UltraVisionAPI api = ( ( ultravision ) this.getParent() ).getAPI();
-					if( ( res = api.kickPlayer( p, mayKick.get( 0 ).getName(), ( ( getArgs().length >= 2 ) ? reason : "No reason provided." ) ) ) == MResult.RES_SUCCESS )
+					if( ( res = api.kickPlayer( p, new PlayerIdent(mayKick.get( 0 )), ( ( getArgs().length >= 2 ) ? reason : "No reason provided." ) ) ) == MResult.RES_SUCCESS )
 					{
 						( (ultravision) getParent() ).ownBroadcast( ChatColor.AQUA + mayKick.get( 0 ).getName() + ChatColor.DARK_GRAY + " kicked by " + ChatColor.AQUA + p.getName() + ChatColor.DARK_GRAY + "." );
 						( (ultravision) getParent() ).ownBroadcast( ChatColor.DARK_GRAY + "Reason: " + ChatColor.GOLD + ( ( numArgs() >= 2 ) ? reason : "No reason." ) );

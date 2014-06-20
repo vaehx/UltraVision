@@ -4,6 +4,7 @@
  */
 package com.prosicraft.ultravision.commands;
 
+import com.prosicraft.ultravision.base.PlayerIdent;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.ultravision;
 import com.prosicraft.ultravision.util.MLog;
@@ -56,14 +57,14 @@ public class unwarnCommand extends extendedCommand
 				else
 				{    // Got ONE player
 					UltraVisionAPI api = ( ( ultravision ) getParent() ).getAPI();
-					if( !api.isPlayerWarned( mayWarn.get( 0 ).getName() ) )
+					if( !api.isPlayerWarned( new PlayerIdent(mayWarn.get( 0 )) ) )
 						return suc( p, ChatColor.RED + "Player is not warned." );
 
 					String reason = "";
 					for( int i = 1; i < numArgs(); i++ )
 						reason += getArg( i ).trim();
 					MResult res;
-					if( ( res = api.unwarnPlayer( p, mayWarn.get( 0 ).getName() ) ) == MResult.RES_SUCCESS )
+					if( ( res = api.unwarnPlayer( p, new PlayerIdent(mayWarn.get( 0 )) ) ) == MResult.RES_SUCCESS )
 					{
 						( ( ultravision ) getParent() ).ownBroadcast( ChatColor.AQUA + "Player " + mayWarn.get( 0 ).getName() + " has been unwarned by " + p.getName() + "." );
 					}

@@ -43,7 +43,7 @@ public class UVChatListener implements Listener
 			e.setMessage( ChatColor.GRAY + "(Not logged in) " + ( parent.showMessagesNotLoggedIn ? e.getMessage() : "" ) );
 		}
 
-		if( parent.getAPI().isPlayerWarned( e.getPlayer().getName() ) )
+		if( parent.getAPI().isPlayerWarned( new PlayerIdent(e.getPlayer()) ) )
 		{
 			e.setMessage( ChatColor.GRAY + "(warned) " + ( config.getBoolean( "ultravision.showWarnedMessages", true ) ? e.getMessage() : "" ) );
 		}

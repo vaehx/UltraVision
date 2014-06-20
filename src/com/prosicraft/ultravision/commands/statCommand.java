@@ -1,17 +1,22 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * This file is part of the UltraVision Craftbukkit Plugin by prosicraft.
+ * 
+ * (c) 2010-2014 prosicraft
+ * All rights reserved.
  */
 package com.prosicraft.ultravision.commands;
 
+import com.prosicraft.ultravision.base.PlayerIdent;
 import com.prosicraft.ultravision.base.UVBan;
 import com.prosicraft.ultravision.base.UVPlayerInfo;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.ultravision;
 import com.prosicraft.ultravision.util.MLog;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 /**
@@ -52,7 +57,7 @@ public class statCommand extends extendedCommand
 	{
 		super( uv, args );
 	}
-
+	
 	@Override
 	public commandResult run( Player p )
 	{
@@ -61,9 +66,9 @@ public class statCommand extends extendedCommand
 		{
 
 			UltraVisionAPI api = ( ( ultravision ) this.getParent() ).getAPI();
-
-			Player pl = null;
+			
 			UVPlayerInfo uI = null;
+			PlayerIdent uIdent = null;
 			String t = "all";
 			String theName = "";
 
@@ -92,7 +97,7 @@ public class statCommand extends extendedCommand
 				}
 				else
 				{
-					List<Player> mayStat = getParent().getServer().matchPlayer( getArg( 0 ) );
+					List<UltraVisionAPI.MatchUserResult> mayStat = api.matchUser(getArg(0), false);
 
 					if( mayStat == null || mayStat.isEmpty() )
 					{
@@ -103,17 +108,20 @@ public class statCommand extends extendedCommand
 					{
 						p.sendMessage( ChatColor.DARK_AQUA + "There are some players matching '" + this.getArg( 0 ) + "'" );
 						String plist = "";
-						for( Player toKick : mayStat )
+						for( UltraVisionAPI.MatchUserResult toKick : mayStat )
 						{
-							plist += ChatColor.GRAY + toKick.getName() + ( ( mayStat.indexOf( toKick ) != ( mayStat.size() - 1 ) ) ? ChatColor.DARK_GRAY + ", " : "" );
+							String formattedName = toKick.name + ((toKick.isOnline) ? "" : " (off)");							
+							plist += ChatColor.GRAY + formattedName + ( ( mayStat.indexOf( toKick ) != ( mayStat.size() - 1 ) ) ? ChatColor.DARK_GRAY + ", " : "" );
 						}
 						p.sendMessage( plist );
 						return suc();
 					}
 					else
 					{
-						pl = mayStat.get( 0 );
-						theName = pl.getName();
+						UltraVisionAPI.MatchUserResult singleResult = mayStat.get(0);
+						uI = api.getPlayerInfo(singleResult.pIdent);
+						uIdent = singleResult.pIdent;
+						theName = singleResult.name;
 					}
 				}
 
@@ -144,49 +152,39 @@ public class statCommand extends extendedCommand
 				// Eval param 2
 				theName = getArg( 1 );
 
-				List<Player> mayStat = getParent().getServer().matchPlayer( theName );
+				List<UltraVisionAPI.MatchUserResult> mayStat = api.matchUser(theName, false);
 				if( mayStat == null || mayStat.isEmpty() )
-				{
-					if( ( uI = api.getPlayerInfo( theName ) ) == null )
-					{
-						return err( p, ChatColor.RED + "There's no player called '" + theName + "'." );
-					}
-					mayStat = new ArrayList<>();
-					mayStat.add( api.getPlayer( theName ) );
+				{															
+					return err( p, ChatColor.RED + "There's no player called '" + theName + "'." );										
 				}
 
 				if( mayStat.size() > 1 )
 				{
 					p.sendMessage( ChatColor.DARK_AQUA + "There are some players matching '" + theName + "'" );
 					String plist = "";
-					for( Player toKick : mayStat )
+					for( UltraVisionAPI.MatchUserResult toKick : mayStat )
 					{
-						plist += ChatColor.GRAY + toKick.getName() + ( ( mayStat.indexOf( toKick ) != ( mayStat.size() - 1 ) ) ? ChatColor.DARK_GRAY + ", " : "" );
+						String formattedName = toKick.name + ((toKick.isOnline) ? "" : " (off)");
+						plist += ChatColor.GRAY + formattedName + ( ( mayStat.indexOf( toKick ) != ( mayStat.size() - 1 ) ) ? ChatColor.DARK_GRAY + ", " : "" );
 					}
 					p.sendMessage( plist );
 					return suc();
 				}
 				else if( mayStat.size() == 1 )
 				{
-					pl = mayStat.get( 0 );
-					theName = pl.getName();
+					UltraVisionAPI.MatchUserResult singleResult = mayStat.get(0);
+					uI = api.getPlayerInfo(singleResult.pIdent);
+					theName = singleResult.name;
+					uIdent = singleResult.pIdent;
 				}
 
 			}
-
-			if( uI == null )
-			{
-				if( pl == null )
-					return err( p, "No information about no player." );
-
-				uI = api.getPlayerInfo( pl.getName() );
-
-				if( uI == null )
-					return err( p, "Cannot get Player information about player " + pl.getName() + "!" );
-			}
+			
+			// we expect the user information to be gathered here. otherwise break.
+			if( uI == null || uIdent == null )
+				return err( p, "Cannot get Player information about player " + theName + "!" );		
 
 			// now we have the PlayerInfo instance and we can read this out.
-
 			if( t.equalsIgnoreCase( "time" ) )
 			{
 				return suc( p, ChatColor.DARK_AQUA + "Total Online time of " + ChatColor.AQUA + getArg( 1 ) + ChatColor.DARK_AQUA + ": " + ChatColor.GOLD + timeInterpreter.getText( uI.getOnlineTime() ) );
@@ -208,7 +206,7 @@ public class statCommand extends extendedCommand
 			}
 			else if( t.equalsIgnoreCase( "ban" ) )
 			{
-				if( api.isPlayerBanned( theName ) )
+				if( api.isPlayerBanned( uIdent ) )
 				{
 					p.sendMessage( ChatColor.GREEN + "Player '" + theName + "' is banned." );
 				}

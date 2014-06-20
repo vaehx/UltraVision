@@ -1,9 +1,12 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * This file is part of the UltraVision Craftbukkit Plugin by prosicraft.
+ * 
+ * (c) 2010-2014 prosicraft
+ * All rights reserved.
  */
 package com.prosicraft.ultravision.commands;
 
+import com.prosicraft.ultravision.base.PlayerIdent;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.ultravision;
 import com.prosicraft.ultravision.util.MLog;
@@ -58,13 +61,13 @@ public class addfriendCommand extends extendedCommand
 					MResult res;
 					UltraVisionAPI api = ( ( ultravision ) this.getParent() ).getAPI();
 
-					if( api.getPlayerFriends( p.getName() ).contains( mayFriend.get( 0 ).getName() ) )
+					if( api.getPlayerFriends( new PlayerIdent(p) ).contains( mayFriend.get( 0 ).getName() ) )
 						return suc( p, "You are already in friendship with " + mayFriend.get( 0 ).getName() );
 
 					if( p.getName().equalsIgnoreCase( mayFriend.get( 0 ).getName() ) )
 						return suc( p, ChatColor.RED + "You can't add yourself as a friend." );
 
-					if( ( res = api.requestFriendship( p.getName(), mayFriend.get( 0 ).getName() ) ) == MResult.RES_SUCCESS )
+					if( ( res = api.requestFriendship( new PlayerIdent(p), new PlayerIdent(mayFriend.get(0)) ) ) == MResult.RES_SUCCESS )
 					{
 						mayFriend.get( 0 ).sendMessage( ChatColor.AQUA + p.getName() + ChatColor.DARK_AQUA + " wants to be a friend of you." );
 						mayFriend.get( 0 ).sendMessage( ChatColor.DARK_AQUA + "Please answer with " + ChatColor.GOLD + "/accfriend " + p.getName() + " yes" + ChatColor.DARK_AQUA + " or " + ChatColor.GOLD + "no" );

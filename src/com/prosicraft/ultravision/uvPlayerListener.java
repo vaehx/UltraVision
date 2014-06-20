@@ -1,6 +1,7 @@
 /*              THIS FILE IS PART OF ULTRAVISION                              */
 package com.prosicraft.ultravision;
 
+import com.prosicraft.ultravision.base.PlayerIdent;
 import com.prosicraft.ultravision.base.UVBan;
 import com.prosicraft.ultravision.base.UVPlayerInfo;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
@@ -94,7 +95,7 @@ public class uvPlayerListener implements Listener
 			// Check if player is banned
 			if( !parent.playerJoin( e.getPlayer() ) )
 			{
-				UVBan theBan = uv.getPlayerBan( e.getPlayer().getName(), parent.getServer().getServerName() );
+				UVBan theBan = uv.getPlayerBan( new PlayerIdent(e.getPlayer()), parent.getServer().getServerName() );
 
 				if( theBan == null )
 				{
@@ -115,10 +116,11 @@ public class uvPlayerListener implements Listener
 	{
 		if( e.getPlayer() instanceof Player )
 		{
-			parent.getAPI().addPlayerLogLine( e.getPlayer().getName(), "** Joined successfully (ip " + e.getPlayer().getAddress().toString() + ")" );
-			if( parent.getAPI().isPlayerWarned( e.getPlayer().getName() ) )
+			PlayerIdent pIdent = new PlayerIdent(e.getPlayer());
+			parent.getAPI().addPlayerLogLine( pIdent, "** Joined successfully (ip " + e.getPlayer().getAddress().toString() + ")" );
+			if( parent.getAPI().isPlayerWarned( pIdent ) )
 			{
-				parent.getAPI().addPlayerLogLine( e.getPlayer().getName(), "* player is warned." );
+				parent.getAPI().addPlayerLogLine( pIdent, "* player is warned." );
 			}
 
 			if( parent.showWelcomeMessage )
@@ -137,7 +139,7 @@ public class uvPlayerListener implements Listener
 		if( e.getPlayer() instanceof Player )
 		{
 			UVPlayerInfo ui;
-			if( ( ui = uv.getPlayerInfo( e.getPlayer().getName() ) ) != null )
+			if( ( ui = uv.getPlayerInfo( new PlayerIdent(e.getPlayer()) ) ) != null )
 			{
 				for( String fr : ui.friendRequests )
 				{
@@ -195,7 +197,7 @@ public class uvPlayerListener implements Listener
 
 		if( uv != null && parent.useCommandLog() )
 		{
-			uv.addPlayerLogLine( event.getPlayer().getName(), event.getMessage() );
+			uv.addPlayerLogLine( new PlayerIdent(event.getPlayer()), event.getMessage() );
 		}
 	}
 

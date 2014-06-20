@@ -1,9 +1,12 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * This file is part of the UltraVision Craftbukkit Plugin by prosicraft.
+ * 
+ * (c) 2010-2014 prosicraft
+ * All rights reserved.
  */
 package com.prosicraft.ultravision.commands;
 
+import com.prosicraft.ultravision.base.PlayerIdent;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.ultravision;
 import com.prosicraft.ultravision.util.MLog;
@@ -46,7 +49,7 @@ public class backendkickCommand extends extendedCommand
 							reason += this.getArg( i ).trim() + " ";
 						reason = reason.trim();
 						MResult tres = MResult.RES_UNKNOWN;
-						if( api.kickPlayerHard( p.getName(), reason ) == MResult.RES_SUCCESS )
+						if( api.kickPlayerHard( new PlayerIdent(p), reason ) == MResult.RES_SUCCESS )
 						{
 							MLog.i( "Backend Kicked Player successfully." );
 						}
@@ -103,7 +106,7 @@ public class backendkickCommand extends extendedCommand
 							reason += this.getArg( i ).trim() + " ";
 						reason = reason.trim();
 						MResult tres = MResult.RES_UNKNOWN;
-						if( api.kickPlayerHard( pl.getName(), reason ) == MResult.RES_SUCCESS )
+						if( api.kickPlayerHard( new PlayerIdent(pl), reason ) == MResult.RES_SUCCESS )
 						{
 							return suc( p, "Backend Kicked Player successfully." );
 						}

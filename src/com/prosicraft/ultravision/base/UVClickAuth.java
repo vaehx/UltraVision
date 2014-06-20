@@ -1,6 +1,8 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * This file is part of the UltraVision Craftbukkit Plugin by prosicraft.
+ * 
+ * (c) 2010-2014 prosicraft
+ * All rights reserved.
  */
 package com.prosicraft.ultravision.base;
 
@@ -19,7 +21,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
- *
+ * This feature is discontinued for now, because it was too buggy.
+ * 
  * @author passi
  */
 public class UVClickAuth
@@ -456,6 +459,6 @@ public class UVClickAuth
 
 	public void doTheKick( Player p )
 	{
-		api.kickPlayerHard( p.getName(), "You're not permitted to play on this server." );
+		api.kickPlayerHard( new PlayerIdent(p), "You're not permitted to play on this server." );
 	}
 }

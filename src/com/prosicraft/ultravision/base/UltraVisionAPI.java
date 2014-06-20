@@ -5,7 +5,6 @@ package com.prosicraft.ultravision.base;
 
 import com.prosicraft.ultravision.util.MAuthorizer;
 import com.prosicraft.ultravision.util.MResult;
-import java.io.IOException;
 import java.sql.Time;
 import java.util.List;
 import java.util.Map;
@@ -45,21 +44,41 @@ public interface UltraVisionAPI
 	 * @param player The Player
 	 * @return Map of informations
 	 */
-	public Map<String, String> getAllPlayerInformation( String playerName );
+	public Map<String, String> getAllPlayerInformation( PlayerIdent uid );
 
 	/**
 	 * Get the UVPlayer Instance of a player
 	 * @param playerName
 	 * @return
 	 */
-	public Player getPlayer( String playerName );
+	public Player getPlayer( PlayerIdent uid );
 
 	/**
 	 * Get Information about a player
 	 * @param playerName
 	 * @return
 	 */
-	public UVPlayerInfo getPlayerInfo( String playerName );
+	public UVPlayerInfo getPlayerInfo( PlayerIdent uid );
+	
+	public String tryGetPlayerNameByUID(PlayerIdent uid);
+	
+	
+	
+	
+	public class MatchUserResult
+	{
+		public String name;			
+		public boolean isOnline;
+		public PlayerIdent pIdent;
+		
+		public MatchUserResult(String name, boolean isOnline, PlayerIdent uid)
+		{
+			this.name = name;
+			this.isOnline = isOnline;
+			this.pIdent = uid;
+		}
+	}	
+	public List<MatchUserResult> matchUser(String name, boolean needsToBeEqual);
 
 	/****************************************************************************************/
 
@@ -67,13 +86,13 @@ public interface UltraVisionAPI
 	 * Save player files
 	 * @param playerName
 	 */
-	public MResult savePlayer( String playerName );
+	public MResult savePlayer( PlayerIdent uid );
 
 	/**
 	 * Read player data from files
 	 * @param playerName
 	 */
-	public UVPlayerInfo readPlayer( String playerName, boolean forceNewFile );
+	public UVPlayerInfo readPlayer( PlayerIdent uid, boolean forceNewFile );
 
 	/****************************************************************************************/
 
@@ -126,7 +145,7 @@ public interface UltraVisionAPI
 	 * @param reason
 	 * @return
 	 */
-	public MResult banPlayerLocally( CommandSender commandSender, String playerName, String reason );
+	public MResult banPlayerLocally( CommandSender commandSender, PlayerIdent uid, String reason );
 
 	/**
 	 * Do a global Ban (forever-temp-ban)
@@ -137,7 +156,7 @@ public interface UltraVisionAPI
 	 * @param global
 	 * @return
 	 */
-	public MResult banPlayer( CommandSender commandSender, String playerName, String reason, boolean global );
+	public MResult banPlayer( CommandSender commandSender, PlayerIdent uid, String reason, boolean global );
 
 	/**
 	 * Ban a player for a specified time by given Player name
@@ -150,7 +169,7 @@ public interface UltraVisionAPI
 	 * @param global
 	 * @return
 	 */
-	public MResult banPlayerTemporarily( CommandSender commandSender, String playerName, String reason, Time time, boolean global );
+	public MResult banPlayerTemporarily( CommandSender commandSender, PlayerIdent uid, String reason, Time time, boolean global );
 
 	/**
 	 * Pardon a banned player
@@ -160,7 +179,7 @@ public interface UltraVisionAPI
 	 * @param note
 	 * @return
 	 */
-	public MResult pardonPlayer( CommandSender commandSender, String playerName, String note );
+	public MResult pardonPlayer( CommandSender commandSender, PlayerIdent uid, String note );
 
 	/**
 	 * Check if Player is banned or not
@@ -168,7 +187,7 @@ public interface UltraVisionAPI
 	 * @param playerName
 	 * @return
 	 */
-	public boolean isPlayerBanned( String playerName );
+	public boolean isPlayerBanned( PlayerIdent uid );
 
 	/**
 	 * Get a list of bans where specified player was was banned
@@ -177,7 +196,7 @@ public interface UltraVisionAPI
 	 * @param p
 	 * @return
 	 */
-	public List<UVBan> getPlayerBans( String playerName );
+	public List<UVBan> getPlayerBans( PlayerIdent uid );
 
 	/**
 	 * Get the current ban on given server
@@ -187,7 +206,7 @@ public interface UltraVisionAPI
 	 * @param servername
 	 * @return
 	 */
-	public UVBan getPlayerBan( String playerName, String servername );
+	public UVBan getPlayerBan( PlayerIdent uid, String servername );
 
 	/**
 	 * Get older Bans (tempbans)
@@ -195,7 +214,7 @@ public interface UltraVisionAPI
 	 * @param p
 	 * @return
 	 */
-	public List<UVBan> getPlayerBanHistory( String playerName );
+	public List<UVBan> getPlayerBanHistory( PlayerIdent uid );
 
 	/****************************************************************************************/
 
@@ -207,7 +226,7 @@ public interface UltraVisionAPI
 	 * @param reason
 	 * @return
 	 */
-	public MResult kickPlayer( CommandSender commandSender, String playerName, String reason );
+	public MResult kickPlayer( CommandSender commandSender, PlayerIdent uid, String reason );
 
 	/**
 	 * Do a Hard-Kick.
@@ -217,14 +236,14 @@ public interface UltraVisionAPI
 	 * @param reason
 	 * @return
 	 */
-	public MResult kickPlayerHard( String playerName, String reason );
+	public MResult kickPlayerHard( PlayerIdent uid, String reason );
 
 	/**
 	 * Get kick History of a player
 	 * @param p
 	 * @return
 	 */
-	public List<UVKick> getPlayerKickHistory( String playerName );
+	public List<UVKick> getPlayerKickHistory( PlayerIdent uid );
 
 	/****************************************************************************************/
 
@@ -235,7 +254,7 @@ public interface UltraVisionAPI
 	 * @param reason
 	 * @return
 	 */
-	public MResult warnPlayer( CommandSender commandSender, String playerName, String reason );
+	public MResult warnPlayer( CommandSender commandSender, PlayerIdent uid, String reason );
 
 	/**
 	 * Warn a player for given time
@@ -245,7 +264,7 @@ public interface UltraVisionAPI
 	 * @param timediff
 	 * @return
 	 */
-	public MResult warnPlayerTemporarily( CommandSender commandSender, String playerName, String reason, Time time );
+	public MResult warnPlayerTemporarily( CommandSender commandSender, PlayerIdent uid, String reason, Time time );
 
 	/**
 	 * Unwarn a player
@@ -253,35 +272,35 @@ public interface UltraVisionAPI
 	 * @param p
 	 * @return
 	 */
-	public MResult unwarnPlayer( CommandSender commandSender, String playerName );
+	public MResult unwarnPlayer( CommandSender commandSender, PlayerIdent uid );
 
 	/**
 	 * Check if a player is warned
 	 * @param playerName
 	 * @return
 	 */
-	public boolean isPlayerWarned( String playerName );
+	public boolean isPlayerWarned( PlayerIdent uid );
 
 	/**
 	 * Get the reason for a warning
 	 * @param playerName
 	 * @return
 	 */
-	public String getPlayerWarnReason( String playerName );
+	public String getPlayerWarnReason( PlayerIdent uid );
 
 	/**
 	 * Get the instance of a warning
 	 * @param playerName
 	 * @return
 	 */
-	public UVWarning getPlayerWarning( String playerName );
+	public UVWarning getPlayerWarning( PlayerIdent uid );
 
 	/**
 	 * Get older warnings
 	 * @param p
 	 * @return
 	 */
-	public List<UVWarning> getPlayerWarnHistory( String playerName );
+	public List<UVWarning> getPlayerWarnHistory( PlayerIdent uid );
 
 	/****************************************************************************************/
 
@@ -291,7 +310,7 @@ public interface UltraVisionAPI
 	 * @param p
 	 * @return
 	 */
-	public MResult praisePlayer( CommandSender commandSender, String playerName );  // one command sender can praise only once
+	public MResult praisePlayer( CommandSender commandSender, PlayerIdent uid );  // one command sender can praise only once
 
 	/**
 	 * Unpraise a player
@@ -299,7 +318,7 @@ public interface UltraVisionAPI
 	 * @param playerName
 	 * @return
 	 */
-	public MResult unpraisePlayer( CommandSender commandSender, String playerName );
+	public MResult unpraisePlayer( CommandSender commandSender, PlayerIdent uid );
 
 	/**
 	 * check if a player is praised by another player
@@ -307,14 +326,14 @@ public interface UltraVisionAPI
 	 * @param p
 	 * @return
 	 */
-	public boolean isPlayerPraisedBy( String playerName, String otherPlayerName );
+	public boolean isPlayerPraisedBy( PlayerIdent uid, PlayerIdent otherUid );
 
 	/**
 	 * The the total count of praises for a player
 	 * @param p
 	 * @return
 	 */
-	public int getPlayerPraiseCount( String playerName );
+	public int getPlayerPraiseCount( PlayerIdent uid );
 
 	/****************************************************************************************/
 
@@ -325,7 +344,7 @@ public interface UltraVisionAPI
 	 * @param note
 	 * @return
 	 */
-	public MResult addPlayerNote( CommandSender commandSender, String playerName, String note );
+	public MResult addPlayerNote( CommandSender commandSender, PlayerIdent uid, String note );
 
 	/**
 	 * removes a note from a player with given id
@@ -334,14 +353,14 @@ public interface UltraVisionAPI
 	 * @param id
 	 * @return
 	 */
-	public MResult delPlayerNote( CommandSender commandSender, String playerName, int id );
+	public MResult delPlayerNote( CommandSender commandSender, PlayerIdent uid, int id );
 
 	/**
 	 * get all players notes
 	 * @param p
 	 * @return
 	 */
-	public Map<String, String> getPlayerNotes( String playerName );
+	public Map<String, String> getPlayerNotes( PlayerIdent uid );
 
 	/**
 	 * Mute a player
@@ -349,14 +368,14 @@ public interface UltraVisionAPI
 	 * @param p
 	 * @return
 	 */
-	public MResult mutePlayer( CommandSender commandSender, String playerName );
+	public MResult mutePlayer( CommandSender commandSender, PlayerIdent uid );
 
 	/**
 	 * Check if a player has been muted
 	 * @param p
 	 * @return
 	 */
-	public boolean isPlayerMuted( String playerName );
+	public boolean isPlayerMuted( PlayerIdent uid );
 
 	/****************************************************************************************/
 
@@ -366,7 +385,7 @@ public interface UltraVisionAPI
 	 * @param p
 	 * @return
 	 */
-	public MResult setPlayerOnlineTime( Time time, String playerName );
+	public MResult setPlayerOnlineTime( Time time, PlayerIdent uid );
 
 	/**
 	 * Add amount to time of player is online
@@ -374,7 +393,7 @@ public interface UltraVisionAPI
 	 * @param playerName
 	 * @return
 	 */
-	public MResult addPlayerOnlineTime( Time time, String playerName );
+	public MResult addPlayerOnlineTime( Time time, PlayerIdent uid );
 
 	/**
 	 * Subtract from time of player is online
@@ -382,14 +401,14 @@ public interface UltraVisionAPI
 	 * @param p
 	 * @return
 	 */
-	public MResult subPlayerOnlineTime( Time time, String playerName );
+	public MResult subPlayerOnlineTime( Time time, PlayerIdent uid );
 
 	/**
 	 * get the online time, a player is online
 	 * @param p
 	 * @return
 	 */
-	public Time getPlayerOnlineTime( String playerName );
+	public Time getPlayerOnlineTime( PlayerIdent uid );
 
 	/****************************************************************************************/
 
@@ -399,14 +418,14 @@ public interface UltraVisionAPI
 	 * @param message
 	 * @return
 	 */
-	public MResult addPlayerLogLine( String playerName, String message );
+	public MResult addPlayerLogLine( PlayerIdent uid, String message );
 
 	/**
 	 * Clear the log of a player
 	 * @param p
 	 * @return
 	 */
-	public MResult clearPlayerLog( String playerName );
+	public MResult clearPlayerLog( PlayerIdent uid );
 
 	/**
 	 * get the log entries from a player in given time range
@@ -415,7 +434,7 @@ public interface UltraVisionAPI
 	 * @param timeto
 	 * @return
 	 */
-	public List<String> getPlayerLog( String playerName, Time timeFrom, Time timeTo );
+	public List<String> getPlayerLog( PlayerIdent uid, Time timeFrom, Time timeTo );
 
 	/**
 	 * Get the log entries of a player filtered by plugin
@@ -423,7 +442,7 @@ public interface UltraVisionAPI
 	 * @param pluginfilter
 	 * @return
 	 */
-	public List<String> getPlayerLog( String playerName, String pluginFilter );
+	public List<String> getPlayerLog( PlayerIdent uid, String pluginFilter );
 
 	/****************************************************************************************/
 
@@ -433,7 +452,7 @@ public interface UltraVisionAPI
 	 * @param p2
 	 * @return
 	 */
-	public MResult requestFriendship( String performingPlayerName, String requestedPlayerName );
+	public MResult requestFriendship( PlayerIdent performerUID, PlayerIdent requestedUID );
 
 	/**
 	 * Accept the friendship
@@ -441,7 +460,7 @@ public interface UltraVisionAPI
 	 * @param p2
 	 * @return
 	 */
-	public MResult acceptFriendship( String requestedPlayerName, String performingPlayerName );
+	public MResult acceptFriendship( PlayerIdent requestedUID, PlayerIdent performingUID );
 
 	/**
 	 * Reject a friendship request
@@ -449,7 +468,7 @@ public interface UltraVisionAPI
 	 * @param p2
 	 * @return
 	 */
-	public MResult rejectFriendship( String requestedPlayerName, String performingPlayerName );
+	public MResult rejectFriendship( PlayerIdent requestedUID, PlayerIdent performingUID );
 
 	/**
 	 * Remove a friend
@@ -457,14 +476,14 @@ public interface UltraVisionAPI
 	 * @param p2
 	 * @return
 	 */
-	public MResult delPlayerFriend( String performingPlayerName, String friendName );
+	public MResult delPlayerFriend( PlayerIdent performingUID, PlayerIdent friendUID );
 
 	/**
 	 * Get a list of all friends a player has
 	 * @param p
 	 * @return
 	 */
-	public List<String> getPlayerFriends( String playerName );
+	public List<String> getPlayerFriends( PlayerIdent uid );
 
 	/**
 	 * Set a custom property for a user
@@ -472,12 +491,12 @@ public interface UltraVisionAPI
 	 * @param prop
 	 * @return
 	 */
-	public MResult setPlayerProperty( String playerName, String property );
+	public MResult setPlayerProperty( PlayerIdent uid, String property );
 
 	/**
 	 * Get the list of all custom player properties
 	 * @param playerName
 	 * @return
 	 */
-	public List<String> getPlayerProperties( String playerName );
+	public List<String> getPlayerProperties( PlayerIdent uid );
 }

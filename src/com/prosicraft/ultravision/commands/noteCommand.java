@@ -1,9 +1,12 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * This file is part of the UltraVision Craftbukkit Plugin by prosicraft.
+ * 
+ * (c) 2010-2014 prosicraft
+ * All rights reserved.
  */
 package com.prosicraft.ultravision.commands;
 
+import com.prosicraft.ultravision.base.PlayerIdent;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.ultravision;
 import com.prosicraft.ultravision.util.MLog;
@@ -60,7 +63,7 @@ public class noteCommand extends extendedCommand
 					MResult res;
 					UltraVisionAPI api = ( ( ultravision ) this.getParent() ).getAPI();
 
-					if( ( res = api.addPlayerNote( p, mayNote.get( 0 ).getName(), reason ) ) == MResult.RES_SUCCESS )
+					if( ( res = api.addPlayerNote( p, new PlayerIdent(mayNote.get( 0 )), reason ) ) == MResult.RES_SUCCESS )
 					{
 						mayNote.get( 0 ).sendMessage( ChatColor.DARK_AQUA + "You've got a note: " + ChatColor.WHITE + reason );
 					}

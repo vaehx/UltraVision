@@ -8,6 +8,7 @@ import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.ultravision;
 import com.prosicraft.ultravision.util.MLog;
 import com.prosicraft.ultravision.util.MResult;
+import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -41,7 +42,11 @@ public class unbanCommand extends extendedCommand
 					reason += this.getArg( i ).trim() + " ";
 				MResult res;
 				UltraVisionAPI api = ( ( ultravision ) this.getParent() ).getAPI();
-				if( ( res = api.pardonPlayer( p, getArg( 0 ), ( ( getArgs().length >= 2 ) ? reason.trim() : "No reason provided." ) ) ) == MResult.RES_SUCCESS )
+				List<UltraVisionAPI.MatchUserResult> match = api.matchUser(getArg(0), true);
+				if (match.isEmpty())
+					return err(p, "Cannot find this user!");													
+				
+				if( ( res = api.pardonPlayer( p, match.get(0).pIdent, ( ( getArgs().length >= 2 ) ? reason.trim() : "No reason provided." ) ) ) == MResult.RES_SUCCESS )
 				{
 					( ( ultravision ) getParent() ).ownBroadcast( ChatColor.AQUA + getArg( 0 ) + ChatColor.DARK_AQUA + " pardoned by " + ChatColor.AQUA + p.getName() + ChatColor.DARK_AQUA + " (local). " );
 					( ( ultravision ) getParent() ).ownBroadcast( ChatColor.DARK_AQUA + "Reason: " + ChatColor.AQUA + ( ( numArgs() >= 2 ) ? reason.trim() : "No reason." ) );

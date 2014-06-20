@@ -4,6 +4,7 @@
  */
 package com.prosicraft.ultravision.commands;
 
+import com.prosicraft.ultravision.base.PlayerIdent;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.ultravision;
 import com.prosicraft.ultravision.util.MLog;
@@ -36,7 +37,8 @@ public class tempwarnCommand extends extendedCommand
 			if( this.numArgs() >= 2 )
 			{
 
-				List<Player> mayWarn = getServer().matchPlayer( getArg( 0 ) );
+				UltraVisionAPI api = ( ( ultravision ) getParent() ).getAPI();
+				List<UltraVisionAPI.MatchUserResult> mayWarn = api.matchUser(getArg(0), false);
 
 				if( mayWarn == null || mayWarn.isEmpty() )
 				{
@@ -47,9 +49,10 @@ public class tempwarnCommand extends extendedCommand
 				{
 					p.sendMessage( ChatColor.DARK_AQUA + "There are some players matching '" + getArg( 0 ) + "'" );
 					String plist = "";
-					for( Player toWarn : mayWarn )
+					for( UltraVisionAPI.MatchUserResult toWarn : mayWarn )
 					{
-						plist += ChatColor.GRAY + toWarn.getName() + ( ( mayWarn.indexOf( toWarn ) != ( mayWarn.size() - 1 ) ) ? ChatColor.DARK_GRAY + ", " : "" );
+						String formattedName = toWarn.name + ((toWarn.isOnline) ? "" : " (off)");
+						plist += ChatColor.GRAY + formattedName + ( ( mayWarn.indexOf( toWarn ) != ( mayWarn.size() - 1 ) ) ? ChatColor.DARK_GRAY + ", " : "" );
 					}
 					p.sendMessage( plist );
 					return suc();
@@ -70,11 +73,10 @@ public class tempwarnCommand extends extendedCommand
 
 					Time tt = new Time( thetime );
 
-					MResult res;
-					UltraVisionAPI api = ( ( ultravision ) getParent() ).getAPI();
-					if( ( res = api.warnPlayerTemporarily( p, mayWarn.get( 0 ).getName(), ( ( numArgs() >= 2 ) ? reason : "No reason provided." ), tt ) ) == MResult.RES_SUCCESS )
+					MResult res;					
+					if( ( res = api.warnPlayerTemporarily( p, mayWarn.get(0).pIdent, ( ( numArgs() >= 2 ) ? reason : "No reason provided." ), tt ) ) == MResult.RES_SUCCESS )
 					{
-						( ( ultravision ) getParent() ).ownBroadcast( ChatColor.AQUA + "Player " + mayWarn.get( 0 ).getName() + " has been warned by " + p.getName() + " for " + timeInterpreter.getText( thetime ) + "." );
+						( ( ultravision ) getParent() ).ownBroadcast( ChatColor.AQUA + "Player " + mayWarn.get( 0 ).name + " has been warned by " + p.getName() + " for " + timeInterpreter.getText( thetime ) + "." );
 					}
 					else if( res == MResult.RES_ALREADY )
 					{

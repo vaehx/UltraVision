@@ -1,9 +1,12 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * This file is part of the UltraVision Craftbukkit Plugin by prosicraft.
+ * 
+ * (c) 2010-2014 prosicraft
+ * All rights reserved.
  */
 package com.prosicraft.ultravision.commands;
 
+import com.prosicraft.ultravision.base.PlayerIdent;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.ultravision;
 import com.prosicraft.ultravision.util.MLog;
@@ -58,10 +61,10 @@ public class delfriendCommand extends extendedCommand
 					MResult res;
 					UltraVisionAPI api = ( ( ultravision ) this.getParent() ).getAPI();
 
-					if( !api.getPlayerFriends( p.getName() ).contains( mayFriend.get( 0 ).getName() ) )
+					if( !api.getPlayerFriends( new PlayerIdent(p) ).contains( mayFriend.get( 0 ).getName() ) )
 						return suc( p, "You are not in friendship with " + mayFriend.get( 0 ).getName() );
 
-					if( ( res = api.delPlayerFriend( p.getName(), mayFriend.get( 0 ).getName() ) ) != MResult.RES_SUCCESS )
+					if( ( res = api.delPlayerFriend( new PlayerIdent(p), new PlayerIdent(mayFriend.get(0)) ) ) != MResult.RES_SUCCESS )
 					{
 						p.sendMessage( ChatColor.RED + "Can't remove player as friend: " + res.toString() );
 					}
