@@ -98,7 +98,7 @@ public class UVLocalEngine implements UltraVisionAPI
 	 * @returns null if player cannot be loaded into memory,
 	 *	e.g. when server cannot find a player instance
 	 */
-	public UVLocalPlayer getUVLocalPlayer( PlayerIdent uid )
+	public UVLocalPlayer getUVLocalPlayer( PlayerIdent uid, Player playerInstance )
 	{
 		for( UVLocalPlayer player : players )
 		{
@@ -108,8 +108,11 @@ public class UVLocalEngine implements UltraVisionAPI
 			}
 		}
 
-		if( null == readPlayer( uid, true ) )
-			return null;
+		// If readPlayer cannot find the player in the bukkit system yet,
+		// it will use the given playerInstance.
+		// If the playerInstance is just null, then readPlayer will
+		// only return the player information if there is one.
+		readPlayer( uid, true, playerInstance );
 
 		for( UVLocalPlayer player : players )
 		{
@@ -121,6 +124,10 @@ public class UVLocalEngine implements UltraVisionAPI
 		}
 
 		return null;
+	}
+	public UVLocalPlayer getUVLocalPlayer(PlayerIdent uid)
+	{
+		return getUVLocalPlayer(uid, null);
 	}
 
 	/**********************************************************************/
@@ -411,7 +418,7 @@ public class UVLocalEngine implements UltraVisionAPI
 
 
 	@Override
-	public UVPlayerInfo readPlayer( PlayerIdent uid, boolean forceNewFile )
+	public UVPlayerInfo readPlayer( PlayerIdent uid, boolean forceNewFile, Player playerInstance )
 	{
 		MLog.d( "Start fetching Player Info from player with id " + uid.toString() + " ..." );
 
@@ -702,40 +709,52 @@ public class UVLocalEngine implements UltraVisionAPI
 				}
 			}
 
-			// Add the new player if not there already
-			boolean playerFound = false;
+			// Check if we already loaded this player
+			// If so, we'll delete the old instance
 			for( UVLocalPlayer player : players  )
 			{
 				if( uid.Equals(player.getCraftPlayer().getUniqueId()) )
 				{
-					playerFound = true;
+					players.remove(player);
 					break;
 				}
 			}
 
-			// if not already there, then create a new player
-			if( !playerFound )
+			// If the player is already registered in the bukkit system,
+			// then add him to our array immediately, otherwise we'll just return the player information
+			Player bukkitPlayer = ultravisionPlugin.getServer().getPlayer(uid.Get());
+			if( bukkitPlayer == null )
 			{
-				Player bukkitPlayer = null;
-				if( null == ( bukkitPlayer = ultravisionPlugin.getServer().getPlayer( uid.Get() ) ) )
-				{
-					bukkitPlayer = ultravisionPlugin.getServer().getOfflinePlayer( uid.Get() ).getPlayer();
-				}
+				MLog.d("Could not find online player with uuid " + uid.toString() + ". Trying to search an offline player...");
+				bukkitPlayer = ultravisionPlugin.getServer().getOfflinePlayer( uid.Get() ).getPlayer();
+			}
 
-				if( bukkitPlayer == null )
+			if (bukkitPlayer == null)
+			{
+				if (playerInstance == null)
 				{
-					MLog.d( "Cannot load player who was unknown to UV into memory as he never's been on server." );
-					resultInformation = null;
+					MLog.e("Could not load player into memory: Could not retrieve bukkit player instance!");
+					return null;
 				}
 				else
 				{
-					UVLocalPlayer newPlayer = new UVLocalPlayer( bukkitPlayer, pluginDirectory, resultInformation );
-					players.add( newPlayer );
-					MLog.i( "Loaded new player named '" + bukkitPlayer.getName() + "' (" + uid.toString() + ") to memory." );
+					bukkitPlayer = playerInstance;
+					MLog.d("Using given player Instance, not registered in bukkit system yet to load player into memory.");
 				}
 			}
 
+			UVLocalPlayer newPlayer = new UVLocalPlayer( bukkitPlayer, pluginDirectory, resultInformation );
+
+			// prevent NPE in JMessage
+			if (newPlayer.i.lastOnline == null) newPlayer.i.lastOnline = new Time( Calendar.getInstance().getTime().getTime() );
+			if (newPlayer.i.lastLogin == null) newPlayer.i.lastLogin = newPlayer.i.lastOnline;
+
+			players.add( newPlayer );
+			MLog.i( "Loaded new player named '" + bukkitPlayer.getName() + "' (" + uid.toString() + ") into memory." );
+
 			fid.close();
+
+			return resultInformation;
 		}
 		catch( IOException ioex )
 		{
@@ -743,8 +762,12 @@ public class UVLocalEngine implements UltraVisionAPI
 			ioex.printStackTrace( System.out );
 			return null;
 		}
+	}
 
-		return resultInformation;
+	@Override
+	public UVPlayerInfo readPlayer(PlayerIdent uid, boolean forceNewFile)
+	{
+		return readPlayer(uid, forceNewFile, null);
 	}
 
 	/**********************************************************************/
@@ -758,19 +781,19 @@ public class UVLocalEngine implements UltraVisionAPI
 
 		// getUVLocalPlayer will try to read the player data file and create
 		// a new one if it doesn't exist yet
-		UVLocalPlayer localPlayer = getUVLocalPlayer(pIdent);
+		UVLocalPlayer localPlayer = getUVLocalPlayer(pIdent, p);
 		if( localPlayer == null )
 		{
-			MLog.d("Could not add player in LocalEngine::getUVLocalPlayer, so we'll add it now.");
+			MLog.d("Could not add player in LocalEngine::getUVLocalPlayer, so we'll try to add it now.");
 
-			// create the nwe player instance
+			// create the new player instance
 			localPlayer = new UVLocalPlayer( p, pluginDirectory, new UVPlayerInfo() );
 			localPlayer.i.lastOnline = new Time( Calendar.getInstance().getTime().getTime() );
 			localPlayer.i.lastLogin = localPlayer.i.lastOnline;
 
 			players.add( localPlayer );
 			savePlayer( localPlayer.GetIdent() );
-			MLog.d( "Added brand new Player '" + p.getName() + "' (" + pIdent.toString() + ") to memory!" );
+			MLog.d( "Created PlayerInstance '" + p.getName() + "' (" + pIdent.toString() + ") to memory!" );
 		}
 	}
 
@@ -787,7 +810,7 @@ public class UVLocalEngine implements UltraVisionAPI
 		}
 
 		PlayerIdent pIdent = new PlayerIdent(p.getUniqueId());
-		UVLocalPlayer localPlayer = getUVLocalPlayer( pIdent );
+		UVLocalPlayer localPlayer = getUVLocalPlayer(pIdent, p);
 		if( localPlayer != null )
 		{
 			localPlayer.i.lastLogin = new Time( Calendar.getInstance().getTime().getTime() );

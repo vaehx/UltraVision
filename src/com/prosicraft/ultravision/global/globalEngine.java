@@ -56,6 +56,11 @@ public class globalEngine implements UltraVisionAPI
 	}
 
 	@Override
+	public UVPlayerInfo readPlayer(PlayerIdent uid, boolean forceNewFile, Player playerInstance) {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
 	public void onPlayerJoin( Player p )
 	{
 		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
@@ -357,5 +362,5 @@ public class globalEngine implements UltraVisionAPI
 	@Override
 	public List<MatchUserResult> matchUser(String name, boolean needsToBeEqual) {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-	}			
+	}
 }

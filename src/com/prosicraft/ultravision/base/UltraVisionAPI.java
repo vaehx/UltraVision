@@ -59,25 +59,25 @@ public interface UltraVisionAPI
 	 * @return
 	 */
 	public UVPlayerInfo getPlayerInfo( PlayerIdent uid );
-	
+
 	public String tryGetPlayerNameByUID(PlayerIdent uid);
-	
-	
-	
-	
+
+
+
+
 	public class MatchUserResult
 	{
-		public String name;			
+		public String name;
 		public boolean isOnline;
 		public PlayerIdent pIdent;
-		
+
 		public MatchUserResult(String name, boolean isOnline, PlayerIdent uid)
 		{
 			this.name = name;
 			this.isOnline = isOnline;
 			this.pIdent = uid;
 		}
-	}	
+	}
 	public List<MatchUserResult> matchUser(String name, boolean needsToBeEqual);
 
 	/****************************************************************************************/
@@ -92,6 +92,8 @@ public interface UltraVisionAPI
 	 * Read player data from files
 	 * @param playerName
 	 */
+	public UVPlayerInfo readPlayer( PlayerIdent uid, boolean forceNewFile, Player playerInstance );
+
 	public UVPlayerInfo readPlayer( PlayerIdent uid, boolean forceNewFile );
 
 	/****************************************************************************************/
