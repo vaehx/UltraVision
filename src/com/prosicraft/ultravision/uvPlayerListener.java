@@ -71,7 +71,7 @@ public class uvPlayerListener implements Listener
 		if( e.getPlayer() instanceof Player )
 		{
 			uv.onPlayerJoin( e.getPlayer() );
-
+			
 			// Check if player is already online
 			for( Player p : parent.getServer().getOnlinePlayers() )
 			{
@@ -199,6 +199,11 @@ public class uvPlayerListener implements Listener
 						}
 					}
 				}
+			}
+			else if (event.getMessage().contains("/login"))
+			{
+				event.getPlayer().sendMessage(ChatColor.YELLOW + "You're already logged in.");
+				event.setCancelled(true);
 			}
 		}
 		else

@@ -196,25 +196,20 @@ public class ultravision extends JavaPlugin
 	@Override
 	public void onDisable()
 	{
-		MLog.i( "Ultravision is being shutdown. (Updating Config...)" );
+		MLog.i( "Ultravision is being shutdown." );
 
+		// Save authorizer datas
 		if( auth != null )
 			auth.save();
 
 		if( clickauth != null )
-			clickauth.saveToFile();
-
-		config.setDefault( "auth.showMessagesNotLoggedIn", true );
-		config.setDefault( "ultravision.showWarnedMessages", true );
+			clickauth.saveToFile();	
 
 		// Save Jmessage config
 		if( jmsg != null )
-			jmsg.save( config );
+			jmsg.save( config );	
 
-		config.set( "general.savestats", config.getBoolean( "general.savestats", true ) );
-
-		// Shut down Engine
-		MLog.i( "Request engine shutdown..." );
+		// Shut down Engine		
 		if( api != null )
 		{
 			for( Player p : getServer().getOnlinePlayers() )
@@ -231,10 +226,9 @@ public class ultravision extends JavaPlugin
 				MLog.e( "Can't shut down engine (" + ( ( global ) ? "global" : "local" ) + ")" );
 			}
 		}
-
-		config.save();
+		
 		playerListener = null;
-		fPDesc = null;
+		fPDesc = null;		
 		config = null;
 
 		// Stop the Mineconnect server
@@ -245,7 +239,9 @@ public class ultravision extends JavaPlugin
 			MLog.i( "Mineconnect Server stopped successfullly." );
 		}
 		else
+		{
 			MLog.i( "Mineconnect Server already shut down or disabled." );
+		}
 	}
 
 	//**********************************************************************************************
@@ -260,8 +256,8 @@ public class ultravision extends JavaPlugin
 		{
 			Properties buildProperties = new Properties();
 			try
-			{
-				InputStream resourceStream = ultravision.class.getResourceAsStream( "/com/prosicraft/ultravision/version.properties" );
+			{				
+				InputStream resourceStream = ultravision.class.getResourceAsStream("version.properties");
 				if( resourceStream == null )
 				{
 					MLog.i( "Cannot retrieve UltraVision Build number. This may occur when reloading UV in runtime." );
@@ -305,13 +301,20 @@ public class ultravision extends JavaPlugin
 		config.set( "general.debug", ( MConst._DEBUG_ENABLED = config.getBoolean( "general.debug", false ) ) );
 		config.set( "general.debugPlayers", ( debugPlayers = config.getStringList( "general.debugPlayers" , new ArrayList<String>() ) ) );
 		config.set( "general.allowNotRegActions", ( allowNotRegActions = config.getBoolean( "general.allowNotRegActions", true ) ) );
-		config.set( "general.disableIngameOp", ( disableIngameOp = config.getBoolean( "general.disableIngameOp", true ) ) );		
+		config.set( "general.disableIngameOp", ( disableIngameOp = config.getBoolean( "general.disableIngameOp", true ) ) );						
 
+		config.setDefault( "auth.showMessagesNotLoggedIn", true );
+		config.setDefault( "ultravision.showWarnedMessages", true );				
+		config.set( "general.savestats", config.getBoolean( "general.savestats", true ) );
+		
 		// Initialize Bridges
 		if( useUltraChat )
 		{
 			addBridge( new UVBRIDGE( this, "UltraChat" ) );
 		}
+		
+		// save config file
+		config.save();
 	}
 
 	//**********************************************************************************************
@@ -454,7 +457,7 @@ public class ultravision extends JavaPlugin
 			}
 		}
 
-		config = new MConfiguration( YamlConfiguration.loadConfiguration( cf ), cf );
+		config = new MConfiguration( YamlConfiguration.loadConfiguration( cf ), cf );				
 
 		// Initialize DataTable
 		Map<String, MConfiguration.DataType> dt = new HashMap<>();
