@@ -44,11 +44,15 @@ public class sayCommand extends extendedCommand
 			out = out.trim();
 
 			if( out.equalsIgnoreCase( "reload" ) )
-				out = "Serverreload. Do NOT chat or use any command.";
+			{
+				out = ChatColor.RED + "Serverreload. Do " + ChatColor.BOLD + "not" + ChatColor.RESET + ChatColor.RED + " chat or use any command.";
+			}
 			else if( out.equalsIgnoreCase( "finish" ) )
-				out = "Finished. You're logged out.";
+			{				
+				out = ChatColor.RED + "Reload finished." + (((ultravision)getParent()).IsUsingAuthorizer() ? " You're logged out." : "");
+			}
 
-			( ( ultravision ) getParent() ).ownBroadcast( ChatColor.DARK_GRAY + "  [" + ChatColor.LIGHT_PURPLE + "Server" + ChatColor.DARK_GRAY + "] " + ChatColor.RED + out );
+			( ( ultravision ) getParent() ).ownBroadcast( ChatColor.DARK_GRAY + "  [" + ChatColor.LIGHT_PURPLE + "Server" + ChatColor.DARK_GRAY + "] " + out );
 
 			return suc();
 
@@ -82,11 +86,15 @@ public class sayCommand extends extendedCommand
 			out = out.trim();
 
 			if( out.equalsIgnoreCase( "reload" ) )
-				out = "Serverreload. Do NOT chat or use any command.";
+			{
+				out = ChatColor.RED + "Serverreload. Do " + ChatColor.BOLD + "not" + ChatColor.RESET + ChatColor.RED + " chat or use any command.";
+			}
 			else if( out.equalsIgnoreCase( "finish" ) )
-				out = "Finished. You're logged out.";
+			{				
+				out = ChatColor.RED + "Reload finished." + (((ultravision)getParent()).IsUsingAuthorizer() ? " You're logged out." : "");
+			}
 
-			( ( ultravision ) getParent() ).ownBroadcast( ChatColor.DARK_GRAY + "  [" + ChatColor.DARK_RED + p.getDisplayName() + ChatColor.DARK_GRAY + "] " + ChatColor.RED + out );
+			( ( ultravision ) getParent() ).ownBroadcast( ChatColor.DARK_GRAY + "  [" + ChatColor.DARK_RED + p.getDisplayName() + ChatColor.DARK_GRAY + "] " + out );
 
 			return suc();
 
