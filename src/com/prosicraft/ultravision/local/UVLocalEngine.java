@@ -61,11 +61,16 @@ public class UVLocalEngine implements UltraVisionAPI
 		boolean result = true;
 		for( UVLocalPlayer player : players )
 		{
-			if( savePlayer( new PlayerIdent(player.craftPlayer.getUniqueId()) ) != MResult.RES_SUCCESS )
+			PlayerIdent pIdent = new PlayerIdent(player.craftPlayer.getUniqueId());
+			MResult tempRes;
+			if( (tempRes = savePlayer(pIdent)) != MResult.RES_SUCCESS )
+			{
+				MLog.d("Could save Player: Returned with error " + tempRes.toString());
 				result = false;
+			}
 		}
-
 		players.clear();
+		
 		return result;
 	}
 
@@ -146,6 +151,8 @@ public class UVLocalEngine implements UltraVisionAPI
 	@Override
 	public MResult savePlayer( PlayerIdent uid )
 	{
+		MLog.d("Now trying to save Player file of puuid " + uid.toString());
+		
 		try
 		{
 			// Get the Local Player and its information
@@ -161,6 +168,7 @@ public class UVLocalEngine implements UltraVisionAPI
 
 			if( player == null )
 			{
+				MLog.e("Cannot save player: Not found in UV memory");
 				return MResult.RES_NOTGIVEN;
 			}
 
@@ -183,6 +191,7 @@ public class UVLocalEngine implements UltraVisionAPI
 				catch( IOException ioex )
 				{
 					MLog.e( "Can't create new file at " + MConfiguration.normalizePath( ud ) );
+					ioex.printStackTrace(System.out);
 					return MResult.RES_ERROR;
 				}
 			}
@@ -194,7 +203,7 @@ public class UVLocalEngine implements UltraVisionAPI
 			}
 			catch( FileNotFoundException fnfex )
 			{
-				MLog.e( "(flushUD) Can't load UserData file: File not found (user: '" + player.GetName() + "' (" + player.GetIdent().toString() + ")" );
+				MLog.e( "(flushUD) Can't get UserData file for save: File not found (user: '" + player.GetName() + "' (" + player.GetIdent().toString() + ")" );
 				return null;
 			}
 
@@ -336,9 +345,7 @@ public class UVLocalEngine implements UltraVisionAPI
 			//=== Write Player end
 			fod.write( MAuthorizer.getCharArrayB( "theend", 6 ) );
 			fod.flush();
-			fod.close();
-
-			return MResult.RES_SUCCESS;
+			fod.close();		
 		}
 		catch( IOException ex )
 		{
@@ -346,6 +353,8 @@ public class UVLocalEngine implements UltraVisionAPI
 			ex.printStackTrace( System.out );
 			return MResult.RES_ERROR;
 		}
+		
+		return MResult.RES_SUCCESS;
 	}
 
 	/**********************************************************************/

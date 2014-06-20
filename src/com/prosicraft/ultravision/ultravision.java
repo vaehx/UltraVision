@@ -222,13 +222,13 @@ public class ultravision extends JavaPlugin
 				api.onPlayerLeave( p );
 			}
 
-			if( !api.shutdown() )
+			if( api.shutdown() )
 			{
 				MLog.i( "Shut down engine (" + ( ( global ) ? "global" : "local" ) + ")" );
 			}
 			else
 			{
-				MLog.e( "Can't shut down engine (" + ( ( global ) ? "global" : "local" ) + ")." );
+				MLog.e( "Can't shut down engine (" + ( ( global ) ? "global" : "local" ) + ")" );
 			}
 		}
 
