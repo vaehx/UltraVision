@@ -73,15 +73,20 @@ public class uvPlayerListener implements Listener
 			uv.onPlayerJoin( e.getPlayer() );
 			
 			// Check if player is already online
-			for( Player p : parent.getServer().getOnlinePlayers() )
+			if (!e.getPlayer().getServer().getOnlineMode())
 			{
-				if( p.getName().equalsIgnoreCase( e.getPlayer().getName() ) )
-				{
-					MLog.i( "Player " + p.getName() + " got hacked. Kick." );
-					e.setKickMessage( MLog.real( ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + "You're hacking a user!" ) );
-					e.setResult( PlayerLoginEvent.Result.KICK_OTHER );
-					uv.onPlayerLeave( e.getPlayer() );
-					return;
+				for( Player p : parent.getServer().getOnlinePlayers() )
+				{								
+					// Test UUID and name (prevent multiple users with same nickname)
+					if( e.getPlayer().getUniqueId() == p.getUniqueId()
+						|| e.getPlayer().getName().equalsIgnoreCase(p.getName()) )
+					{
+						MLog.i( "Player " + p.getName() + " got hacked. Kick." );
+						e.setKickMessage( MLog.real( ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + "Kick" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + "You're hacking a user!" ) );
+						e.setResult( PlayerLoginEvent.Result.KICK_OTHER );
+						uv.onPlayerLeave( e.getPlayer() );
+						return;
+					}
 				}
 			}
 

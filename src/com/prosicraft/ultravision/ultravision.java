@@ -52,6 +52,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class ultravision extends JavaPlugin
 {
 
+	private String buildVersion		= "??";
 	private MConfiguration config		= null;     // Ultravision Configuration
 	private PluginDescriptionFile fPDesc	= null;     // Plugin description file
 	private uvPlayerListener playerListener	= null;     // The Main Listener
@@ -76,7 +77,7 @@ public class ultravision extends JavaPlugin
 	public boolean showMessagesNotLoggedIn	= true;     // Show messages, if not logged in
 	public boolean disableIngameOp		= true;	    // Disable ingame op command
 	public UVBRIDGE[] bridges		= new UVBRIDGE[ 5 ];     // Bridge to UltraBox Plugins
-	public List<String> debugPlayers	= new ArrayList<>();
+	public List<String> debugPlayers	= new ArrayList<>();		
 
 	//**********************************************************************************************
 	/**
@@ -261,13 +262,14 @@ public class ultravision extends JavaPlugin
 				if( resourceStream == null )
 				{
 					MLog.i( "Cannot retrieve UltraVision Build number. This may occur when reloading UV in runtime." );
+					buildVersion = "???";
 					return;
 				}
 
 				buildProperties.load( resourceStream );
-				String buildVersion = buildProperties.getProperty( "BUILD" );
+				buildVersion = "#b" + MCrypt.prependZeros(buildProperties.getProperty( "BUILD" ));
 
-				MLog.i( "Ultravision is starting (Version " + fPDesc.getVersion() + " #b" + MCrypt.prependZeros( buildVersion ) + ") ..." );
+				MLog.i( "Ultravision is starting (Version " + fPDesc.getVersion() + " " + buildVersion + ") ..." );
 			}
 			catch( IOException e )
 			{
@@ -277,8 +279,9 @@ public class ultravision extends JavaPlugin
 		}
 		catch( java.util.MissingResourceException ex )
 		{
+			buildVersion = "???";
 			MLog.i( "Ultravision is starting (Version " + fPDesc.getVersion() + " #b???) ..." );
-			MLog.d( "Cannot retrieve Build version due to resource not found." );
+			MLog.d( "Cannot retrieve Build version due to resource not found." );			
 		}
 	}
 
@@ -734,7 +737,7 @@ public class ultravision extends JavaPlugin
 
 			if( cmd.getName().equalsIgnoreCase( "ultravision" ) )
 			{
-				MLog.i( "Running UltraVision " + fPDesc.getVersion() + "." );
+				MLog.i( "Running UltraVision " + fPDesc.getVersion() + " " + buildVersion + "." );
 			}
 
 			if( cmd.getName().equalsIgnoreCase( "uvkick" ) ) commandClass = kickCommand.class;
