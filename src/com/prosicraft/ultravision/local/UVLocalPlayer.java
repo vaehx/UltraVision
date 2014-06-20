@@ -87,6 +87,12 @@ public class UVLocalPlayer
 	 */
 	public UVLocalPlayer( Player p, String logp, UVPlayerInfo pi )
 	{
+		if( pi == null )
+		{
+			MLog.w( "Got null as PlayerInfo in UVLocalPlayer::UVLocalPlayer( Player, String, UVPlayerInfo ). Instancing empty now..." );
+			pi = new UVPlayerInfo();
+		}
+		
 		craftPlayer = new CraftPlayer( ( CraftServer ) p.getServer(), ( ( CraftPlayer ) p ).getHandle() );
 		logpath = logp;
 		logFile = new File( logpath + UltraVisionAPI.userLogDir, p.getName() + ".log" );

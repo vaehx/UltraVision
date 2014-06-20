@@ -147,12 +147,12 @@ public class JMPlayerListener implements Listener
 		return res;
 	}
 
-	@EventHandler( priority = EventPriority.HIGH )
+	@EventHandler( priority = EventPriority.NORMAL )
 	public void onPlayerJoin( PlayerJoinEvent event )
 	{
 		if( messager == null )
 			return;
-
+		
 		messager.doJoin( event.getPlayer() );
 
 		if( messager.isClearingStandard() )

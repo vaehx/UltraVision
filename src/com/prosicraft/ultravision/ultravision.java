@@ -5,9 +5,9 @@
  *       This Bukkit Plugin provides functionality for every security,
  *              as well as broadcasting and logging purposes on your MC-Server.
  *
- *                              by prosicraft  ,   (c) 2013
+ *                              by prosicraft  ,   (c) 2014
  *
- *          Update 14.08.2013
+ *          Update 6.1.2014
  *
  *  ============================================================================
  */
@@ -784,11 +784,13 @@ public class ultravision extends JavaPlugin
 	{
 		try
 		{
-			return ( clazz.newInstance().consoleRun( console ) == commandResult.RES_SUCCESS );
+			Constructor commandClassConstructor = clazz.getConstructor( ultravision.class, String[].class );
+			T newInstance = (T)commandClassConstructor.newInstance( this, args );
+			return ( newInstance.consoleRun(console) == commandResult.RES_SUCCESS );			
 		}
 		catch( Exception ex )
 		{
-			MLog.e( "Cannot find class for consolecommand or something went wrong in this command: " + clazz.getName() );
+			MLog.e( "Cannot find class for consolecommand or something went wrong in this console command: " + clazz.getName() );
 			ex.printStackTrace( System.out );
 			return false;
 		}

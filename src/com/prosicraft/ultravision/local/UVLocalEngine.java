@@ -708,12 +708,14 @@ public class UVLocalEngine implements UltraVisionAPI
 	@Override
 	public void onPlayerJoin( Player p )
 	{
-		UVLocalPlayer localPlayer = getUVLocalPlayer( p.getName() );
-
-		// check if found - if not create a new one
+		// check if userentry found
+		UVLocalPlayer localPlayer = getUVLocalPlayer( p.getName() );		
 		if( localPlayer == null )
 		{
-			UVPlayerInfo localPlayerInfo = readPlayer( p.getName(), true );
+			// check if player info is already there, otherwise create new
+			UVPlayerInfo localPlayerInfo = readPlayer( p.getName(), true );						
+			if( localPlayerInfo == null ) localPlayerInfo = new UVPlayerInfo();							
+						
 			localPlayer = new UVLocalPlayer( p, pluginDirectory, localPlayerInfo );
 			players.add( localPlayer );
 			savePlayer( localPlayer.getCraftPlayer().getName() );

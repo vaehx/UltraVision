@@ -23,6 +23,11 @@ public class MLog
 	public static final String ANSI_LIGHTCYAN = "\u001B[1;36m";
 	public static final String ANSI_LIGHTWHITE = "\u001B[1;37m";
 	
+	public static void n( String txt )
+	{
+		System.out.println( realAnsi( getAnsi(ChatColor.GRAY) + txt ) + ANSI_RESET ); 
+	}
+	
 	public static void i( String txt, ChatColor col )
 	{				
 		System.out.println( realAnsi( getAnsi(col) + MConst._OUT_PREFIX + "::INFO] " + txt ) + ANSI_RESET );

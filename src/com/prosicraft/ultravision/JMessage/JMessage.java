@@ -5,6 +5,7 @@
 package com.prosicraft.ultravision.JMessage;
 
 import com.prosicraft.ultravision.base.UVClickAuth;
+import com.prosicraft.ultravision.base.UVPlayerInfo;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.util.MAuthorizer;
 import com.prosicraft.ultravision.util.MConfiguration;
@@ -134,7 +135,6 @@ public class JMessage
 
 	public String untag( String src, Player p )
 	{
-
 		String res = src.replaceAll( "%nm", p.getName() ) // Normal name
 			.replaceAll( "%dnm", p.getDisplayName() ) // Display name
 			.replaceAll( "%ol", getOnlinePlayerList( p, false ) ) // Online List (w/o Prefixes)
@@ -154,15 +154,22 @@ public class JMessage
 			res = listener.untag2( res, p );
 
 		return MLog.real( res );
-
 	}
 
 	public String getLastOnlineTime( Player p )
 	{
-		if( uv == null )
+		if( uv == null || p == null )
 			return "";
-		DateFormat dateFormat = new SimpleDateFormat( "yyyy/MM/dd HH:mm:ss" );
-		Time t = uv.getPlayerInfo( p.getName() ).lastOnline;
+		
+		DateFormat dateFormat = new SimpleDateFormat( "yyyy/MM/dd HH:mm:ss" );		
+		UVPlayerInfo pi = uv.getPlayerInfo( p.getName() );
+		if( pi == null )
+		{
+			MLog.w( "Could not retrieve UVPlayerInfo for user '" + p.getName() + "'" );
+			return "";
+		}		
+		
+		Time t = pi.lastOnline;
 		Date date = new Date( t.getTime() );
 		return dateFormat.format( date );
 	}
@@ -202,6 +209,12 @@ public class JMessage
 	public void doJoin( Player p )
 	{
 
+		// Join to UltraVision
+		if( uv != null )
+		{
+			uv.onPlayerJoin( p );
+		}
+		
 		if( !joinmsgpri.isEmpty() )
 		{
 			for( String s : joinmsgpri )
@@ -213,8 +226,7 @@ public class JMessage
 			for( String s : spawnmsg )
 				p.sendMessage( untag( s, p ) );
 			players.add( p.getName() );
-		}
-
+		}	
 
 		if( !joinmsg.isEmpty() )
 		{
