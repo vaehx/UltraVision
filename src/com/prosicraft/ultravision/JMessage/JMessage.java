@@ -161,15 +161,15 @@ public class JMessage
 	{
 		if( uv == null || p == null )
 			return "";
-		
-		DateFormat dateFormat = new SimpleDateFormat( "yyyy/MM/dd HH:mm:ss" );		
+
+		DateFormat dateFormat = new SimpleDateFormat( "yyyy/MM/dd HH:mm:ss" );
 		UVPlayerInfo pi = uv.getPlayerInfo( new PlayerIdent(p) );
 		if( pi == null )
 		{
 			MLog.w( "Could not retrieve UVPlayerInfo for user '" + p.getName() + "'" );
 			return "";
-		}		
-		
+		}
+
 		Time t = pi.lastOnline;
 		Date date = new Date( t.getTime() );
 		return dateFormat.format( date );
@@ -210,12 +210,17 @@ public class JMessage
 	public void doJoin( Player p )
 	{
 
-		// Join to UltraVision
+		// Join to UltraVision if not happened already
 		if( uv != null )
 		{
-			uv.onPlayerJoin( p );
+			Player testPlayer = uv.getPlayer(new PlayerIdent(p));
+			if (testPlayer == null)
+			{
+				// try to load it now.
+				uv.onPlayerJoin( p );
+			}
 		}
-		
+
 		if( !joinmsgpri.isEmpty() )
 		{
 			for( String s : joinmsgpri )
@@ -227,7 +232,7 @@ public class JMessage
 			for( String s : spawnmsg )
 				p.sendMessage( untag( s, p ) );
 			players.add( p.getName() );
-		}	
+		}
 
 		if( !joinmsg.isEmpty() )
 		{

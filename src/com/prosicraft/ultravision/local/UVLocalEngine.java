@@ -39,7 +39,7 @@ public class UVLocalEngine implements UltraVisionAPI
 	private ultravision ultravisionPlugin	= null; // The UltraVision Plugin
 	private List<UVLocalPlayer> players	= null;	// player memory
 	private String pluginDirectory		= "";	// The path to the plugin Directory
-	
+
 	public List<String> debugPlayers	= new ArrayList<>(); // players registered for debug output
 
 	/**********************************************************************/
@@ -70,7 +70,7 @@ public class UVLocalEngine implements UltraVisionAPI
 			}
 		}
 		players.clear();
-		
+
 		return result;
 	}
 
@@ -89,7 +89,7 @@ public class UVLocalEngine implements UltraVisionAPI
 			}
 		}
 	}
-	
+
 	/**********************************************************************/
 	/**
 	 * Search for a UVLocalPlayer that matches given name
@@ -152,7 +152,7 @@ public class UVLocalEngine implements UltraVisionAPI
 	public MResult savePlayer( PlayerIdent uid )
 	{
 		MLog.d("Now trying to save Player file of puuid " + uid.toString());
-		
+
 		try
 		{
 			// Get the Local Player and its information
@@ -345,7 +345,7 @@ public class UVLocalEngine implements UltraVisionAPI
 			//=== Write Player end
 			fod.write( MAuthorizer.getCharArrayB( "theend", 6 ) );
 			fod.flush();
-			fod.close();		
+			fod.close();
 		}
 		catch( IOException ex )
 		{
@@ -353,7 +353,7 @@ public class UVLocalEngine implements UltraVisionAPI
 			ex.printStackTrace( System.out );
 			return MResult.RES_ERROR;
 		}
-		
+
 		return MResult.RES_SUCCESS;
 	}
 
@@ -415,11 +415,11 @@ public class UVLocalEngine implements UltraVisionAPI
 	{
 		MLog.d( "Start fetching Player Info from player with id " + uid.toString() + " ..." );
 
-		UVPlayerInfo resultInformation;                
+		UVPlayerInfo resultInformation;
                 File ud = null;
-                
+
                 // first, check if there is an old file with the player name
-                Player checkPlayer = ultravisionPlugin.getServer().getPlayer(uid.Get());                
+                Player checkPlayer = ultravisionPlugin.getServer().getPlayer(uid.Get());
                 if( checkPlayer != null )
                 {
                     // check if the file for this online player is there.
@@ -427,27 +427,27 @@ public class UVLocalEngine implements UltraVisionAPI
                     ud = new File(pluginDirectory + UltraVisionAPI.userDataDir, checkPlayer.getName() + ".usr");
                     if (ud.exists())
                     {
-                        MLog.i("Found old player information file. Converting it to a UID-file...");                        
-                        ud.renameTo(new File(pluginDirectory + UltraVisionAPI.userDataDir, uid.toString() + ".usr"));                        
-                        
+                        MLog.i("Found old player information file. Converting it to a UID-file...");
+                        ud.renameTo(new File(pluginDirectory + UltraVisionAPI.userDataDir, uid.toString() + ".usr"));
+
                         // If necessary do further conversion here...
-                        
-                        
-                        
-                        
+
+
+
+
                     }
                     else
                     {
                         ud = null;
                     }
-                }                
-                
+                }
+
                 // not already found, try with a uid file
                 if( checkPlayer == null || ud == null )
                 {
                     ud = new File( pluginDirectory + UltraVisionAPI.userDataDir, uid.toString() + ".usr" );
                 }
-                
+
 		if( !ud.exists() )
 		{
 			if( !forceNewFile )
@@ -504,7 +504,7 @@ public class UVLocalEngine implements UltraVisionAPI
 			// otherwise add new player and save
                         Player bukkitPlayer = null; // storing bukkit player instance if found
 			if( !playerAlreadyLoaded )
-			{				
+			{
 				if( null == ( bukkitPlayer = ultravisionPlugin.getServer().getPlayer(uid.Get()) ) )
 				{
 					bukkitPlayer = ultravisionPlugin.getServer().getOfflinePlayer( uid.Get() ).getPlayer();
@@ -528,14 +528,14 @@ public class UVLocalEngine implements UltraVisionAPI
 			}
 			else
 			{
-                                
-                            
+
+
                             // TODO: maybe try to retrieve the name of the player anyway
-			                            
-                            
+
+
                             MLog.e( "Could not properly create new player data file for player with id " + uid.toString() );
-                            
-                            
+
+
 			}
 			return resultInformation;
 		}
@@ -552,17 +552,17 @@ public class UVLocalEngine implements UltraVisionAPI
 			return null;
 		}
 
-		
+
 		// Now read.
 		try
 		{
 			UVFileInformation fi = new UVFileInformation( UVFileInformation.uVersion );
 			resultInformation = new UVPlayerInfo();
-			String ch;			
-			
+			String ch;
+
 			// Read the file type identifier chunk id
-			ch = readChunkHeader( fid );										
-			MLog.d("Read chunk: " + ch);									
+			ch = readChunkHeader( fid );
+			MLog.d("Read chunk: " + ch);
 			if( !ch.equalsIgnoreCase( "ouvplr" ) )  // prosicraft, 20.6.2014: What does ouvplr mean?
 			{
 				MLog.w( "User Data File damaged at " + MConfiguration.normalizePath( ud ) + ". Backup..." );
@@ -570,9 +570,9 @@ public class UVLocalEngine implements UltraVisionAPI
 				ud.renameTo( new File( pluginDirectory + UltraVisionAPI.userDataDir, uid.toString() + ".dmg" ) );
 				return resultInformation;
 			}
-			
+
 			// Read the file information
-			ch = readChunkHeader( fid );								
+			ch = readChunkHeader( fid );
 			if( !ch.equalsIgnoreCase( "uvinfo" ) )
 			{
 				MLog.w( "User Data File damaged at " + MConfiguration.normalizePath( ud ) + ". Backup..." );
@@ -585,15 +585,17 @@ public class UVLocalEngine implements UltraVisionAPI
 				fi.setVersion( fid.read() );
 				//MLog.d("File version is '" + fi.getVersion() + "' at " + MConfiguration.normalizePath(ud));
 			}
-			
-			
+
+
 			// Read the general information
 			int isMute = fid.read();
-			resultInformation.isMute = ( ( isMute == 0 ) ? false : true );						
+			resultInformation.isMute = ( ( isMute == 0 ) ? false : true );
 			try
 			{
 				if( fi.getVersion() >= 3 )
 					resultInformation.lastOnline = new Time( fid.readLong() );
+				else
+					resultInformation.lastLogin = new Time( Calendar.getInstance().getTime().getTime() );
 			}
 			catch( EOFException eofex )
 			{
@@ -606,15 +608,15 @@ public class UVLocalEngine implements UltraVisionAPI
 			{
 				MLog.e( "File damaged at " + MConfiguration.normalizePath( ud ) + "!" );
 			}
-			
+
 			resultInformation.onlineTime = new Time( fid.readLong() );
 			resultInformation.praise = fid.read();
 
-			
+
 			// Now read chunks
-			boolean isPlayerChunk = true;			
+			boolean isPlayerChunk = true;
 			while(isPlayerChunk)
-			{				
+			{
 				if( ( ch = readChunkHeader( fid ) ).equalsIgnoreCase( "theend" ) )
 				{
 					break;
@@ -698,7 +700,7 @@ public class UVLocalEngine implements UltraVisionAPI
 				{
 					isPlayerChunk = false;
 				}
-			}		
+			}
 
 			// Add the new player if not there already
 			boolean playerFound = false;
@@ -722,7 +724,7 @@ public class UVLocalEngine implements UltraVisionAPI
 
 				if( bukkitPlayer == null )
 				{
-					MLog.d( "Cannot load player who was unknown to UV into memory as he never's been on server." );					
+					MLog.d( "Cannot load player who was unknown to UV into memory as he never's been on server." );
 					resultInformation = null;
 				}
 				else
@@ -750,19 +752,22 @@ public class UVLocalEngine implements UltraVisionAPI
 	public void onPlayerJoin( Player p )
 	{
 		MLog.d("Doing LocalEngine::onPlayerJoin");
-		
+
 		// check if userentry found
 		PlayerIdent pIdent = new PlayerIdent(p.getUniqueId());
-		
+
 		// getUVLocalPlayer will try to read the player data file and create
 		// a new one if it doesn't exist yet
-		UVLocalPlayer localPlayer = getUVLocalPlayer(pIdent);		
+		UVLocalPlayer localPlayer = getUVLocalPlayer(pIdent);
 		if( localPlayer == null )
 		{
 			MLog.d("Could not add player in LocalEngine::getUVLocalPlayer, so we'll add it now.");
-			
-			// create the nwe player instance			
-			localPlayer = new UVLocalPlayer( p, pluginDirectory, new UVPlayerInfo() );						
+
+			// create the nwe player instance
+			localPlayer = new UVLocalPlayer( p, pluginDirectory, new UVPlayerInfo() );
+			localPlayer.i.lastOnline = new Time( Calendar.getInstance().getTime().getTime() );
+			localPlayer.i.lastLogin = localPlayer.i.lastOnline;
+
 			players.add( localPlayer );
 			savePlayer( localPlayer.GetIdent() );
 			MLog.d( "Added brand new Player '" + p.getName() + "' (" + pIdent.toString() + ") to memory!" );
@@ -774,7 +779,7 @@ public class UVLocalEngine implements UltraVisionAPI
 	public void onPlayerLogin( Player p )
 	{
 		MLog.d("Doing LocalEngine::onPlayerLogin");
-		
+
 		if( p == null )
 		{
 			MLog.e( "Parameter p is null in UVLocalEngine.onPlayerLogin()!" );
@@ -800,7 +805,7 @@ public class UVLocalEngine implements UltraVisionAPI
 	public void onPlayerLeave( Player p )
 	{
 		MLog.d("Doing LocalEngine::onPlayerLeave");
-		
+
 		if( p == null )
 		{
 			return;
@@ -933,7 +938,7 @@ public class UVLocalEngine implements UltraVisionAPI
 		{
 			return MResult.RES_NOTINIT;
 		}
-                
+
 		// Check if command executor is given and accessable
 		boolean bSenderIsConsole = false;
                 if( cs == null )
@@ -943,7 +948,7 @@ public class UVLocalEngine implements UltraVisionAPI
                 }
 		else if( !(cs instanceof Player) || !(bSenderIsConsole = cs instanceof ConsoleCommandSender) )
 		{
-			MLog.e("Cannot ban Player temporarily: Command Executor is not a player or the console!");			
+			MLog.e("Cannot ban Player temporarily: Command Executor is not a player or the console!");
 			return MResult.RES_ERROR;
 		}
 
@@ -959,7 +964,7 @@ public class UVLocalEngine implements UltraVisionAPI
 			return MResult.RES_ALREADY;
 		}
 
-		// Get the ban performer		
+		// Get the ban performer
 		if (bSenderIsConsole)
 		{
 			MLog.w("Bans are not logged in the userlog!");
@@ -968,7 +973,7 @@ public class UVLocalEngine implements UltraVisionAPI
 		}
 		else
 		{
-			Player senderPlayer = (Player)cs;			
+			Player senderPlayer = (Player)cs;
 			UVLocalPlayer uPBanner = getUVLocalPlayer( new PlayerIdent(senderPlayer.getUniqueId()) );
 
 			// add the ban
@@ -1008,10 +1013,10 @@ public class UVLocalEngine implements UltraVisionAPI
 			bSenderIsConsole = true;
 		}
 		else if(!(cs instanceof Player))
-		{			
+		{
 			return MResult.RES_ERROR;
 		}
-		
+
 		if( !bSenderIsConsole )
 		{
 			if( authorizer != null && ( authorizer.isRegistered( (Player) cs ) && !authorizer.loggedIn( (Player) cs ) ) )
@@ -1046,7 +1051,7 @@ public class UVLocalEngine implements UltraVisionAPI
 		String executorName = "Console";
 		if (!bSenderIsConsole)
 			executorName = cs.getName();
-		
+
 		MLog.i( "Player '" + localPlayer.GetName() + "' (" + uid + ") pardoned by " + executorName );
 
 		return MResult.RES_SUCCESS;
@@ -1115,10 +1120,10 @@ public class UVLocalEngine implements UltraVisionAPI
 			kickerName = "Console";
 		}
 		else if (cs == null || !(cs instanceof Player))
-		{			
-			return MResult.RES_NOTINIT;			
+		{
+			return MResult.RES_NOTINIT;
 		}
-		
+
 		if (!bSenderIsConsole)
 			kickerName = cs.getName();
 
@@ -1200,7 +1205,7 @@ public class UVLocalEngine implements UltraVisionAPI
 			MLog.e("Sorry, you cannot warn a player from console - yet.");
 			return MResult.RES_ERROR;
 		}
-		
+
 		UVLocalPlayer uP;
 		if( ( uP = getUVLocalPlayer( uid ) ) == null )
 		{
@@ -1361,7 +1366,7 @@ public class UVLocalEngine implements UltraVisionAPI
 	/**********************************************************************/
 	@Override
 	public String tryGetPlayerNameByUID(PlayerIdent uid)
-	{		
+	{
 		Player onlinePlayer = ultravisionPlugin.getServer().getPlayer(uid.Get());
 		if (onlinePlayer != null)
 		{
@@ -1373,19 +1378,19 @@ public class UVLocalEngine implements UltraVisionAPI
 			if (offlinePlayer != null)
 			{
 				return offlinePlayer.getName();
-			}			
+			}
 		}
-		
+
 		return "";
-	}				
-	
+	}
+
 	/**********************************************************************/
-	
+
 	@Override
 	public List<MatchUserResult> matchUser(String part, boolean needsFullMatch)
 	{
-		List<MatchUserResult> out = new ArrayList<>();						
-		
+		List<MatchUserResult> out = new ArrayList<>();
+
 		List<Player> onlinePlayers = new ArrayList<>(Arrays.asList(ultravisionPlugin.getServer().getOnlinePlayers()));
 		for (Player checkOnlinePlayer : onlinePlayers)
 		{
@@ -1394,11 +1399,11 @@ public class UVLocalEngine implements UltraVisionAPI
 				bMatches = checkOnlinePlayer.getName().equalsIgnoreCase(part);
 			else
 				bMatches = checkOnlinePlayer.getName().contains(part);
-				
+
 			if (bMatches)
 				out.add(new MatchUserResult(checkOnlinePlayer.getName(), true, new PlayerIdent(checkOnlinePlayer.getUniqueId())));
 		}
-		
+
 		List<OfflinePlayer> offlinePlayers = new ArrayList<>(Arrays.asList(ultravisionPlugin.getServer().getOfflinePlayers()));
 		for (OfflinePlayer checkOfflinePlayer : offlinePlayers)
 		{
@@ -1407,14 +1412,14 @@ public class UVLocalEngine implements UltraVisionAPI
 				bMatches = checkOfflinePlayer.getName().equalsIgnoreCase(part);
 			else
 				bMatches = checkOfflinePlayer.getName().contains(part);
-				
+
 			if (bMatches)
 				out.add(new MatchUserResult(checkOfflinePlayer.getName(), false, new PlayerIdent(checkOfflinePlayer.getUniqueId())));
 		}
-		
+
 		return out;
 	}
-	
+
 	/**********************************************************************/
 	@Override
 	public boolean isPlayerPraisedBy( PlayerIdent uid, PlayerIdent otherUid )
@@ -1425,7 +1430,7 @@ public class UVLocalEngine implements UltraVisionAPI
 			return false;
 		}
 
-		
+
 		// TODO: following method is cruel.
 		//	Try to switch praiser identification to UUIDs too. (that means to modify savefile)
 		String possibleOtherPlayerName = tryGetPlayerNameByUID(otherUid);
@@ -1434,8 +1439,8 @@ public class UVLocalEngine implements UltraVisionAPI
 			MLog.e("Cannot check whether player is praised by another player: cannot find other player with uid " + otherUid.toString() + ".");
 			return false;
 		}
-		
-		return uP.i.praiser.contains(possibleOtherPlayerName);		
+
+		return uP.i.praiser.contains(possibleOtherPlayerName);
 	}
 
 	/**********************************************************************/
@@ -1460,7 +1465,7 @@ public class UVLocalEngine implements UltraVisionAPI
 		{
 			return MResult.RES_NOTGIVEN;
 		}
-		
+
 		if( cs instanceof ConsoleCommandSender )
 		{
 			MLog.e("Console cannot add notes to players!");
@@ -1525,19 +1530,19 @@ public class UVLocalEngine implements UltraVisionAPI
 			MLog.e( "Failed execute mutePlayer in local Engine: command sender parameter (cs) not given" );
 			return MResult.RES_NOTGIVEN;
 		}
-		
+
 		if( cs instanceof ConsoleCommandSender )
 		{
 			MLog.e( "MutePlayer() cannot be run on console yet!" );
 			return MResult.RES_NOACCESS;
 		}
-		
+
 		UVLocalPlayer uP;
 		if( ( uP = getUVLocalPlayer( uid ) ) == null )
 		{
 			logDebug( (Player)cs, "Cannot retrieve UVLocalPlayer with UUID '" + uid.toString() + "' while trying to mute player." );
 			return MResult.RES_NOTGIVEN;
-		}		
+		}
 
 		if( uP.i.isMute )
 		{
@@ -1678,16 +1683,16 @@ public class UVLocalEngine implements UltraVisionAPI
 		String possiblePerformingUserName = tryGetPlayerNameByUID(performingUID);
 		if (possiblePerformingUserName.length() > 0)
 		{
-			if( !uP.i.friendRequests.contains( possiblePerformingUserName ) )			
-				return MResult.RES_ALREADY;			
-			else			
-				uP.i.friendRequests.remove( possiblePerformingUserName );			
+			if( !uP.i.friendRequests.contains( possiblePerformingUserName ) )
+				return MResult.RES_ALREADY;
+			else
+				uP.i.friendRequests.remove( possiblePerformingUserName );
 		}
 		else
 		{
 			return MResult.RES_ALREADY;
 		}
-		
+
 		return MResult.RES_SUCCESS;
 	}
 
@@ -1704,17 +1709,17 @@ public class UVLocalEngine implements UltraVisionAPI
 		String possiblePerformingUserName = tryGetPlayerNameByUID(performingUID);
 		if (possiblePerformingUserName.length() > 0)
 		{
-			if( uP.i.friendRequests.contains( possiblePerformingUserName ) )			
-				return MResult.RES_ALREADY;			
-			else			
+			if( uP.i.friendRequests.contains( possiblePerformingUserName ) )
+				return MResult.RES_ALREADY;
+			else
 				uP.i.friendRequests.add( possiblePerformingUserName );
 		}
 		else
 		{
-			// performer user was not found..			
+			// performer user was not found..
 			MLog.w("Could not find user for performing User ID - invalid command invoke!");
 			return MResult.RES_NOACCESS;
-		}		
+		}
 
 		return MResult.RES_SUCCESS;
 	}
@@ -1759,12 +1764,12 @@ public class UVLocalEngine implements UltraVisionAPI
 		{
 			return MResult.RES_NOTGIVEN;
 		}
-		
+
 		String possibleRequestedUID = tryGetPlayerNameByUID(requestedUID);
 		if (possibleRequestedUID.length() > 0)
 		{
-			if( performingPlayer.i.friends.contains( possibleRequestedUID ) )			
-				performingPlayer.i.friends.remove( possibleRequestedUID );			
+			if( performingPlayer.i.friends.contains( possibleRequestedUID ) )
+				performingPlayer.i.friends.remove( possibleRequestedUID );
 		}
 
 		// remove friendship on the side of the requested Player
