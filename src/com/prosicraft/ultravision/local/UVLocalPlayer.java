@@ -49,10 +49,10 @@ public class UVLocalPlayer
 	{
 		craftPlayer = new CraftPlayer( server, ep );
                 playerIdent = new PlayerIdent();
-                playerIdent.Set(craftPlayer.getUniqueId());
+                playerIdent.Set(ep.getUniqueID());
 		logpath = logp;
 		logFile = new File( logpath + UltraVisionAPI.userLogDir, playerIdent.toString() + ".log" );
-		i = pi;                
+		i = pi;
 
 		if( !logFile.exists() )
 		{
@@ -97,14 +97,14 @@ public class UVLocalPlayer
 			MLog.w( "Got null as PlayerInfo in UVLocalPlayer::UVLocalPlayer( Player, String, UVPlayerInfo ). Instancing empty now..." );
 			pi = new UVPlayerInfo();
 		}
-		
+
 		craftPlayer = new CraftPlayer( ( CraftServer ) p.getServer(), ( ( CraftPlayer ) p ).getHandle() );
 		playerIdent = new PlayerIdent();
-                playerIdent.Set(craftPlayer.getUniqueId());
+                playerIdent.Set(p.getUniqueId());
                 logpath = logp;
 		logFile = new File( logpath + UltraVisionAPI.userLogDir, playerIdent.toString() + ".log" );
-		i = pi;                
-                
+		i = pi;
+
 		if( !logFile.exists() )
 		{
 			try
@@ -217,12 +217,12 @@ public class UVLocalPlayer
 	{
 		return craftPlayer;
 	}
-                
+
         public String GetName()
         {
-            return craftPlayer.getName();            
+            return craftPlayer.getName();
         }
-                
+
         public PlayerIdent GetIdent()
         {
             return playerIdent;

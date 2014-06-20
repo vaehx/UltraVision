@@ -569,7 +569,6 @@ public class UVLocalEngine implements UltraVisionAPI
 
 			// Read the file type identifier chunk id
 			ch = readChunkHeader( fid );
-			MLog.d("Read chunk: " + ch);
 			if( !ch.equalsIgnoreCase( "ouvplr" ) )  // prosicraft, 20.6.2014: What does ouvplr mean?
 			{
 				MLog.w( "User Data File damaged at " + MConfiguration.normalizePath( ud ) + ". Backup..." );
@@ -709,11 +708,21 @@ public class UVLocalEngine implements UltraVisionAPI
 				}
 			}
 
+			fid.close();
+			MLog.d("Finished read file!");
+
 			// Check if we already loaded this player
 			// If so, we'll delete the old instance
 			for( UVLocalPlayer player : players  )
 			{
-				if( uid.Equals(player.getCraftPlayer().getUniqueId()) )
+				if (player.playerIdent == null)
+				{
+					MLog.d("Found player registered in UV without UUID. Deleting...");
+					players.remove(player);
+					continue;
+				}
+
+				if (uid.Equals(player.playerIdent) || (playerInstance != null && uid.Equals(playerInstance.getUniqueId())))
 				{
 					players.remove(player);
 					break;
@@ -750,9 +759,8 @@ public class UVLocalEngine implements UltraVisionAPI
 			if (newPlayer.i.lastLogin == null) newPlayer.i.lastLogin = newPlayer.i.lastOnline;
 
 			players.add( newPlayer );
-			MLog.i( "Loaded new player named '" + bukkitPlayer.getName() + "' (" + uid.toString() + ") into memory." );
-
-			fid.close();
+			MLog.i( "Loaded player named '" + bukkitPlayer.getName() + "' (" + uid.toString() + ") into memory." );
+			MLog.d("Loaded players now: " + players.size());
 
 			return resultInformation;
 		}
