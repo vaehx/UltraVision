@@ -8,6 +8,7 @@ import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.util.MAuthorizer;
 import com.prosicraft.ultravision.util.MLog;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -162,36 +163,52 @@ public class uvPlayerListener implements Listener
 
 	@EventHandler( priority = EventPriority.LOWEST )
 	public void onPlayerCommandPreprocess( PlayerCommandPreprocessEvent event )
-	{
+	{					
 		if( parent.disableIngameOp && event.getMessage().contains( "/op" ) )
 		{
 			event.getPlayer().sendMessage( ChatColor.RED + "Oops. Ingame opping is disabled on this server!" );
 			event.setCancelled( true );
 		}
 
-		final boolean loggedIn = loggedIn( event.getPlayer() );
-		if( ( !event.getMessage().contains( "/login" ) ) && !loggedIn )
+		if (registered(event.getPlayer()))
 		{
-			event.getPlayer().sendMessage( ChatColor.RED + "You're not logged in." );
-			event.setCancelled( true );
-		}
-		else if( !loggedIn )
-		{
-			String message = event.getMessage();
-			String[] params = message.split( "\\s+" );
-			if( params.length == 1 )
+			final boolean loggedIn = loggedIn( event.getPlayer() );
+			if (!loggedIn)
 			{
-				event.getPlayer().sendMessage( ChatColor.RED + "You didn't specify any password!" );
-				event.setCancelled( true );
-			}
-			else
-			{
-				if( parent.doLoginCommand( event.getPlayer(), params[1] ) )
+				if( !event.getMessage().contains( "/login" ) )
 				{
-					// Prevent Password to be written into console / serverlog
-					MLog.i( "Player " + event.getPlayer().getName() + " logged in successfully." );
+					event.getPlayer().sendMessage( ChatColor.RED + "You're not logged in." );
 					event.setCancelled( true );
 				}
+				else
+				{
+					String message = event.getMessage();
+					String[] params = message.split( "\\s+" );					
+					if( params.length == 1 )
+					{
+						event.getPlayer().sendMessage( ChatColor.RED + "You didn't specify any password!" );
+						event.setCancelled( true );
+					}
+					else
+					{
+						if( parent.doLoginCommand( event.getPlayer(), params[1] ) )
+						{
+							// Prevent Password to be written into console / serverlog
+							MLog.i( "Player " + event.getPlayer().getName() + " logged in successfully." );
+							event.setCancelled( true );
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			if (event.getMessage().contains("/login"))
+			{
+				event.getPlayer().sendMessage(ChatColor.RED + "You are not registered, so you cannot log in!");
+				
+				// set cancelled, so that we don't process this command further
+				event.setCancelled(true);
 			}
 		}
 
@@ -206,7 +223,7 @@ public class uvPlayerListener implements Listener
 	{
 		if( event.getEntity() instanceof Player && parent.IsUsingAuthorizer() )
 		{
-			if( !loggedIn( ( Player ) event.getEntity() ) || !uv.getAuthorizer().isRegistered( ( Player ) event.getEntity() ) )
+			if( !loggedIn( ( Player ) event.getEntity() ) && uv.getAuthorizer().isRegistered( ( Player ) event.getEntity() ) )
 			{
 				event.setCancelled( true );
 			}

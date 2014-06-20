@@ -90,6 +90,8 @@ public class UVLocalEngine implements UltraVisionAPI
 	 * Search for a UVLocalPlayer that matches given name
 	 *
 	 * @param playerName players name
+	 * @returns null if player cannot be loaded into memory,
+	 *	e.g. when server cannot find a player instance
 	 */
 	public UVLocalPlayer getUVLocalPlayer( PlayerIdent uid )
 	{
@@ -541,160 +543,155 @@ public class UVLocalEngine implements UltraVisionAPI
 			return null;
 		}
 
+		
+		// Now read.
 		try
 		{
 			UVFileInformation fi = new UVFileInformation( UVFileInformation.uVersion );
-
 			resultInformation = new UVPlayerInfo();
-
-			String ch = "nochnk";
-			while( !ch.equalsIgnoreCase( "theend" ) )
+			String ch;			
+			
+			// Read the file type identifier chunk id
+			ch = readChunkHeader( fid );										
+			MLog.d("Read chunk: " + ch);									
+			if( !ch.equalsIgnoreCase( "ouvplr" ) )  // prosicraft, 20.6.2014: What does ouvplr mean?
 			{
-				ch = readChunkHeader( fid );
-				if( !ch.equalsIgnoreCase( "ouvplr" ) )  // prosicraft, 20.6.2014: ouvplr???
+				MLog.w( "User Data File damaged at " + MConfiguration.normalizePath( ud ) + ". Backup..." );
+				fid.close();
+				ud.renameTo( new File( pluginDirectory + UltraVisionAPI.userDataDir, uid.toString() + ".dmg" ) );
+				return resultInformation;
+			}
+			
+			// Read the file information
+			ch = readChunkHeader( fid );								
+			if( !ch.equalsIgnoreCase( "uvinfo" ) )
+			{
+				MLog.w( "User Data File damaged at " + MConfiguration.normalizePath( ud ) + ". Backup..." );
+				fid.close();
+				ud.renameTo( new File( pluginDirectory + UltraVisionAPI.userDataDir, uid.toString() + ".dmg" ) );
+				return resultInformation;
+			}
+			else
+			{
+				fi.setVersion( fid.read() );
+				//MLog.d("File version is '" + fi.getVersion() + "' at " + MConfiguration.normalizePath(ud));
+			}
+			
+			
+			// Read the general information
+			int isMute = fid.read();
+			resultInformation.isMute = ( ( isMute == 0 ) ? false : true );						
+			try
+			{
+				if( fi.getVersion() >= 3 )
+					resultInformation.lastOnline = new Time( fid.readLong() );
+			}
+			catch( EOFException eofex )
+			{
+				MLog.e( "File critically damaged at " + MConfiguration.normalizePath( ud ) + ". Backup..." );
+				fid.close();
+				ud.renameTo( new File( pluginDirectory + UltraVisionAPI.userDataDir, uid.toString() + ".dmg" ) );
+				return resultInformation;
+			}
+			catch( Exception ex )
+			{
+				MLog.e( "File damaged at " + MConfiguration.normalizePath( ud ) + "!" );
+			}
+			
+			resultInformation.onlineTime = new Time( fid.readLong() );
+			resultInformation.praise = fid.read();
+
+			
+			// Now read chunks
+			boolean isPlayerChunk = true;			
+			while(isPlayerChunk)
+			{				
+				if( ( ch = readChunkHeader( fid ) ).equalsIgnoreCase( "theend" ) )
 				{
-					MLog.w( "User Data File damaged at " + MConfiguration.normalizePath( ud ) + ". Backup..." );
-					fid.close();
-					ud.renameTo( new File( pluginDirectory + UltraVisionAPI.userDataDir, uid.toString() + ".dmg" ) );
-					return resultInformation;
+					break;
 				}
 
-				ch = readChunkHeader( fid );
-				if( !ch.equalsIgnoreCase( "uvinfo" ) )
+				if( ch.equalsIgnoreCase( "oprais" ) )
 				{
-					MLog.w( "User Data File damaged at " + MConfiguration.normalizePath( ud ) + ". Backup..." );
-					fid.close();
-					ud.renameTo( new File( pluginDirectory + UltraVisionAPI.userDataDir, uid.toString() + ".dmg" ) );
-					return resultInformation;
+					resultInformation.praiser.add( readString( fid, 16 ) );
+				}
+				else if( ch.equalsIgnoreCase( "nprais" ) )
+				{
+					continue;
+				}
+				else if( ch.equalsIgnoreCase( "theban" ) )
+				{
+					resultInformation.ban = new UVBan();
+					if( !resultInformation.ban.read( fid, fi ) )
+					{
+						resultInformation.ban = null;
+					}
+				}
+				else if( ch.equalsIgnoreCase( "oneban" ) )
+				{
+					UVBan b = new UVBan();
+					b.read( fid, fi );
+					resultInformation.banHistory.add( b );
+				}
+				else if( ch.equalsIgnoreCase( "nooban" ) )
+				{
+					continue;
+				}
+				else if( ch.equalsIgnoreCase( "thwarn" ) )
+				{
+					resultInformation.warning = new UVWarning();
+					if( !resultInformation.warning.read( fid, fi ) )
+					{
+						resultInformation.warning = null;
+					}
+				}
+				else if( ch.equalsIgnoreCase( "onwarn" ) )
+				{
+					UVWarning w = new UVWarning();
+					w.read( fid, fi );
+					resultInformation.warnHistory.add( w );
+				}
+				else if( ch.equalsIgnoreCase( "nowarn" ) )
+				{
+					continue;
+				}
+				else if( ch.equalsIgnoreCase( "onkick" ) )
+				{
+					UVKick k = new UVKick();
+					k.read( fid, fi );
+					resultInformation.kickHistory.add( k );
+				}
+				else if( ch.equalsIgnoreCase( "nokick" ) )
+				{
+					continue;
+				}
+				else if( ch.equalsIgnoreCase( "frireq" ) )
+				{
+					resultInformation.friendRequests.add( MStream.readString( fid, 16 ) );
+				}
+				else if( ch.equalsIgnoreCase( "friend" ) )
+				{
+					resultInformation.friends.add( MStream.readString( fid, 16 ) );
+				}
+				else if( ch.equalsIgnoreCase( "nofrie" ) )
+				{
+					continue;
+				}
+				else if( ch.equalsIgnoreCase( "onnote" ) )
+				{
+					resultInformation.notes.put( MStream.readString( fid, 16 ), MStream.readString( fid, 60 ) );
+				}
+				else if( ch.equalsIgnoreCase( "nonote" ) )
+				{
+					continue;
 				}
 				else
 				{
-					fi.setVersion( fid.read() );
-					//MLog.d("File version is '" + fi.getVersion() + "' at " + MConfiguration.normalizePath(ud));
-				}											
-
-				int isMute = fid.read();
-				resultInformation.isMute = ( ( isMute == 0 ) ? false : true );
-
-				try
-				{
-					if( fi.getVersion() >= 3 )
-						resultInformation.lastOnline = new Time( fid.readLong() );
+					isPlayerChunk = false;
 				}
-				catch( EOFException eofex )
-				{
-					MLog.e( "File critically damaged at " + MConfiguration.normalizePath( ud ) + ". Backup..." );
-					fid.close();
-					ud.renameTo( new File( pluginDirectory + UltraVisionAPI.userDataDir, uid.toString() + ".dmg" ) );
-					return resultInformation;
-				}
-				catch( Exception ex )
-				{
-					MLog.e( "File damaged at " + MConfiguration.normalizePath( ud ) + "!" );
-				}
+			}		
 
-				resultInformation.onlineTime = new Time( fid.readLong() );
-				resultInformation.praise = fid.read();
-
-				// Now read chunks
-				boolean isPlayerChunk = true;
-				int to = 0;
-				while( isPlayerChunk && to < 1000 )
-				{
-					to++;
-					if( ( ch = readChunkHeader( fid ) ).equalsIgnoreCase( "theend" ) )
-					{
-						break;
-					}
-
-					if( ch.equalsIgnoreCase( "oprais" ) )
-					{
-						resultInformation.praiser.add( readString( fid, 16 ) );
-					}
-					else if( ch.equalsIgnoreCase( "nprais" ) )
-					{
-						continue;
-					}
-					else if( ch.equalsIgnoreCase( "theban" ) )
-					{
-						resultInformation.ban = new UVBan();
-						if( !resultInformation.ban.read( fid, fi ) )
-						{
-							resultInformation.ban = null;
-						}
-					}
-					else if( ch.equalsIgnoreCase( "oneban" ) )
-					{
-						UVBan b = new UVBan();
-						b.read( fid, fi );
-						resultInformation.banHistory.add( b );
-					}
-					else if( ch.equalsIgnoreCase( "nooban" ) )
-					{
-						continue;
-					}
-					else if( ch.equalsIgnoreCase( "thwarn" ) )
-					{
-						resultInformation.warning = new UVWarning();
-						if( !resultInformation.warning.read( fid, fi ) )
-						{
-							resultInformation.warning = null;
-						}
-					}
-					else if( ch.equalsIgnoreCase( "onwarn" ) )
-					{
-						UVWarning w = new UVWarning();
-						w.read( fid, fi );
-						resultInformation.warnHistory.add( w );
-					}
-					else if( ch.equalsIgnoreCase( "nowarn" ) )
-					{
-						continue;
-					}
-					else if( ch.equalsIgnoreCase( "onkick" ) )
-					{
-						UVKick k = new UVKick();
-						k.read( fid, fi );
-						resultInformation.kickHistory.add( k );
-					}
-					else if( ch.equalsIgnoreCase( "nokick" ) )
-					{
-						continue;
-					}
-					else if( ch.equalsIgnoreCase( "frireq" ) )
-					{
-						resultInformation.friendRequests.add( MStream.readString( fid, 16 ) );
-					}
-					else if( ch.equalsIgnoreCase( "friend" ) )
-					{
-						resultInformation.friends.add( MStream.readString( fid, 16 ) );
-					}
-					else if( ch.equalsIgnoreCase( "nofrie" ) )
-					{
-						continue;
-					}
-					else if( ch.equalsIgnoreCase( "onnote" ) )
-					{
-						resultInformation.notes.put( MStream.readString( fid, 16 ), MStream.readString( fid, 60 ) );
-					}
-					else if( ch.equalsIgnoreCase( "nonote" ) )
-					{
-						continue;
-					}
-					else
-					{
-						isPlayerChunk = false;
-					}
-				}
-
-				if( to >= 1000 )
-				{
-					MLog.e( "Whoops there was too much data in the base (Overflow)." );
-				}
-
-			}
-
-			// Add player recently read if not there already
+			// Add the new player if not there already
 			boolean playerFound = false;
 			for( UVLocalPlayer player : players  )
 			{
@@ -705,6 +702,7 @@ public class UVLocalEngine implements UltraVisionAPI
 				}
 			}
 
+			// if not already there, then create a new player
 			if( !playerFound )
 			{
 				Player bukkitPlayer = null;
@@ -714,17 +712,19 @@ public class UVLocalEngine implements UltraVisionAPI
 				}
 
 				if( bukkitPlayer == null )
-					MLog.d( "Cannot add player to memory as he never has been on the server." );
+				{
+					MLog.d( "Cannot load player who was unknown to UV into memory as he never's been on server." );					
+					resultInformation = null;
+				}
 				else
 				{
 					UVLocalPlayer newPlayer = new UVLocalPlayer( bukkitPlayer, pluginDirectory, resultInformation );
 					players.add( newPlayer );
-					MLog.i( "Added new player named '" + bukkitPlayer.getName() + "' (" + uid.toString() + ") to memory." );
+					MLog.i( "Loaded new player named '" + bukkitPlayer.getName() + "' (" + uid.toString() + ") to memory." );
 				}
 			}
 
 			fid.close();
-
 		}
 		catch( IOException ioex )
 		{
@@ -740,25 +740,23 @@ public class UVLocalEngine implements UltraVisionAPI
 	@Override
 	public void onPlayerJoin( Player p )
 	{
+		MLog.d("Doing LocalEngine::onPlayerJoin");
+		
 		// check if userentry found
 		PlayerIdent pIdent = new PlayerIdent(p.getUniqueId());
+		
+		// getUVLocalPlayer will try to read the player data file and create
+		// a new one if it doesn't exist yet
 		UVLocalPlayer localPlayer = getUVLocalPlayer(pIdent);		
 		if( localPlayer == null )
 		{
-			// check if player info is already there, otherwise create new
-			UVPlayerInfo localPlayerInfo = readPlayer( pIdent, true );						
-			if( localPlayerInfo == null )
-				localPlayerInfo = new UVPlayerInfo();							
-						
-			localPlayer = new UVLocalPlayer( p, pluginDirectory, localPlayerInfo );
+			MLog.d("Could not add player in LocalEngine::getUVLocalPlayer, so we'll add it now.");
+			
+			// create the nwe player instance			
+			localPlayer = new UVLocalPlayer( p, pluginDirectory, new UVPlayerInfo() );						
 			players.add( localPlayer );
 			savePlayer( localPlayer.GetIdent() );
-			MLog.d( "Added Player '" + p.getName() + "' (" + pIdent.toString() + ") to memory due to join!" );
-		}
-
-		if( localPlayer.i.lastOnline == null )
-		{
-			localPlayer.i.lastOnline = localPlayer.i.lastLogin;
+			MLog.d( "Added brand new Player '" + p.getName() + "' (" + pIdent.toString() + ") to memory!" );
 		}
 	}
 
@@ -766,6 +764,8 @@ public class UVLocalEngine implements UltraVisionAPI
 	@Override
 	public void onPlayerLogin( Player p )
 	{
+		MLog.d("Doing LocalEngine::onPlayerLogin");
+		
 		if( p == null )
 		{
 			MLog.e( "Parameter p is null in UVLocalEngine.onPlayerLogin()!" );
@@ -790,6 +790,8 @@ public class UVLocalEngine implements UltraVisionAPI
 	@Override
 	public void onPlayerLeave( Player p )
 	{
+		MLog.d("Doing LocalEngine::onPlayerLeave");
+		
 		if( p == null )
 		{
 			return;
@@ -813,6 +815,7 @@ public class UVLocalEngine implements UltraVisionAPI
 			else
 			{
 				localPlayer.log( "[ERROR] ** Left with error: " + res.toString() );
+				MLog.e("Player " + p.getName() + " left with error: " + res.toString());
 			}
 
 			localPlayer.quitlog();
@@ -820,7 +823,7 @@ public class UVLocalEngine implements UltraVisionAPI
 		}
 		else
 		{
-			MLog.d( "Player never joined: " + p.getName() + "(" + pIdent.toString() + ")" );
+			MLog.w( "Player left but not registered in UV: " + p.getName() + "(" + pIdent.toString() + ")" );
 		}
 	}
 
