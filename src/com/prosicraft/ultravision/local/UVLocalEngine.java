@@ -971,6 +971,9 @@ public class UVLocalEngine implements UltraVisionAPI
 	}
 
 	/**********************************************************************/
+	/*
+	 * @param time: If player should be banned permanently, then set to null
+	 */
 	@Override
 	public MResult banPlayerTemporarily( CommandSender cs, PlayerIdent uid, String reason, Time time, boolean global )
 	{
@@ -993,7 +996,7 @@ public class UVLocalEngine implements UltraVisionAPI
 			MLog.e( "Cannot ban Player Temporarily: Command Executor parameter (cs) not set!" );
 			return MResult.RES_NOTGIVEN;
                 }
-		else if( !(cs instanceof Player) || !(bSenderIsConsole = cs instanceof ConsoleCommandSender) )
+		else if( !(cs instanceof Player) && !(bSenderIsConsole = cs instanceof ConsoleCommandSender) )
 		{
 			MLog.e("Cannot ban Player temporarily: Command Executor is not a player or the console!");
 			return MResult.RES_ERROR;
