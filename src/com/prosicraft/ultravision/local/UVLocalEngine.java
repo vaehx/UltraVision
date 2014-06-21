@@ -154,33 +154,191 @@ public class UVLocalEngine implements UltraVisionAPI
 		return null;
 	}
 
+
 	/**********************************************************************/
-	@Override
-	public MResult savePlayer( PlayerIdent uid )
+	public MResult writePlayerInformation(DataOutputStream fod, UVPlayerInfo i)
 	{
+		try
+		{
+			fod.write( MAuthorizer.getCharArrayB( i.name, 16 ) );  // Write player name
+			fod.write( i.isMute ? 1 : 0 ); // Write mute state
+			try
+			{
+				// last online (last logout)
+				if( i.lastOnline != null )
+					fod.writeLong(i.lastOnline.getTime());
+				else
+					fod.writeLong(Calendar.getInstance().getTime().getTime());
+
+				// last login
+				if (i.lastLogin != null)
+					fod.writeLong(i.lastLogin.getTime());
+				else
+					fod.writeLong(Calendar.getInstance().getTime().getTime());
+
+				// total online time
+				fod.writeLong(i.onlineTime.getTime());
+			}
+			catch( IOException ex )
+			{
+				MLog.e( "Can't write times to database!" );
+			}
+
+			fod.write( i.praise );   // Write praise
+
+			//=== Write praisers
+			if( !i.praiser.isEmpty() )
+			{
+				for( String praiser : i.praiser )
+				{
+					fod.write( MAuthorizer.getCharArrayB( "oprais", 6 ) );
+					fod.write( MAuthorizer.getCharArrayB( praiser, 16 ) );
+				}
+			}
+			else
+			{
+				fod.write( MAuthorizer.getCharArrayB( "nprais", 6 ) );
+			}
+
+			//=== Write bans
+			fod.write( MAuthorizer.getCharArrayB( "theban", 6 ) );
+			if( i.ban != null )
+			{
+				i.ban.write( fod );
+			}
+			else
+			{
+				UVBan.writeNull( fod );
+			}
+
+			if( !i.banHistory.isEmpty() )
+			{
+				for( UVBan b : i.banHistory )
+				{
+					fod.write( MAuthorizer.getCharArrayB( "oneban", 6 ) );
+					b.write( fod );
+				}
+			}
+			else
+			{
+				fod.write( MAuthorizer.getCharArrayB( "nooban", 6 ) );
+			}
+
+			//=== Write Warnings
+			fod.write( MAuthorizer.getCharArrayB( "thwarn", 6 ) );
+			if( i.warning != null )
+			{
+				i.warning.write( fod );
+			}
+			else
+			{
+				UVWarning.writeNull( fod );
+			}
+
+			if( !i.warnHistory.isEmpty() )
+			{
+				for( UVWarning b : i.warnHistory )
+				{
+					fod.write( MAuthorizer.getCharArrayB( "onwarn", 6 ) );
+					b.write( fod );
+				}
+			}
+			else
+			{
+				fod.write( MAuthorizer.getCharArrayB( "nowarn", 6 ) );
+			}
+
+			//=== Write Kick History
+			if( !i.kickHistory.isEmpty() )
+			{
+				for( UVKick k : i.kickHistory )
+				{
+					fod.write( MAuthorizer.getCharArrayB( "onkick", 6 ) );
+					k.write( fod );
+				}
+			}
+			else
+			{
+				fod.write( MAuthorizer.getCharArrayB( "nokick", 6 ) );
+			}
+
+			//=== Write Friends
+			if( !i.friends.isEmpty() )
+			{
+				for( String friend : i.friends )
+				{
+					fod.write( MAuthorizer.getCharArrayB( "friend", 6 ) );
+					fod.write( MAuthorizer.getCharArrayB( friend, 16 ) );
+				}
+			}
+			else
+			{
+				fod.write( MAuthorizer.getCharArrayB( "nofrie", 6 ) );
+			}
+
+			//=== Write notes
+			if( !i.notes.isEmpty() )
+			{
+				for( String devil : i.notes.keySet() )
+				{
+					fod.write( MAuthorizer.getCharArrayB( "onnote", 6 ) );
+					fod.write( MAuthorizer.getCharArrayB( devil, 16 ) );
+					fod.write( MAuthorizer.getCharArrayB( i.notes.get( devil ), 60 ) );
+				}
+			}
+			else
+			{
+				fod.write( MAuthorizer.getCharArrayB( "nonote", 6 ) );
+			}
+
+			return MResult.RES_SUCCESS;
+		}
+		catch( IOException ex )
+		{
+			return MResult.RES_ERROR;
+		}
+	}
+
+	public MResult savePlayer(PlayerIdent uid, UVPlayerInfo customInformation)
+	{
+		if (uid == null)
+		{
+			MLog.d("Given uid in savePlayer(PlayerIdent, UVPlayerInfo) is null!");
+			return MResult.RES_ERROR;
+		}
+
 		MLog.d("Now trying to save Player file of puuid " + uid.toString());
 
 		try
 		{
 			// Get the Local Player and its information
 			UVLocalPlayer player = null;
-			for( UVLocalPlayer playerIterator : players )
+			UVPlayerInfo playerInfo = null;
+			if (customInformation == null)
 			{
-				if( uid.Equals(playerIterator.getCraftPlayer().getUniqueId()) )
+				for( UVLocalPlayer playerIterator : players )
 				{
-					player = playerIterator;
-					break;
+					if( uid.Equals(playerIterator.getCraftPlayer().getUniqueId()) )
+					{
+						player = playerIterator;
+						playerInfo = player.i;
+						break;
+					}
+				}
+
+				if( player == null )
+				{
+					MLog.e("Cannot save player: Not found in UV memory and no custom player information given");
+					return MResult.RES_NOTGIVEN;
 				}
 			}
-
-			if( player == null )
+			else
 			{
-				MLog.e("Cannot save player: Not found in UV memory");
-				return MResult.RES_NOTGIVEN;
+				playerInfo = customInformation;
 			}
 
 			// Create file if not there already
-			File ud = new File( pluginDirectory + UltraVisionAPI.userDataDir, player.GetIdent().toString() + ".usr" );
+			File ud = new File( pluginDirectory + UltraVisionAPI.userDataDir, uid.toString() + ".usr" );
 			if( !ud.exists() )
 			{
 				MLog.d( "File doesn't exist at " + MConfiguration.normalizePath( ud ) + ". Trying to create new one..." );
@@ -214,150 +372,15 @@ public class UVLocalEngine implements UltraVisionAPI
 				return null;
 			}
 
+			// write header
 			fod.write( MAuthorizer.getCharArrayB( "ouvplr", 6 ) );
 			fod.write( MAuthorizer.getCharArrayB( "uvinfo", 6 ) );
 			fod.write( UVFileInformation.uVersion );  // The Version
-			fod.write( MAuthorizer.getCharArrayB( player.GetName(), 16 ) );  // Write player name
-			fod.write( player.i.isMute ? 1 : 0 ); // Write mute state
-			try
-			{
-				// last online (last logout)
-				if( player.i.lastOnline != null )
-					fod.writeLong(player.i.lastOnline.getTime());
-				else
-					fod.writeLong(Calendar.getInstance().getTime().getTime());
 
-				// last login
-				if (player.i.lastLogin != null)
-					fod.writeLong(player.i.lastLogin.getTime());
-				else
-					fod.writeLong(Calendar.getInstance().getTime().getTime());
+			// write actual data
+			writePlayerInformation(fod, playerInfo);
 
-				// total online time
-				fod.writeLong( player.i.onlineTime.getTime() );
-			}
-			catch( IOException ex )
-			{
-				MLog.e( "Can't write times to database!" );
-			}
-
-			fod.write( player.i.praise );   // Write praise
-
-			//=== Write praisers
-			if( !player.i.praiser.isEmpty() )
-			{
-				for( String praiser : player.i.praiser )
-				{
-					fod.write( MAuthorizer.getCharArrayB( "oprais", 6 ) );
-					fod.write( MAuthorizer.getCharArrayB( praiser, 16 ) );
-				}
-			}
-			else
-			{
-				fod.write( MAuthorizer.getCharArrayB( "nprais", 6 ) );
-			}
-
-			//=== Write bans
-			fod.write( MAuthorizer.getCharArrayB( "theban", 6 ) );
-			if( player.i.ban != null )
-			{
-				player.i.ban.write( fod );
-			}
-			else
-			{
-				UVBan.writeNull( fod );
-			}
-
-			if( !player.i.banHistory.isEmpty() )
-			{
-				for( UVBan b : player.i.banHistory )
-				{
-					fod.write( MAuthorizer.getCharArrayB( "oneban", 6 ) );
-					b.write( fod );
-				}
-			}
-			else
-			{
-				fod.write( MAuthorizer.getCharArrayB( "nooban", 6 ) );
-			}
-
-			//=== Write Warnings
-			fod.write( MAuthorizer.getCharArrayB( "thwarn", 6 ) );
-			if( player.i.warning != null )
-			{
-				player.i.warning.write( fod );
-			}
-			else
-			{
-				UVWarning.writeNull( fod );
-			}
-
-			if( !player.i.warnHistory.isEmpty() )
-			{
-				for( UVWarning b : player.i.warnHistory )
-				{
-					fod.write( MAuthorizer.getCharArrayB( "onwarn", 6 ) );
-					b.write( fod );
-				}
-			}
-			else
-			{
-				fod.write( MAuthorizer.getCharArrayB( "nowarn", 6 ) );
-			}
-
-			//=== Write Kick History
-			if( !player.i.kickHistory.isEmpty() )
-			{
-				for( UVKick k : player.i.kickHistory )
-				{
-					fod.write( MAuthorizer.getCharArrayB( "onkick", 6 ) );
-					k.write( fod );
-				}
-			}
-			else
-			{
-				fod.write( MAuthorizer.getCharArrayB( "nokick", 6 ) );
-			}
-
-			//=== Write Friends
-			if( !player.i.friends.isEmpty() )
-			{
-				for( String friend : player.i.friends )
-				{
-					fod.write( MAuthorizer.getCharArrayB( "friend", 6 ) );
-					fod.write( MAuthorizer.getCharArrayB( friend, 16 ) );
-				}
-			}
-			else
-			{
-				fod.write( MAuthorizer.getCharArrayB( "nofrie", 6 ) );
-			}
-
-			//=== Write notes
-			if( !player.i.notes.isEmpty() )
-			{
-				for( String devil : player.i.notes.keySet() )
-				{
-					fod.write( MAuthorizer.getCharArrayB( "onnote", 6 ) );
-					fod.write( MAuthorizer.getCharArrayB( devil, 16 ) );
-					fod.write( MAuthorizer.getCharArrayB( player.i.notes.get( devil ), 60 ) );
-				}
-			}
-			else
-			{
-				fod.write( MAuthorizer.getCharArrayB( "nonote", 6 ) );
-			}
-
-			//=== Write additional chunks
-			/*if ( addch != null )
-			 {
-			 for (UVPlayerInfoChunk pic : addch)
-			 {
-			 pic.write(fod);
-			 }
-			 }*/
-
-			//=== Write Player end
+			// write end and close file
 			fod.write( MAuthorizer.getCharArrayB( "theend", 6 ) );
 			fod.flush();
 			fod.close();
@@ -370,6 +393,12 @@ public class UVLocalEngine implements UltraVisionAPI
 		}
 
 		return MResult.RES_SUCCESS;
+	}
+
+	@Override
+	public MResult savePlayer( PlayerIdent uid )
+	{
+		return savePlayer(uid, null);
 	}
 
 	/**********************************************************************/
@@ -600,6 +629,7 @@ public class UVLocalEngine implements UltraVisionAPI
 				MLog.d("File version is '" + fi.getVersion() + "' at " + MConfiguration.normalizePath(ud));
 			}
 
+			// Read the players name
 			resultInformation.name = readString(fid, 16);
 
 			// Read the general information
@@ -756,8 +786,8 @@ public class UVLocalEngine implements UltraVisionAPI
 			{
 				if (playerInstance == null)
 				{
-					MLog.e("Could not load player into memory: Could not retrieve bukkit player instance!");
-					return null;
+					MLog.d("Read player data file which could not be associated with any bukkit Player instance!");
+					return resultInformation;
 				}
 				else
 				{
@@ -983,12 +1013,6 @@ public class UVLocalEngine implements UltraVisionAPI
 			global = false;
 		}
 
-		UVLocalPlayer localPlayer = getUVLocalPlayer( uid );
-		if( localPlayer == null )
-		{
-			return MResult.RES_NOTINIT;
-		}
-
 		// Check if command executor is given and accessable
 		boolean bSenderIsConsole = false;
                 if( cs == null )
@@ -1002,7 +1026,21 @@ public class UVLocalEngine implements UltraVisionAPI
 			return MResult.RES_ERROR;
 		}
 
-		UVPlayerInfo localPlayerInformation = localPlayer.i;
+		// try to get the player
+		// If the player to be banned is offline, then getUVLocalPlayer does not return the player information tho
+		// That's why we'll directly access the readPlayer function here.
+		UVPlayerInfo localPlayerInformation = readPlayer(uid, true);
+		if (localPlayerInformation == null)
+		{
+			MLog.w("Could not find player information for " + uid.toString() + " during ban process. Creating new one to ban though...");
+			localPlayerInformation = new UVPlayerInfo();
+			localPlayerInformation.name = "???";
+			localPlayerInformation.lastLogin = new Time(0);
+			localPlayerInformation.lastOnline = new Time(0);
+			localPlayerInformation.onlineTime = new Time(0);
+		}
+
+		// extra security check for logged in status of command executor
 		if( authorizer != null && ( authorizer.isRegistered( (Player)cs ) && !authorizer.loggedIn( (Player)cs ) ) )
 		{
 			return MResult.RES_NOACCESS;
@@ -1014,42 +1052,60 @@ public class UVLocalEngine implements UltraVisionAPI
 			return MResult.RES_ALREADY;
 		}
 
-		// Get the ban performer
+		// try to get the bukkit player instance
+		List<MatchUserResult> playerMatch = matchUser(localPlayerInformation.name, true);
+		OfflinePlayer kickedPlayer = null; // oflinePlayer because he could be offline...
+		if (!playerMatch.isEmpty())
+		{
+			kickedPlayer = ultravisionPlugin.getServer().getOfflinePlayer(playerMatch.get(0).pIdent.Get());
+		}
+
+		// check if the player is online
+		if (kickedPlayer != null && kickedPlayer.isOnline()
+			&& kickedPlayer instanceof Player) // just to make sure that we can safely cast to Player
+		{
+			// format the ban message
+			String banMessage = ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA +
+				( ( time == null ) ? "B" : "Tempb" ) + "an" + ChatColor.DARK_GRAY + "] " +
+				ChatColor.AQUA + reason + " (local" + ( ( time == null ) ? "" : ", for " + timeInterpreter.getText( time.getTime() ) ) + ")";
+
+			// kick him
+			Player kickedPlayerInstance = (Player)kickedPlayer;
+			kickedPlayerInstance.kickPlayer(banMessage);
+
+			MLog.i("Kicked player.");
+
+			// try to put info about the ban into his logfile
+			UVLocalPlayer localUVPlayer = getUVLocalPlayer(uid, kickedPlayerInstance);
+			if (localUVPlayer != null)
+			{
+				localUVPlayer.log(banMessage + " BY " + cs.getName());
+			}
+		}
+
+		// Gather Ban Information
 		if (bSenderIsConsole)
 		{
-			MLog.w("Bans are not logged in the userlog!");
-			localPlayer.craftPlayer.getServer().getPlayer(uid.Get()).kickPlayer( ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + ( ( time == null ) ? "B" : "Tempb" ) + "an" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + reason + " (local" + ( ( time == null ) ? "" : ", for " + timeInterpreter.getText( time.getTime() ) ) + ")" );
-			MLog.i("Kicked player.");
+			localPlayerInformation.ban = new UVBan(reason, null, global, time);
+			localPlayerInformation.banHistory.add( localPlayerInformation.ban );
 		}
 		else
 		{
 			Player senderPlayer = (Player)cs;
-			UVLocalPlayer uPBanner = getUVLocalPlayer( new PlayerIdent(senderPlayer.getUniqueId()) );
+			UVLocalPlayer uPBanner = getUVLocalPlayer( new PlayerIdent(senderPlayer) );
 
 			// add the ban
 			localPlayerInformation.ban = new UVBan( reason, uPBanner.craftPlayer, global, time );
 			localPlayerInformation.banHistory.add( localPlayerInformation.ban );
-
-			// save player file
-			if( savePlayer( uid ) != MResult.RES_SUCCESS )
-			{
-				MLog.e( "Can't save userdata for player '" + localPlayer.craftPlayer.getName() + "' (" + uid.toString() + ")" );
-				return MResult.RES_ERROR;
-			}
-
-			// Add ban to log
-			localPlayer.log( MLog.real( ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + ( ( time == null ) ? "B" : "Tempb" )
-				+ "an" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + reason + " (local" + ( ( time == null ) ? "" : ", for " + timeInterpreter.getText( time.getTime() ) ) + ") BY " + uPBanner.craftPlayer.getName() ) );
-
-			// And kick player
-			/*localPlayer.craftPlayer.getHandle().playerConnection.player.extinguish();
-			localPlayer.craftPlayer.getHandle().playerConnection.sendPacket( new Packet255KickDisconnect( MLog.real( ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + ( ( time == null ) ? "B" : "Tempb" ) + "an" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + reason + " (local" + ( ( time == null ) ? "" : ", for " + timeInterpreter.getText( time.getTime() ) ) + ")" ) ) );
-			localPlayer.craftPlayer.getHandle().playerConnection.networkManager.d();
-			( ( CraftServer ) localPlayer.craftPlayer.getServer() ).getHandle().disconnect( localPlayer.craftPlayer.getHandle() );
-			localPlayer.craftPlayer.getHandle().playerConnection.disconnected = true; */
-			localPlayer.craftPlayer.getServer().getPlayer(uid.Get()).kickPlayer( ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + ( ( time == null ) ? "B" : "Tempb" ) + "an" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + reason + " (local" + ( ( time == null ) ? "" : ", for " + timeInterpreter.getText( time.getTime() ) ) + ")" );
-			//localPlayer.craftPlayer.kickPlayer( MLog.real( ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA + ( ( time == null ) ? "B" : "Tempb" ) + "an" + ChatColor.DARK_GRAY + "] " + ChatColor.AQUA + reason + " (local" + ( ( time == null ) ? "" : ", for " + timeInterpreter.getText( time.getTime() ) ) + ")" ) );
 		}
+
+		// save player file
+		if( savePlayer( uid, localPlayerInformation ) != MResult.RES_SUCCESS )
+		{
+			MLog.e( "Can't save userdata for player '" + localPlayerInformation.name + "' (" + uid.toString() + ")" );
+			return MResult.RES_ERROR;
+		}
+
 		return MResult.RES_SUCCESS;
 	}
 
