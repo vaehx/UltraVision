@@ -221,11 +221,19 @@ public class UVLocalEngine implements UltraVisionAPI
 			fod.write( player.i.isMute ? 1 : 0 ); // Write mute state
 			try
 			{
-				long temp = 0;
+				// last online (last logout)
 				if( player.i.lastOnline != null )
-					temp = player.i.lastOnline.getTime();
+					fod.writeLong(player.i.lastOnline.getTime());
+				else
+					fod.writeLong(Calendar.getInstance().getTime().getTime());
 
-				fod.writeLong( temp );
+				// last login
+				if (player.i.lastLogin != null)
+					fod.writeLong(player.i.lastLogin.getTime());
+				else
+					fod.writeLong(Calendar.getInstance().getTime().getTime());
+
+				// total online time
 				fod.writeLong( player.i.onlineTime.getTime() );
 			}
 			catch( IOException ex )
@@ -592,17 +600,22 @@ public class UVLocalEngine implements UltraVisionAPI
 				MLog.d("File version is '" + fi.getVersion() + "' at " + MConfiguration.normalizePath(ud));
 			}
 
-			resultInformation.name = readString(fid, 16);	
+			resultInformation.name = readString(fid, 16);
 
 			// Read the general information
 			int isMute = fid.read();
 			resultInformation.isMute = ( ( isMute == 0 ) ? false : true );
 			try
 			{
-				if( fi.getVersion() >= 3 )
-					resultInformation.lastOnline = new Time( fid.readLong() );
+				if (fi.getVersion() >= 3)
+					resultInformation.lastOnline = new Time(fid.readLong());
 				else
-					resultInformation.lastLogin = new Time( Calendar.getInstance().getTime().getTime() );
+					resultInformation.lastOnline = new Time(Calendar.getInstance().getTime().getTime());
+
+				if (fi.getVersion() >= 4)
+					resultInformation.lastLogin = new Time(fid.readLong());
+				else
+					resultInformation.lastLogin = new Time(Calendar.getInstance().getTime().getTime());
 			}
 			catch( EOFException eofex )
 			{
@@ -754,6 +767,8 @@ public class UVLocalEngine implements UltraVisionAPI
 			}
 
 			UVLocalPlayer newPlayer = new UVLocalPlayer( bukkitPlayer, pluginDirectory, resultInformation );
+
+			MLog.d("Loaded lastonline: " + String.valueOf(newPlayer.i.lastOnline));
 
 			// prevent NPE in JMessage
 			if (newPlayer.i.lastOnline == null) newPlayer.i.lastOnline = new Time( Calendar.getInstance().getTime().getTime() );

@@ -12,7 +12,7 @@ public class UVFileInformation
 {
 
 	// STATIC -------------------------------
-	public static int uVersion = 3;
+	public static int uVersion = 4;
 	// UNSTATIC -----------------------------
 	private int version;
 
