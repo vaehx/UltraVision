@@ -38,7 +38,7 @@ public class ultravisionCommand extends extendedCommand
 
 			p.sendMessage( ChatColor.DARK_GRAY + "=== " + ChatColor.DARK_AQUA + "Server running " + ChatColor.AQUA + "ULTRAVISION" + ChatColor.GRAY + " version " + ChatColor.AQUA + uv.getfPDesc().getVersion() + ChatColor.DARK_GRAY + " ===" );
 
-			p.sendMessage( ChatColor.GOLD + "This Bukkit Plugin provides functionality for every security, as well as frondemd and logging purposes on your MC-Server." );
+			p.sendMessage( ChatColor.GOLD + "This Bukkit Plugin provides functionality for security, as well as frontend and logging purposes on your MC-Server." );
 
 			String coms = "";
 			for( String lecom : uv.getfPDesc().getCommands().keySet() )
