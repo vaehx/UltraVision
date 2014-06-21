@@ -199,49 +199,56 @@ public class ultravision extends JavaPlugin
 	{
 		MLog.i( "Ultravision is being shutdown." );
 
-		// Save authorizer datas
-		if( auth != null )
-			auth.save();
-
-		if( clickauth != null )
-			clickauth.saveToFile();
-
-		// Save Jmessage config
-		if( jmsg != null )
-			jmsg.save( config );
-
-		// Shut down Engine
-		if( api != null )
+		try
 		{
-			for( Player p : getServer().getOnlinePlayers() )
+			// Save authorizer datas
+			if( auth != null )
+				auth.save();
+
+			if( clickauth != null )
+				clickauth.saveToFile();
+
+			// Save Jmessage config
+			if( jmsg != null )
+				jmsg.save( config );
+
+			// Shut down Engine
+			if( api != null )
 			{
-				api.onPlayerLeave( p );
+				for( Player p : getServer().getOnlinePlayers() )
+				{
+					api.onPlayerLeave( p );
+				}
+
+				if( api.shutdown() )
+				{
+					MLog.i( "Shut down engine (" + ( ( global ) ? "global" : "local" ) + ")" );
+				}
+				else
+				{
+					MLog.e( "Can't shut down engine (" + ( ( global ) ? "global" : "local" ) + ")" );
+				}
 			}
 
-			if( api.shutdown() )
+			playerListener = null;
+			fPDesc = null;
+			config = null;
+
+			// Stop the Mineconnect server
+			if( useMineconnect && uvserver != null && uvserver.isAlive() )
 			{
-				MLog.i( "Shut down engine (" + ( ( global ) ? "global" : "local" ) + ")" );
+				uvserver.shutdown();
+				uvserver = null;
+				MLog.i( "Mineconnect Server stopped successfullly." );
 			}
 			else
 			{
-				MLog.e( "Can't shut down engine (" + ( ( global ) ? "global" : "local" ) + ")" );
+				MLog.i( "Mineconnect Server already shut down or disabled." );
 			}
 		}
-
-		playerListener = null;
-		fPDesc = null;
-		config = null;
-
-		// Stop the Mineconnect server
-		if( useMineconnect && uvserver != null && uvserver.isAlive() )
+		catch (NoClassDefFoundError ncdfe)
 		{
-			uvserver.shutdown();
-			uvserver = null;
-			MLog.i( "Mineconnect Server stopped successfullly." );
-		}
-		else
-		{
-			MLog.i( "Mineconnect Server already shut down or disabled." );
+			MLog.w("A NoClassDefFoundError occured while disabling UV. You probably have overwritten the plugin file without unloading it.");
 		}
 	}
 
@@ -691,7 +698,7 @@ public class ultravision extends JavaPlugin
 
 
 
-			
+
 			// all other commands
 
 			if( cmd.getName().equalsIgnoreCase( "ultravision" ) ) commandClass = ultravisionCommand.class;
