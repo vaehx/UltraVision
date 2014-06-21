@@ -77,7 +77,7 @@ public class ultravision extends JavaPlugin
 	public boolean showMessagesNotLoggedIn	= true;     // Show messages, if not logged in
 	public boolean disableIngameOp		= true;	    // Disable ingame op command
 	public UVBRIDGE[] bridges		= new UVBRIDGE[ 5 ];     // Bridge to UltraBox Plugins
-	public List<String> debugPlayers	= new ArrayList<>();		
+	public List<String> debugPlayers	= new ArrayList<>();
 
 	//**********************************************************************************************
 	/**
@@ -204,13 +204,13 @@ public class ultravision extends JavaPlugin
 			auth.save();
 
 		if( clickauth != null )
-			clickauth.saveToFile();	
+			clickauth.saveToFile();
 
 		// Save Jmessage config
 		if( jmsg != null )
-			jmsg.save( config );	
+			jmsg.save( config );
 
-		// Shut down Engine		
+		// Shut down Engine
 		if( api != null )
 		{
 			for( Player p : getServer().getOnlinePlayers() )
@@ -227,9 +227,9 @@ public class ultravision extends JavaPlugin
 				MLog.e( "Can't shut down engine (" + ( ( global ) ? "global" : "local" ) + ")" );
 			}
 		}
-		
+
 		playerListener = null;
-		fPDesc = null;		
+		fPDesc = null;
 		config = null;
 
 		// Stop the Mineconnect server
@@ -257,7 +257,7 @@ public class ultravision extends JavaPlugin
 		{
 			Properties buildProperties = new Properties();
 			try
-			{				
+			{
 				InputStream resourceStream = ultravision.class.getResourceAsStream("version.properties");
 				if( resourceStream == null )
 				{
@@ -281,7 +281,7 @@ public class ultravision extends JavaPlugin
 		{
 			buildVersion = "???";
 			MLog.i( "Ultravision is starting (Version " + fPDesc.getVersion() + " #b???) ..." );
-			MLog.d( "Cannot retrieve Build version due to resource not found." );			
+			MLog.d( "Cannot retrieve Build version due to resource not found." );
 		}
 	}
 
@@ -304,18 +304,18 @@ public class ultravision extends JavaPlugin
 		config.set( "general.debug", ( MConst._DEBUG_ENABLED = config.getBoolean( "general.debug", false ) ) );
 		config.set( "general.debugPlayers", ( debugPlayers = config.getStringList( "general.debugPlayers" , new ArrayList<String>() ) ) );
 		config.set( "general.allowNotRegActions", ( allowNotRegActions = config.getBoolean( "general.allowNotRegActions", true ) ) );
-		config.set( "general.disableIngameOp", ( disableIngameOp = config.getBoolean( "general.disableIngameOp", true ) ) );						
+		config.set( "general.disableIngameOp", ( disableIngameOp = config.getBoolean( "general.disableIngameOp", true ) ) );
 
 		config.setDefault( "auth.showMessagesNotLoggedIn", true );
-		config.setDefault( "ultravision.showWarnedMessages", true );				
+		config.setDefault( "ultravision.showWarnedMessages", true );
 		config.set( "general.savestats", config.getBoolean( "general.savestats", true ) );
-		
+
 		// Initialize Bridges
 		if( useUltraChat )
 		{
 			addBridge( new UVBRIDGE( this, "UltraChat" ) );
 		}
-		
+
 		// save config file
 		config.save();
 	}
@@ -460,7 +460,7 @@ public class ultravision extends JavaPlugin
 			}
 		}
 
-		config = new MConfiguration( YamlConfiguration.loadConfiguration( cf ), cf );				
+		config = new MConfiguration( YamlConfiguration.loadConfiguration( cf ), cf );
 
 		// Initialize DataTable
 		Map<String, MConfiguration.DataType> dt = new HashMap<>();
@@ -638,6 +638,26 @@ public class ultravision extends JavaPlugin
 		return false;
 	}
 
+	public boolean doUUIDOFCommand(String[] args, Player p)
+	{
+		if (args.length == 0)
+		{
+			p.sendMessage(ChatColor.RED + "Wrong argument count!");
+			return true;
+		}
+
+		List<UltraVisionAPI.MatchUserResult> match = api.matchUser(args[0], true);
+		if (match.isEmpty())
+		{
+			p.sendMessage(ChatColor.RED + "Cannot find this user!");
+			return true;
+		}
+
+		// take first match here
+		p.sendMessage(match.get(0).pIdent.toString());
+		return true;
+	}
+
 	//**********************************************************************************************
 	/**
 	 * Handle ultravision Commands
@@ -662,6 +682,17 @@ public class ultravision extends JavaPlugin
 				p.sendMessage( ChatColor.GREEN + "Ban." );
 				return true;
 			}
+
+			// UUID OF command
+			if (cmd.getName().equalsIgnoreCase("uvuuidof"))
+			{
+				return doUUIDOFCommand(args, p);
+			}
+
+
+
+			
+			// all other commands
 
 			if( cmd.getName().equalsIgnoreCase( "ultravision" ) ) commandClass = ultravisionCommand.class;
 
@@ -718,7 +749,7 @@ public class ultravision extends JavaPlugin
 			else if( cmd.getName().equalsIgnoreCase( "uvclearconfig" ) ) commandClass = clearConfigCommand.class;
 
 			else if( cmd.getName().equalsIgnoreCase( "uvfake" ) ) commandClass = fakeCommand.class;
-			
+
 			else if( cmd.getName().equalsIgnoreCase( "jmessage" ) ) commandClass = jmessageCommand.class;
 
 			// Now run command if not null
@@ -793,7 +824,7 @@ public class ultravision extends JavaPlugin
 		{
 			Constructor commandClassConstructor = clazz.getConstructor( ultravision.class, String[].class );
 			T newInstance = (T)commandClassConstructor.newInstance( this, args );
-			return ( newInstance.consoleRun(console) == commandResult.RES_SUCCESS );			
+			return ( newInstance.consoleRun(console) == commandResult.RES_SUCCESS );
 		}
 		catch( Exception ex )
 		{
