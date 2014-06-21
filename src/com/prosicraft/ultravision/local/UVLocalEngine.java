@@ -1421,20 +1421,6 @@ public class UVLocalEngine implements UltraVisionAPI
 	public List<MatchUserResult> matchUser(String part, boolean needsFullMatch)
 	{
 		List<MatchUserResult> out = new ArrayList<>();
-
-		List<Player> onlinePlayers = new ArrayList<>(Arrays.asList(ultravisionPlugin.getServer().getOnlinePlayers()));
-		for (Player checkOnlinePlayer : onlinePlayers)
-		{
-			boolean bMatches;
-			if (needsFullMatch)
-				bMatches = checkOnlinePlayer.getName().equalsIgnoreCase(part);
-			else
-				bMatches = checkOnlinePlayer.getName().contains(part);
-
-			if (bMatches)
-				out.add(new MatchUserResult(checkOnlinePlayer.getName(), true, new PlayerIdent(checkOnlinePlayer.getUniqueId())));
-		}
-
 		List<OfflinePlayer> offlinePlayers = new ArrayList<>(Arrays.asList(ultravisionPlugin.getServer().getOfflinePlayers()));
 		for (OfflinePlayer checkOfflinePlayer : offlinePlayers)
 		{
@@ -1445,7 +1431,11 @@ public class UVLocalEngine implements UltraVisionAPI
 				bMatches = checkOfflinePlayer.getName().contains(part);
 
 			if (bMatches)
-				out.add(new MatchUserResult(checkOfflinePlayer.getName(), false, new PlayerIdent(checkOfflinePlayer.getUniqueId())));
+			{
+				MatchUserResult tempRes = new MatchUserResult(checkOfflinePlayer.getName(), false, new PlayerIdent(checkOfflinePlayer.getUniqueId()));
+				tempRes.isOnline = checkOfflinePlayer.isOnline();
+				out.add(tempRes);
+			}
 		}
 
 		return out;
