@@ -19,6 +19,7 @@ import java.util.Map;
 public class UVPlayerInfo
 {
 
+	public String name			= "";
 	public UVBan ban			= null;			// you can only be banned once on local system
 	public List<UVBan> banHistory		= new ArrayList<>();
 	public UVWarning warning		= null;			// you can only be warned once on local system

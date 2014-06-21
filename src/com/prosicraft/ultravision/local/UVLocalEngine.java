@@ -589,9 +589,10 @@ public class UVLocalEngine implements UltraVisionAPI
 			else
 			{
 				fi.setVersion( fid.read() );
-				//MLog.d("File version is '" + fi.getVersion() + "' at " + MConfiguration.normalizePath(ud));
+				MLog.d("File version is '" + fi.getVersion() + "' at " + MConfiguration.normalizePath(ud));
 			}
 
+			resultInformation.name = readString(fid, 16);	
 
 			// Read the general information
 			int isMute = fid.read();
@@ -756,7 +757,7 @@ public class UVLocalEngine implements UltraVisionAPI
 
 			// prevent NPE in JMessage
 			if (newPlayer.i.lastOnline == null) newPlayer.i.lastOnline = new Time( Calendar.getInstance().getTime().getTime() );
-			if (newPlayer.i.lastLogin == null) newPlayer.i.lastLogin = newPlayer.i.lastOnline;
+			if (newPlayer.i.lastLogin == null) newPlayer.i.lastLogin = new Time( Calendar.getInstance().getTime().getTime() );
 
 			players.add( newPlayer );
 			MLog.i( "Loaded player named '" + bukkitPlayer.getName() + "' (" + uid.toString() + ") into memory." );
@@ -797,7 +798,7 @@ public class UVLocalEngine implements UltraVisionAPI
 			// create the new player instance
 			localPlayer = new UVLocalPlayer( p, pluginDirectory, new UVPlayerInfo() );
 			localPlayer.i.lastOnline = new Time( Calendar.getInstance().getTime().getTime() );
-			localPlayer.i.lastLogin = localPlayer.i.lastOnline;
+			localPlayer.i.lastLogin = new Time( Calendar.getInstance().getTime().getTime() );
 
 			players.add( localPlayer );
 			savePlayer( localPlayer.GetIdent() );
