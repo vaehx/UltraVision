@@ -53,8 +53,6 @@ public class uvPlayerListener implements Listener
 		boolean res = false;
 		if( auth != null )
 			res = auth.isRegistered( p );
-		else
-			MLog.d( "auth is null" );
 
 		if( parent.getClickAuth() != null )
 		{
@@ -71,12 +69,12 @@ public class uvPlayerListener implements Listener
 		if( e.getPlayer() instanceof Player )
 		{
 			uv.onPlayerJoin( e.getPlayer() );
-			
+
 			// Check if player is already online
 			if (!e.getPlayer().getServer().getOnlineMode())
 			{
 				for( Player p : parent.getServer().getOnlinePlayers() )
-				{								
+				{
 					// Test UUID and name (prevent multiple users with same nickname)
 					if( e.getPlayer().getUniqueId() == p.getUniqueId()
 						|| e.getPlayer().getName().equalsIgnoreCase(p.getName()) )
@@ -168,7 +166,7 @@ public class uvPlayerListener implements Listener
 
 	@EventHandler( priority = EventPriority.LOWEST )
 	public void onPlayerCommandPreprocess( PlayerCommandPreprocessEvent event )
-	{					
+	{
 		if( parent.disableIngameOp && event.getMessage().contains( "/op" ) )
 		{
 			event.getPlayer().sendMessage( ChatColor.RED + "Oops. Ingame opping is disabled on this server!" );
@@ -188,7 +186,7 @@ public class uvPlayerListener implements Listener
 				else
 				{
 					String message = event.getMessage();
-					String[] params = message.split( "\\s+" );					
+					String[] params = message.split( "\\s+" );
 					if( params.length == 1 )
 					{
 						event.getPlayer().sendMessage( ChatColor.RED + "You didn't specify any password!" );
@@ -216,7 +214,7 @@ public class uvPlayerListener implements Listener
 			if (event.getMessage().contains("/login"))
 			{
 				event.getPlayer().sendMessage(ChatColor.RED + "You are not registered, so you cannot log in!");
-				
+
 				// set cancelled, so that we don't process this command further
 				event.setCancelled(true);
 			}
