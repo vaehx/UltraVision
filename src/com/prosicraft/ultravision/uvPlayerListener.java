@@ -8,7 +8,6 @@ import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.util.MAuthorizer;
 import com.prosicraft.ultravision.util.MLog;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -130,7 +129,7 @@ public class uvPlayerListener implements Listener
 			if( parent.showWelcomeMessage )
 				e.getPlayer().sendMessage( ChatColor.DARK_GRAY + " ==== " + ChatColor.GRAY + "This Server is" + ChatColor.DARK_AQUA + " powered by " + ChatColor.AQUA + "UltraVision" + ChatColor.DARK_GRAY + " ====" );
 
-			if( !registered( e.getPlayer() ) )
+			if( !registered(e.getPlayer()) && parent.IsUsingAuthorizer() )
 			{
 				e.getPlayer().sendMessage( ChatColor.YELLOW + "Warning: You're not registered in the login system yet!" );
 			}
