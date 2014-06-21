@@ -7,6 +7,7 @@ package com.prosicraft.ultravision.util;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +51,19 @@ public class MConfiguration
 	public void setDataTypeTable( Map<String, DataType> dataTypeTable )
 	{
 		this.dt = dataTypeTable;
+
+		// convert all key to lower case
+		Map<String, DataType> normalized = new HashMap<>();
+		if (dt != null)
+		{
+			for (String key : dt.keySet())
+			{
+				normalized.put(key.toLowerCase(), dt.get(key));
+			}
+			dt.clear();
+		}
+
+		dt = normalized;
 	}
 
 	public Map<String, DataType> getDataTypeTable()
@@ -59,8 +73,8 @@ public class MConfiguration
 
 	public DataType getDataType( String node )
 	{
-		if( dt.containsKey( node ) )
-			return dt.get( node );
+		if( dt.containsKey( node.toLowerCase() ) )
+			return dt.get( node.toLowerCase() );
 		return DataType.DATATYPE_STRING;
 	}
 
@@ -116,7 +130,7 @@ public class MConfiguration
 
 	public String getValueAsString( String path )
 	{
-		if( dt.containsKey( path ) )
+		if( dt.containsKey( path.toLowerCase() ) )
 		{
 			if( dt.get( path ) == DataType.DATATYPE_BOOLEAN )
 				return String.valueOf( fc1.getBoolean( path ) );
