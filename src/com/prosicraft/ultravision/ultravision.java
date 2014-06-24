@@ -530,6 +530,7 @@ public class ultravision extends JavaPlugin
 		dt.put( "general.showMesssagesNotLoggedIn", MConfiguration.DataType.DATATYPE_BOOLEAN );
 		dt.put( "general.debug", MConfiguration.DataType.DATATYPE_BOOLEAN );
 		dt.put( "general.savestats", MConfiguration.DataType.DATATYPE_BOOLEAN );
+		dt.put( "general.debugDummy", MConfiguration.DataType.DATATYPE_BOOLEAN );
 
 		config.setDataTypeTable( dt );
 
