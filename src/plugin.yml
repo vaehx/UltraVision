@@ -215,3 +215,8 @@ commands:
         usage: /<command> <player>
         permission: ultravision.mod.uuidof
         aliases: [uuidof]
+    uvadminhorse:
+        description: Spawns an admin horse
+        usage: /<command>
+        permissions: ultravision.admin.horse
+        aliases: [adminhorse]

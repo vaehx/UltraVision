@@ -33,11 +33,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import net.minecraft.server.v1_7_R3.EntityInsentient;
+import net.minecraft.server.v1_7_R3.GenericAttributes;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.craftbukkit.v1_7_R3.entity.CraftLivingEntity;
+import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
@@ -697,6 +701,21 @@ public class ultravision extends JavaPlugin
 			}
 
 
+			if (cmd.getName().equalsIgnoreCase("uvadminhorse"))
+			{
+				Horse h = p.getWorld().spawn(p.getLocation(), Horse.class);
+				h.setJumpStrength(2.0);
+				h.setVariant(Horse.Variant.SKELETON_HORSE);
+				h.setAdult();
+				h.setTamed(true);
+				h.setOwner(p);
+				((EntityInsentient)((CraftLivingEntity)h).getHandle()).getAttributeInstance(GenericAttributes.d).setValue(2.5);
+
+				p.sendMessage("Spawned adminhorse!");
+				return true;
+			}
+
+			//Horse h = new CraftHorse((CraftServer)getServer(), null)
 
 
 			// all other commands
