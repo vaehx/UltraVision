@@ -4,19 +4,24 @@
  * (c) 2010-2014 prosicraft
  * All rights reserved.
  */
-package com.prosicraft.ultravision;
+package com.prosicraft.ultravision.dummy;
 
+import com.prosicraft.ultravision.ultravision;
+import com.prosicraft.ultravision.util.MLog;
 import java.util.UUID;
 import net.minecraft.server.v1_7_R3.EntityPlayer;
+import net.minecraft.server.v1_7_R3.EnumGamemode;
 import net.minecraft.server.v1_7_R3.MinecraftServer;
 import net.minecraft.server.v1_7_R3.PlayerInteractManager;
 import net.minecraft.server.v1_7_R3.WorldServer;
 import net.minecraft.util.com.mojang.authlib.GameProfile;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_7_R3.CraftServer;
-import org.bukkit.craftbukkit.v1_7_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_7_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+import net.minecraft.server.v1_7_R3.NetworkManager;
+import net.minecraft.server.v1_7_R3.PlayerConnection;
 
 /**
  *
@@ -36,11 +41,11 @@ public class DebugDummy
 	public void spawn(String dummyPlayerUUIDStr, Location loc)
 	{
 		// retrieve the Minecraft server instance
-		CraftServer craftServer = (CraftServer)uvPlugin.getServer();
+		CraftServer craftServer = (CraftServer)Bukkit.getServer();
 		MinecraftServer minecraftServer = craftServer.getServer();
 
 		// the world server
-		worldServer = ((CraftWorld)loc.getWorld()).getHandle();
+		worldServer = minecraftServer.getWorldServer(0);
 
 		// the players game profile
 		UUID dummyPlayerUUID = UUID.fromString(dummyPlayerUUIDStr);
@@ -51,8 +56,28 @@ public class DebugDummy
 
 		// now create the dummy player
 		EntityPlayer entityPlayer = new EntityPlayer(minecraftServer, worldServer, dummyGameProfile, playerInteractManager);
-		dummyPlayer = new CraftPlayer((CraftServer)uvPlugin.getServer(), entityPlayer);
-		dummyPlayer.teleport(loc);
+
+		NetworkManager networkManager = new DebugDummyNetworkManager(true);
+
+
+		minecraftServer.getUserCache().a(dummyGameProfile);
+		entityPlayer.spawnIn(worldServer);
+		entityPlayer.playerInteractManager.a((WorldServer)entityPlayer.world);
+
+		// START PlayerList.a
+		entityPlayer.playerInteractManager.setGameMode(EnumGamemode.CREATIVE);
+		entityPlayer.playerInteractManager.b(worldServer.getWorldData().getGameType());
+		// END PlayerList.a
+		entityPlayer.playerConnection = new PlayerConnection(minecraftServer, networkManager, entityPlayer);
+
+		minecraftServer.az();
+
+		minecraftServer.getPlayerList().c(entityPlayer);
+		minecraftServer.getPlayerList().b(entityPlayer, worldServer);
+
+		dummyPlayer = new DebugDummyPlayer(craftServer, entityPlayer);
+		MLog.i("Spawned Dummy Player with entity id " + dummyPlayer.getEntityId() +
+			" at location " + dummyPlayer.getLocation().getX() + ", " + dummyPlayer.getLocation().getX() + ", " + dummyPlayer.getLocation().getX() + "!");
 	}
 
 	public void despawn()
@@ -61,5 +86,15 @@ public class DebugDummy
 			return;
 
 		worldServer.removeEntity(((CraftPlayer)dummyPlayer).getHandle());
+	}
+
+	public Location getLocation()
+	{
+		return dummyPlayer.getLocation();
+	}
+
+	public void teleportTo(Location loc)
+	{
+		dummyPlayer.teleport(loc);
 	}
 }

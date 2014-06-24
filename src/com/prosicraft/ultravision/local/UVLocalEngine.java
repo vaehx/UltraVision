@@ -1324,7 +1324,6 @@ public class UVLocalEngine implements UltraVisionAPI
 		}
 
 		uP.i.warning = new UVWarning( reason, ( Player ) cs, false, time );
-
 		uP.log( "[UltraVision] warned by " + cs.getName() + ( time == null ? "" : "for" + timeInterpreter.getText( time.getTime() ) ) );
 
 		return MResult.RES_SUCCESS;

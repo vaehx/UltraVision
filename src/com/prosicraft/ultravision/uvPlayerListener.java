@@ -120,6 +120,13 @@ public class uvPlayerListener implements Listener
 		if( e.getPlayer() instanceof Player )
 		{
 			PlayerIdent pIdent = new PlayerIdent(e.getPlayer());
+
+			if (e.getPlayer() == null)
+				MLog.d("e.getPlayer() returned null in uvPlayerListener::onPlayerJoin!");
+
+			if (e.getPlayer().getAddress() == null)
+				MLog.d("e.getPlayer().getAddress() returned null!");
+
 			parent.getAPI().addPlayerLogLine( pIdent, "** Joined successfully (ip " + e.getPlayer().getAddress().toString() + ")" );
 			if( parent.getAPI().isPlayerWarned( pIdent ) )
 			{

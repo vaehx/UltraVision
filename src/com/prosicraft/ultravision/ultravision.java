@@ -13,6 +13,7 @@
  */
 package com.prosicraft.ultravision;
 
+import com.prosicraft.ultravision.dummy.DebugDummy;
 import com.prosicraft.ultravision.JMessage.JMessage;
 import com.prosicraft.ultravision.base.PlayerIdent;
 import com.prosicraft.ultravision.base.UVChatListener;
@@ -390,6 +391,8 @@ public class ultravision extends JavaPlugin
 
 		debugDummy = new DebugDummy(this);
 		debugDummy.spawn(uuidStr, dummyLocation);
+
+		MLog.i("Loaded Dummy Player in world '" + worldName + "' with id " + uuidStr + "!");
 	}
 
 	//**********************************************************************************************
@@ -756,7 +759,17 @@ public class ultravision extends JavaPlugin
 				return true;
 			}
 
-			//Horse h = new CraftHorse((CraftServer)getServer(), null)
+			if (cmd.getName().equalsIgnoreCase("uvtptodummy"))
+			{
+				if (!useDebugDummy)
+				{
+					p.sendMessage(ChatColor.RED + "Debug dummy is not used!");
+					return true;
+				}
+
+				debugDummy.teleportTo(p.getLocation());
+				return true;
+			}
 
 
 			// all other commands
