@@ -1315,7 +1315,7 @@ public class UVLocalEngine implements UltraVisionAPI
 		UVLocalPlayer uP;
 		if( ( uP = getUVLocalPlayer( uid ) ) == null )
 		{
-			return null;
+			return MResult.RES_NOTINIT;
 		}
 
 		if( uP.i.warning != null )

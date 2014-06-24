@@ -4,7 +4,6 @@
  */
 package com.prosicraft.ultravision.commands;
 
-import com.prosicraft.ultravision.base.PlayerIdent;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.ultravision;
 import com.prosicraft.ultravision.util.MLog;
@@ -33,10 +32,9 @@ public class tempwarnCommand extends extendedCommand
 		try
 		{
 
-			// /warn <player> <reason>
+			String commandSyntax = "/tempwarn <player> <time> [reason]";
 			if( this.numArgs() >= 2 )
 			{
-
 				UltraVisionAPI api = ( ( ultravision ) getParent() ).getAPI();
 				List<UltraVisionAPI.MatchUserResult> mayWarn = api.matchUser(getArg(0), false);
 
@@ -54,14 +52,18 @@ public class tempwarnCommand extends extendedCommand
 						String formattedName = toWarn.name + ((toWarn.isOnline) ? "" : " (off)");
 						plist += ChatColor.GRAY + formattedName + ( ( mayWarn.indexOf( toWarn ) != ( mayWarn.size() - 1 ) ) ? ChatColor.DARK_GRAY + ", " : "" );
 					}
+
 					p.sendMessage( plist );
 					return suc();
 				}
 				else
 				{    // Got ONE player
-					String reason = "";
-					for( int i = 2; i < numArgs(); i++ )
-						reason += getArg( i ).trim();
+					String reason = "No reason provided.";
+					if (numArgs() > 2)
+					{
+						for( int i = 2; i < numArgs(); i++ )
+							reason += getArg( i ).trim();
+					}
 
 					String t = this.getArg( 1 );
 					if( t.startsWith( "t:" ) )
@@ -71,12 +73,14 @@ public class tempwarnCommand extends extendedCommand
 					if( thetime <= 0 )
 						return err( p, "Given Time is not valid!" );
 
-					Time tt = new Time( thetime );
+					Time warnDuration = new Time( thetime );
+					String warnDurationStr = warnDuration.toString();
 
-					MResult res;					
-					if( ( res = api.warnPlayerTemporarily( p, mayWarn.get(0).pIdent, ( ( numArgs() >= 2 ) ? reason : "No reason provided." ), tt ) ) == MResult.RES_SUCCESS )
+					MResult res;
+					ultravision uvPlugin = (ultravision)getParent();
+					if(MResult.RES_SUCCESS == (res = api.warnPlayerTemporarily(p, mayWarn.get(0).pIdent, reason, warnDuration)))
 					{
-						( ( ultravision ) getParent() ).ownBroadcast( ChatColor.AQUA + "Player " + mayWarn.get( 0 ).name + " has been warned by " + p.getName() + " for " + timeInterpreter.getText( thetime ) + "." );
+						uvPlugin.ownBroadcast(ChatColor.AQUA + "Player " + mayWarn.get(0).name + " has been warned by " + p.getName() + " for " + timeInterpreter.getText(thetime) + ".");
 					}
 					else if( res == MResult.RES_ALREADY )
 					{
@@ -86,19 +90,20 @@ public class tempwarnCommand extends extendedCommand
 					{
 						p.sendMessage( ChatColor.RED + "Can't warn player: " + res.toString() );
 					}
-					return suc( p, "Warned player successfully for " + timeInterpreter.getText( thetime ) );
+
+					return suc( p, "Warned player successfully for " + warnDurationStr );
 				}
 
 			}
 			else
 			{
-				return err( p, "Too few arguments." );
+				return err( p, "Too few arguments. " + commandSyntax );
 			}
 
 		}
 		catch( Exception ex )
 		{
-			MLog.e( "[WARNCMD] " + ex.getMessage() );
+			MLog.e( "[TEMPWARNCMD] " + ex.getMessage() );
 			return err( p, "Failed to execute command." );
 		}
 
