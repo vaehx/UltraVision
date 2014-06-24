@@ -89,7 +89,8 @@ public class DebugDummy
 		if (dummyPlayer == null || worldServer == null || !isLiving)
 			return;
 
-		worldServer.removeEntity(((CraftPlayer)dummyPlayer).getHandle());
+		((CraftPlayer)dummyPlayer).disconnect("UV Dummy deleted!");
+		//worldServer.removeEntity(((CraftPlayer)dummyPlayer).getHandle());
 		dummyPlayer = null;
 		worldServer = null;
 		isLiving = false;

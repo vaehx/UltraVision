@@ -760,8 +760,7 @@ public class ultravision extends JavaPlugin
 				return true;
 			}
 
-			debugDummy.despawn();
-			p.sendMessage(ChatColor.GREEN + "DebugDummy despawned.");
+			p.sendMessage(ChatColor.RED + "Please use " + ChatColor.AQUA + "/kick uvdummy" + ChatColor.RED + " for that operation!");
 			return true;
 		}
 
