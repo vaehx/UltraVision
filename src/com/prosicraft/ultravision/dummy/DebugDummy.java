@@ -33,6 +33,8 @@ public class DebugDummy
 	private ultravision uvPlugin = null;
 	private WorldServer worldServer = null;
 
+	public boolean isLiving = false;
+
 	public DebugDummy(ultravision uvPlugin)
 	{
 		this.uvPlugin = uvPlugin;
@@ -78,23 +80,32 @@ public class DebugDummy
 		dummyPlayer = new DebugDummyPlayer(craftServer, entityPlayer);
 		MLog.i("Spawned Dummy Player with entity id " + dummyPlayer.getEntityId() +
 			" at location " + dummyPlayer.getLocation().getX() + ", " + dummyPlayer.getLocation().getX() + ", " + dummyPlayer.getLocation().getX() + "!");
+
+		isLiving = true;
 	}
 
 	public void despawn()
 	{
-		if (dummyPlayer == null)
+		if (dummyPlayer == null || worldServer == null || !isLiving)
 			return;
 
 		worldServer.removeEntity(((CraftPlayer)dummyPlayer).getHandle());
+		dummyPlayer = null;
+		worldServer = null;
+		isLiving = false;
 	}
 
 	public Location getLocation()
 	{
+		if (!isLiving)
+			return null;
+
 		return dummyPlayer.getLocation();
 	}
 
 	public void teleportTo(Location loc)
 	{
-		dummyPlayer.teleport(loc);
+		if (isLiving)
+			dummyPlayer.teleport(loc);
 	}
 }

@@ -220,8 +220,8 @@ commands:
         usage: /<command>
         permissions: ultravision.admin.horse
         aliases: [adminhorse]
-    uvtptodummy:
-        description: Teleports to the dummy player
+    uvdummy:
+        description: Spawns the uv dummy.
         usage: /<command>
-        permissions: ultravision.admin.tptodummy
-        aliases: [tptodummy]
+        permissions: ultravision.admin.spawndummy
+        aliases: [dummy]

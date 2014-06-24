@@ -20,9 +20,17 @@ import org.bukkit.event.player.PlayerTeleportEvent;
  */
 public class DebugDummyPlayer extends CraftPlayer
 {
+	private DebugDummy dummyWrapper;
+
 	public DebugDummyPlayer(CraftServer server, EntityPlayer entity)
 	{
 		super(server, entity);
+	}
+
+	public DebugDummyPlayer(CraftServer server, EntityPlayer entity, DebugDummy dummyWrapper)
+	{
+		super(server, entity);
+		this.dummyWrapper = dummyWrapper;
 	}
 
 	@Override
@@ -61,5 +69,18 @@ public class DebugDummyPlayer extends CraftPlayer
 			server.getHandle().moveToWorld(checkEntity, toWorld.dimension, true, to, true);
 
 		return true;
+	}
+
+	@Override
+	public void kickPlayer(String message)
+	{
+		if (getHandle().playerConnection == null)
+			return;
+
+		getHandle().playerConnection.disconnect(message == null ? "" : message);
+
+		// also unset the debugdummy instance
+		if (this.dummyWrapper != null)
+			this.dummyWrapper.despawn();
 	}
 }

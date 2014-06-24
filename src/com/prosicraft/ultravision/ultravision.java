@@ -195,10 +195,6 @@ public class ultravision extends JavaPlugin
 			MLog.i( "Started Mineconnect server." );
 		}
 
-		// initialize the debug dummy
-		// will just return, if useDebugDummy is false
-		loadDummyPlayer();
-
 		// In case of Reload: Do Rejoin everybody
 		// This also calls api.playerJoin()
 		rejoin();
@@ -229,7 +225,7 @@ public class ultravision extends JavaPlugin
 
 
 			// unload the dummy player
-			if (useDebugDummy)
+			if (useDebugDummy && debugDummy != null && debugDummy.isLiving)
 				debugDummy.despawn();
 
 			// Shut down Engine
@@ -713,6 +709,93 @@ public class ultravision extends JavaPlugin
 		return true;
 	}
 
+	public void printDummyCommandHelp(Player p)
+	{
+		p.sendMessage(ChatColor.GOLD + "UV Dummy commands:");
+		p.sendMessage("/dummy create");
+		p.sendMessage("/dummy delete");
+		p.sendMessage("/dummy tpto");
+		p.sendMessage("/dummy tphere");
+	}
+
+	public boolean doDummyCommand(String[] args, Player p)
+	{
+		if (!useDebugDummy)
+		{
+			p.sendMessage(ChatColor.RED + "The DebugDummy Function is turned off on this server!");
+			return true;
+		}
+
+		if (args.length == 0)
+		{
+			printDummyCommandHelp(p);
+			return true;
+		}
+
+		boolean debugDummyIsLiving = debugDummy != null && debugDummy.isLiving;
+
+		// create
+		if (args[0].equalsIgnoreCase("create"))
+		{
+			if (debugDummyIsLiving)
+			{
+				p.sendMessage(ChatColor.RED + "The DebugDummy is already living!");
+				return true;
+			}
+
+			if (debugDummy == null)
+				debugDummy = new DebugDummy(this);
+
+			loadDummyPlayer();
+			p.sendMessage(ChatColor.GREEN + "DebugDummy spawned. His name is 'uvdummy'!");
+			return true;
+		}
+
+		// delete
+		if (args[0].equalsIgnoreCase("delete"))
+		{
+			if (!debugDummyIsLiving)
+			{
+				p.sendMessage(ChatColor.RED + "The debugdummy is not living!");
+				return true;
+			}
+
+			debugDummy.despawn();
+			p.sendMessage(ChatColor.GREEN + "DebugDummy despawned.");
+			return true;
+		}
+
+		// tpto
+		if (args[0].equalsIgnoreCase("tpto"))
+		{
+			if (!debugDummyIsLiving)
+			{
+				p.sendMessage(ChatColor.RED + "The debugdummy is not living!");
+				return true;
+			}
+
+			p.teleport(debugDummy.getLocation());
+			return true;
+		}
+
+		// tphere
+		if (args[0].equalsIgnoreCase("tphere"))
+		{
+			if (!debugDummyIsLiving)
+			{
+				p.sendMessage(ChatColor.RED + "The debugdummy is not living!");
+				return true;
+			}
+
+			debugDummy.teleportTo(p.getLocation());
+			p.sendMessage(ChatColor.GRAY + "Note: It might take a while until you see the player - move around a bit!");
+			return true;
+		}
+
+		printDummyCommandHelp(p);
+		return true;
+	}
+
 	//**********************************************************************************************
 	/**
 	 * Handle ultravision Commands
@@ -759,16 +842,10 @@ public class ultravision extends JavaPlugin
 				return true;
 			}
 
-			if (cmd.getName().equalsIgnoreCase("uvtptodummy"))
+			// UVDUMMY command
+			if (cmd.getName().equalsIgnoreCase("uvdummy"))
 			{
-				if (!useDebugDummy)
-				{
-					p.sendMessage(ChatColor.RED + "Debug dummy is not used!");
-					return true;
-				}
-
-				debugDummy.teleportTo(p.getLocation());
-				return true;
+				return doDummyCommand(args, p);
 			}
 
 
