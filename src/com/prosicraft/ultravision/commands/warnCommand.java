@@ -1,10 +1,11 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * This file is part of the UltraVision Craftbukkit Plugin by prosicraft.
+ *
+ * (c) 2010-2014 prosicraft
+ * All rights reserved.
  */
 package com.prosicraft.ultravision.commands;
 
-import com.prosicraft.ultravision.base.PlayerIdent;
 import com.prosicraft.ultravision.base.UltraVisionAPI;
 import com.prosicraft.ultravision.ultravision;
 import com.prosicraft.ultravision.util.MLog;
@@ -15,7 +16,7 @@ import org.bukkit.entity.Player;
 
 /**
  *
- * @author passi
+ * @author prosicraft
  */
 public class warnCommand extends extendedCommand
 {
@@ -32,11 +33,13 @@ public class warnCommand extends extendedCommand
 		try
 		{
 
-			// /warn <player> <reason>
+			String commandSyntax = "/warn <player> [reason]";
 			if( this.numArgs() >= 2 )
 			{
 
-				List<Player> mayWarn = getServer().matchPlayer( getArg( 0 ) );
+				ultravision uvPlugin = (ultravision)getParent();
+				UltraVisionAPI api = uvPlugin.getAPI();
+				List<UltraVisionAPI.MatchUserResult> mayWarn = api.matchUser(getArg(0), false);
 
 				if( mayWarn == null || mayWarn.isEmpty() )
 				{
@@ -47,39 +50,49 @@ public class warnCommand extends extendedCommand
 				{
 					p.sendMessage( ChatColor.DARK_AQUA + "There are some players matching '" + getArg( 0 ) + "'" );
 					String plist = "";
-					for( Player toWarn : mayWarn )
+					for(UltraVisionAPI.MatchUserResult toWarn : mayWarn)
 					{
-						plist += ChatColor.GRAY + toWarn.getName() + ( ( mayWarn.indexOf( toWarn ) != ( mayWarn.size() - 1 ) ) ? ChatColor.DARK_GRAY + ", " : "" );
+						String formattedName = (toWarn.isOnline) ? toWarn.name : toWarn.name + " (off)";
+						boolean isLastItem = mayWarn.indexOf(toWarn) != (mayWarn.size() - 1 );
+						plist += ChatColor.GRAY + formattedName + ((isLastItem) ? ChatColor.DARK_GRAY + ", " : "");
 					}
+
 					p.sendMessage( plist );
 					return suc();
 				}
-				else
-				{    // Got ONE player
-					String reason = "";
-					for( int i = 1; i < numArgs(); i++ )
-						reason += getArg( i ).trim();
-					MResult res;
-					UltraVisionAPI api = ( ( ultravision ) getParent() ).getAPI();
-					if( ( res = api.warnPlayer( p, new PlayerIdent(mayWarn.get( 0 )), ( ( numArgs() >= 2 ) ? reason : "No reason provided." ) ) ) == MResult.RES_SUCCESS )
+				else // got only ONE player
+				{
+					if (mayWarn.get(0).name.equalsIgnoreCase(p.getName()))
+						return err(p, "You cannot warn yourself!");
+
+					String reason = "No reason provided.";
+					if (numArgs() > 1)
 					{
-						( ( ultravision ) getParent() ).ownBroadcast( ChatColor.AQUA + "Player " + mayWarn.get( 0 ).getName() + " has been warned by " + p.getName() + "." );
+						for( int i = 1; i < numArgs(); i++ )
+							reason += getArg( i ).trim();
 					}
-					else if( res == MResult.RES_ALREADY )
+
+					MResult res;
+					if(MResult.RES_SUCCESS == (res = api.warnPlayer(p, mayWarn.get(0).pIdent, reason)))
 					{
-						return suc( p, ChatColor.RED + "This player is already warned." );
+						uvPlugin.ownBroadcast(ChatColor.AQUA + "Player " + mayWarn.get(0).name + " has been warned by " + p.getName() + ".");
+					}
+					else if(res == MResult.RES_ALREADY)
+					{
+						return suc(p, ChatColor.RED + "This player is already warned. For more information see " + ChatColor.ITALIC + "/uvstat warn " + mayWarn.get(0).name);
 					}
 					else
 					{
-						p.sendMessage( ChatColor.RED + "Can't warn player: " + res.toString() );
+						p.sendMessage(ChatColor.RED + "Can't warn player: " + res.toString());
 					}
-					return suc( p, "Warned player successfully." );
+
+					return suc( p, "Permanently warned player successfully." );
 				}
 
 			}
 			else
 			{
-				return err( p, "Too few arguments." );
+				return err( p, "Too few arguments. " + commandSyntax );
 			}
 
 		}
