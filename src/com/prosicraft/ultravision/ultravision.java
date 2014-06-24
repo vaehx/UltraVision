@@ -317,21 +317,21 @@ public class ultravision extends JavaPlugin
 	 */
 	public void loadTemplateSelection()
 	{
-		config.set( "general.useGlobalAPI", ( global = config.getBoolean( "useGlobalAPI", false ) ) );
-		config.set( "general.useAuthorizer", ( useAuthorizer = config.getBoolean( "general.useAuthorizer", true ) ) );
-		config.set( "general.useClickAuthorizer", ( useClickAuthorizer = config.getBoolean( "general.useClickAuthorizer", false ) ) );
-		config.set( "general.useJMessage", ( useJMessage = config.getBoolean( "general.useJMessage", false ) ) );
-		config.set( "general.useCommandLog", ( useCommandLog = config.getBoolean( "general.useCommandLog", true ) ) );
-		config.set( "general.useUltraChat", ( useUltraChat = config.getBoolean( "general.useUltraChat", true ) ) );
-		config.set( "general.showWelcomeMessage", ( showWelcomeMessage = config.getBoolean( "general.showWelcomeMessage", true ) ) );
-		config.set( "general.logFileLimitKByte", ( MConst._LIMIT_A = config.getInt( "general.logFileLimitKByte", MConst._LIMIT_A ) ) );
-		config.set( "general.showNotRegWarning", ( showNotRegWarning = config.getBoolean( "general.showNotRegWarning", true ) ) );
-		config.set( "general.showMessagesNotLoggedIn", ( showMessagesNotLoggedIn = config.getBoolean( "general.showMessagesNotLoggedIn", true ) ) );
-		config.set( "general.debug", ( MConst._DEBUG_ENABLED = config.getBoolean( "general.debug", false ) ) );
-		config.set( "general.debugDummy", ( useDebugDummy = config.getBoolean( "general.debugDummy", useDebugDummy ) ) );
-		config.set( "general.debugPlayers", ( debugPlayers = config.getStringList( "general.debugPlayers" , new ArrayList<String>() ) ) );
-		config.set( "general.allowNotRegActions", ( allowNotRegActions = config.getBoolean( "general.allowNotRegActions", true ) ) );
-		config.set( "general.disableIngameOp", ( disableIngameOp = config.getBoolean( "general.disableIngameOp", true ) ) );
+		global = config.getBoolean( "useGlobalAPI", false );
+		useAuthorizer = config.getBoolean( "general.useAuthorizer", true );
+		useClickAuthorizer = config.getBoolean( "general.useClickAuthorizer", false );
+		useJMessage = config.getBoolean( "general.useJMessage", false );
+		useCommandLog = config.getBoolean( "general.useCommandLog", true );
+		useUltraChat = config.getBoolean( "general.useUltraChat", true );
+		showWelcomeMessage = config.getBoolean( "general.showWelcomeMessage", true );
+		MConst._LIMIT_A = config.getInt( "general.logFileLimitKByte", MConst._LIMIT_A );
+		showNotRegWarning = config.getBoolean( "general.showNotRegWarning", true );
+		showMessagesNotLoggedIn = config.getBoolean( "general.showMessagesNotLoggedIn", true );
+		MConst._DEBUG_ENABLED = config.getBoolean( "general.debug", false );
+		useDebugDummy = config.getBoolean( "general.debugDummy", useDebugDummy );
+		debugPlayers = config.getStringList( "general.debugPlayers" , new ArrayList<String>() );
+		allowNotRegActions = config.getBoolean( "general.allowNotRegActions", true );
+		disableIngameOp = config.getBoolean( "general.disableIngameOp", true );
 
 		config.setDefault( "auth.showMessagesNotLoggedIn", true );
 		config.setDefault( "ultravision.showWarnedMessages", true );
@@ -383,6 +383,7 @@ public class ultravision extends JavaPlugin
 		double locX = config.getDouble("debugDummy.x", zeroWorldLocation.getX());
 		double locY = config.getDouble("debugDummy.y", zeroWorldLocation.getY());
 		double locZ = config.getDouble("debugDummy.z", zeroWorldLocation.getZ());
+		config.save();
 
 		World dummyWorld = getServer().getWorld(worldName);
 		Location dummyLocation = new Location(dummyWorld, locX, locY, locZ);

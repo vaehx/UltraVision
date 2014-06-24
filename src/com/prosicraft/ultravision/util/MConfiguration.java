@@ -115,12 +115,28 @@ public class MConfiguration
 
 	public boolean getBoolean( String path, boolean def )
 	{
-		return fc1.getBoolean( path, def );
+		if (!fc1.contains(path))
+		{
+			fc1.set(path, def);
+			return def;
+		}
+		else
+		{
+			return fc1.getBoolean( path, def );
+		}
 	}
 
 	public String getString( String path, String def )
 	{
-		return fc1.getString( path, def );
+		if (!fc1.contains(path))
+		{
+			fc1.set(path, def);
+			return def;
+		}
+		else
+		{
+			return fc1.getString( path, def );
+		}
 	}
 
 	public String getString( String path )
@@ -218,23 +234,62 @@ public class MConfiguration
 
 	public int getInt( String path, int def )
 	{
-		return fc1.getInt( path, def );
+		if (!fc1.contains(path))
+		{
+			fc1.set(path, def);
+			return def;
+		}
+		else
+		{
+			return fc1.getInt( path, def );
+		}
 	}
 
 	public long getLong( String path, long def )
 	{
-		return fc1.getLong( path, def );
+		if (!fc1.contains(path))
+		{
+			fc1.set(path, def);
+			return def;
+		}
+		else
+		{
+			return fc1.getLong( path, def );
+		}
 	}
 
 	public double getDouble( String path, double def )
 	{
-		return fc1.getDouble( path, def );
+		if (!fc1.contains(path))
+		{
+			fc1.set(path, def);
+			return def;
+		}
+		else
+		{
+			return fc1.getDouble( path, def );
+		}
 	}
 
+	/**
+	 * Will return new, empty List if def is null
+	 * @param path
+	 * @param def
+	 * @return
+	 */
 	public List<String> getStringList( String path, List<String> def )
 	{
-		List res = fc1.getStringList( path );
-		return ( ( res == null ) ? ( ( def == null ) ? new ArrayList() : def ) : res );
+		if (!fc1.contains(path))
+		{
+			List<String> correctDef = ((def == null) ? new ArrayList<String>() : def);
+			fc1.set(path, correctDef);
+			return correctDef;
+		}
+		else
+		{
+			List res = fc1.getStringList( path );
+			return ( ( res == null ) ? ( ( def == null ) ? new ArrayList<String>() : def ) : res );
+		}
 	}
 
 	public void removeProperty( String path )
