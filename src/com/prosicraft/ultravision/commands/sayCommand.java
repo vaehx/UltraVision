@@ -87,14 +87,14 @@ public class sayCommand extends extendedCommand
 
 			if( out.equalsIgnoreCase( "reload" ) )
 			{
-				out = ChatColor.RED + "Serverreload. Do " + ChatColor.BOLD + "not" + ChatColor.RESET + ChatColor.RED + " chat or use any command.";
+				out = "Serverreload. Do " + ChatColor.BOLD + "not" + ChatColor.RESET + ChatColor.RED + " chat or use any command.";
 			}
 			else if( out.equalsIgnoreCase( "finish" ) )
 			{
-				out = ChatColor.RED + "Reload finished." + (((ultravision)getParent()).IsUsingAuthorizer() ? " You're logged out." : "");
+				out = "Reload finished." + (((ultravision)getParent()).IsUsingAuthorizer() ? " You're logged out." : "");
 			}
 
-			( ( ultravision ) getParent() ).ownBroadcast( ChatColor.DARK_GRAY + "  [" + ChatColor.DARK_RED + p.getDisplayName() + ChatColor.DARK_GRAY + "] " + out );
+			( ( ultravision ) getParent() ).ownBroadcast( ChatColor.DARK_GRAY + "  [" + ChatColor.DARK_RED + p.getDisplayName() + ChatColor.DARK_GRAY + "] " + ChatColor.RED + out );
 
 			return suc();
 
