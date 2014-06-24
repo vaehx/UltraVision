@@ -6,13 +6,18 @@
  */
 package com.prosicraft.ultravision.dummy;
 
+import com.prosicraft.ultravision.util.MLog;
 import net.minecraft.server.v1_7_R3.EntityPlayer;
+import net.minecraft.server.v1_7_R3.PlayerConnection;
 import net.minecraft.server.v1_7_R3.WorldServer;
+import net.minecraft.util.org.apache.commons.lang3.Validate;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_7_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_7_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_7_R3.entity.CraftPlayer;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.scoreboard.Scoreboard;
 
 /**
  *
@@ -69,6 +74,12 @@ public class DebugDummyPlayer extends CraftPlayer
 			server.getHandle().moveToWorld(checkEntity, toWorld.dimension, true, to, true);
 
 		return true;
+	}
+
+	@Override
+	public void setScoreboard(Scoreboard scoreboard)
+	{
+		MLog.w("Some plugin wanted to change the Scoreboard of the uv dummy! This is not supported yet!");
 	}
 
 	@Override
