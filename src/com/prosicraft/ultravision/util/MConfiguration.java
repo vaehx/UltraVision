@@ -118,9 +118,9 @@ public class MConfiguration
 		return fc1.getBoolean( path, def );
 	}
 
-	public String getString( String path, String ref )
+	public String getString( String path, String def )
 	{
-		return fc1.getString( path, ref );
+		return fc1.getString( path, def );
 	}
 
 	public String getString( String path )

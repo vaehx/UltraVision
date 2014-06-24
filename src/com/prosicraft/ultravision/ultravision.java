@@ -33,9 +33,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 import net.minecraft.server.v1_7_R3.EntityInsentient;
 import net.minecraft.server.v1_7_R3.GenericAttributes;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -82,6 +85,9 @@ public class ultravision extends JavaPlugin
 	public boolean disableIngameOp		= true;	    // Disable ingame op command
 	public UVBRIDGE[] bridges		= new UVBRIDGE[ 5 ];     // Bridge to UltraBox Plugins
 	public List<String> debugPlayers	= new ArrayList<>();
+
+	private boolean useDebugDummy		= false;
+	private DebugDummy debugDummy		= null;
 
 	//**********************************************************************************************
 	/**
@@ -186,6 +192,12 @@ public class ultravision extends JavaPlugin
 			uvserver.start();
 
 			MLog.i( "Started Mineconnect server." );
+		}
+
+		// Spawn the dummy player, if needed
+		if (useDebugDummy)
+		{
+
 		}
 
 		// In case of Reload: Do Rejoin everybody
@@ -313,6 +325,7 @@ public class ultravision extends JavaPlugin
 		config.set( "general.showNotRegWarning", ( showNotRegWarning = config.getBoolean( "general.showNotRegWarning", true ) ) );
 		config.set( "general.showMessagesNotLoggedIn", ( showMessagesNotLoggedIn = config.getBoolean( "general.showMessagesNotLoggedIn", true ) ) );
 		config.set( "general.debug", ( MConst._DEBUG_ENABLED = config.getBoolean( "general.debug", false ) ) );
+		config.set( "general.debugDummy", ( useDebugDummy = config.getBoolean( "general.debugDummy", useDebugDummy ) ) );
 		config.set( "general.debugPlayers", ( debugPlayers = config.getStringList( "general.debugPlayers" , new ArrayList<String>() ) ) );
 		config.set( "general.allowNotRegActions", ( allowNotRegActions = config.getBoolean( "general.allowNotRegActions", true ) ) );
 		config.set( "general.disableIngameOp", ( disableIngameOp = config.getBoolean( "general.disableIngameOp", true ) ) );
@@ -349,6 +362,30 @@ public class ultravision extends JavaPlugin
 			}
 		}
 		return assigned;
+	}
+
+	//**********************************************************************************************
+	/**
+	 * Initializes the dummy player
+	 */
+	private void loadDummyPlayer()
+	{
+		if (!useDebugDummy)
+			return;
+
+		String uuidStr = config.getString("debugDummy.uuid", UUID.randomUUID().toString());
+
+		Location zeroWorldLocation = getServer().getWorlds().get(0).getSpawnLocation();
+		String worldName = config.getString("debugDummy.world", zeroWorldLocation.getWorld().getName());
+		double locX = config.getDouble("debugDummy.x", zeroWorldLocation.getX());
+		double locY = config.getDouble("debugDummy.y", zeroWorldLocation.getY());
+		double locZ = config.getDouble("debugDummy.z", zeroWorldLocation.getZ());
+
+		World dummyWorld = getServer().getWorld(worldName);
+		Location dummyLocation = new Location(dummyWorld, locX, locY, locZ);
+
+		debugDummy = new DebugDummy(this);
+		debugDummy.spawn(uuidStr, dummyLocation);
 	}
 
 	//**********************************************************************************************
