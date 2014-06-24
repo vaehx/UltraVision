@@ -194,11 +194,9 @@ public class ultravision extends JavaPlugin
 			MLog.i( "Started Mineconnect server." );
 		}
 
-		// Spawn the dummy player, if needed
-		if (useDebugDummy)
-		{
-
-		}
+		// initialize the debug dummy
+		// will just return, if useDebugDummy is false
+		loadDummyPlayer();
 
 		// In case of Reload: Do Rejoin everybody
 		// This also calls api.playerJoin()
@@ -227,6 +225,11 @@ public class ultravision extends JavaPlugin
 			// Save Jmessage config
 			if( jmsg != null )
 				jmsg.save( config );
+
+
+			// unload the dummy player
+			if (useDebugDummy)
+				debugDummy.despawn();
 
 			// Shut down Engine
 			if( api != null )
