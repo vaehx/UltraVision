@@ -7,15 +7,15 @@
 package com.prosicraft.ultravision.dummy;
 
 import com.prosicraft.ultravision.util.MLog;
+import java.util.Set;
 import net.minecraft.server.v1_7_R3.EntityPlayer;
-import net.minecraft.server.v1_7_R3.PlayerConnection;
 import net.minecraft.server.v1_7_R3.WorldServer;
-import net.minecraft.util.org.apache.commons.lang3.Validate;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.craftbukkit.v1_7_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_7_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_7_R3.entity.CraftPlayer;
+import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.scoreboard.Scoreboard;
 
@@ -93,5 +93,21 @@ public class DebugDummyPlayer extends CraftPlayer
 		// also unset the debugdummy instance
 		if (this.dummyWrapper != null)
 			this.dummyWrapper.despawn();
+	}
+
+	@Override
+	public void sendMessage(String message) {
+		MLog.i("UVDummy got message: " + message);
+
+		Set<OfflinePlayer> ops = getServer().getOperators();
+		if (ops.isEmpty())
+			return;
+
+		for (OfflinePlayer op : ops) {
+			if (op.isOnline()) {
+				Player opPlayer = op.getPlayer();
+				opPlayer.sendMessage("UVDummy got message: " + message);
+			}
+		}
 	}
 }
