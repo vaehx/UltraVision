@@ -690,23 +690,23 @@ public class ultravision extends JavaPlugin
 		return false;
 	}
 
-	public boolean doUUIDOFCommand(String[] args, Player p)
+	public boolean doUUIDOFCommand(String[] args, CommandSender sn)
 	{
 		if (args.length == 0)
 		{
-			p.sendMessage(ChatColor.RED + "Wrong argument count!");
+			sn.sendMessage(ChatColor.RED + "Wrong argument count!");
 			return true;
 		}
 
 		List<UltraVisionAPI.MatchUserResult> match = api.matchUser(args[0], true);
 		if (match.isEmpty())
 		{
-			p.sendMessage(ChatColor.RED + "Cannot find this user!");
+			sn.sendMessage(ChatColor.RED + "Cannot find this user!");
 			return true;
 		}
 
 		// take first match here
-		p.sendMessage(match.get(0).pIdent.toString());
+		sn.sendMessage(match.get(0).pIdent.toString());
 		return true;
 	}
 
@@ -808,6 +808,13 @@ public class ultravision extends JavaPlugin
 	@Override
 	public boolean onCommand( CommandSender sender, Command cmd, String commandLabel, String[] args )
 	{
+		// UUID OF command
+		// Note: Support for ingame and console !
+		if (cmd.getName().equalsIgnoreCase("uvuuidof"))
+		{
+			return doUUIDOFCommand(args, sender);
+		}
+		
 		// Handle Player Commands
 		if( sender instanceof Player )
 		{
@@ -819,14 +826,7 @@ public class ultravision extends JavaPlugin
 			{
 				p.sendMessage( ChatColor.GREEN + "Ban." );
 				return true;
-			}
-
-			// UUID OF command
-			if (cmd.getName().equalsIgnoreCase("uvuuidof"))
-			{
-				return doUUIDOFCommand(args, p);
-			}
-
+			}			
 
 			if (cmd.getName().equalsIgnoreCase("uvadminhorse"))
 			{
