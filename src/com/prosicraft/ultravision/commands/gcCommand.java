@@ -6,6 +6,11 @@ package com.prosicraft.ultravision.commands;
 
 import com.prosicraft.ultravision.ultravision;
 import com.prosicraft.ultravision.util.MLog;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryPoolMXBean;
+import java.lang.management.MemoryType;
+import java.lang.management.MemoryUsage;
+import java.util.Iterator;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -34,16 +39,23 @@ public class gcCommand extends extendedCommand
 
 			p.sendMessage( "Garbage collecting..." );
 			Runtime.getRuntime().gc();
-
-			p.sendMessage( ChatColor.DARK_AQUA + "Total Memory: " + ChatColor.AQUA + ( Runtime.getRuntime().totalMemory() / 1048576 ) + " MBytes" );
-			p.sendMessage( ChatColor.DARK_AQUA + "Max. Memory: " + ChatColor.AQUA + ( Runtime.getRuntime().maxMemory() / 1048576 ) + " MBytes" );
-			p.sendMessage( ChatColor.DARK_AQUA + "Min. Memory: " + ChatColor.AQUA + ( ( Runtime.getRuntime().maxMemory() - Runtime.getRuntime().totalMemory() ) / 1048576 ) + " MBytes" );
-			p.sendMessage( ChatColor.DARK_AQUA + "Free Memory: " + ChatColor.AQUA + ( Runtime.getRuntime().freeMemory() / 1048576 ) + " MBytes" );
+			
 			p.sendMessage( ChatColor.DARK_AQUA + "Processors: " + ChatColor.AQUA + Runtime.getRuntime().availableProcessors() );
-
 			p.sendMessage( ChatColor.DARK_AQUA + "Java VM: " + ChatColor.AQUA + System.getProperty( "java.vm.name" ) );
-			p.sendMessage( ChatColor.DARK_AQUA + "Java Version: " + ChatColor.AQUA + System.getProperty( "java.runtime.version" ) );
-			p.sendMessage( ChatColor.DARK_AQUA + "OS Name: " + ChatColor.AQUA + System.getProperty( "os.name" ) );
+			p.sendMessage( ChatColor.DARK_AQUA + "Java Version: " + ChatColor.AQUA + System.getProperty( "java.runtime.version" ) );                        
+                        
+                        Iterator<MemoryPoolMXBean> iter = ManagementFactory.getMemoryPoolMXBeans().iterator();
+                        while (iter.hasNext())
+                        {
+                            MemoryPoolMXBean item = iter.next();
+                            String name = item.getName();
+                            MemoryType type = item.getType();
+                            MemoryUsage usage = item.getUsage();
+                            MemoryUsage peak = item.getPeakUsage();
+                            MemoryUsage collections = item.getCollectionUsage();
+                            
+                            p.sendMessage(ChatColor.DARK_AQUA + name + "| ty:" + type.name() + " use:" + usage.getUsed() + " B");
+                        }
 
 			return suc();
 

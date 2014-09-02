@@ -1062,7 +1062,7 @@ public class UVLocalEngine implements UltraVisionAPI
 
 		// check if the player is online
 		if (kickedPlayer != null && kickedPlayer.isOnline()
-			&& kickedPlayer instanceof Player) // just to make sure that we can safely cast to Player
+			&& (kickedPlayer instanceof Player)) // just to make sure that we can safely cast to Player
 		{
 			// format the ban message
 			String banMessage = ChatColor.DARK_GRAY + "[UltraVision " + ChatColor.DARK_AQUA +
@@ -1082,6 +1082,13 @@ public class UVLocalEngine implements UltraVisionAPI
 				localUVPlayer.log(banMessage + " BY " + cs.getName());
 			}
 		}
+                else
+                {
+                    MLog.d("Did not kick player in perma ban execution! " +
+                            "[kickedPlayer=" + kickedPlayer +
+                            (kickedPlayer != null ? ", .isOnline()=" + kickedPlayer.isOnline() : "") +
+                            ", instanceof Player:" + (kickedPlayer instanceof Player));
+                }
 
 		// Gather Ban Information
 		if (bSenderIsConsole)
