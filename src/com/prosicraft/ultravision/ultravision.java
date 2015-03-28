@@ -5,9 +5,9 @@
  *       This Bukkit Plugin provides functionality for every security,
  *              as well as broadcasting and logging purposes on your MC-Server.
  *
- *                              by prosicraft  ,   (c) 2014
+ *                              by prosicraft  ,   (c) 2011-2015
  *
- *          Update 20.6.2014
+ *          Update 28.3.2015
  *
  *  ============================================================================
  */
@@ -30,13 +30,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
-import net.minecraft.server.v1_7_R3.EntityInsentient;
-import net.minecraft.server.v1_7_R3.GenericAttributes;
+import net.minecraft.server.v1_8_R2.EntityInsentient;
+import net.minecraft.server.v1_8_R2.GenericAttributes;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -44,7 +45,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.craftbukkit.v1_7_R3.entity.CraftLivingEntity;
+import org.bukkit.craftbukkit.v1_8_R2.entity.CraftLivingEntity;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -632,14 +633,10 @@ public class ultravision extends JavaPlugin
 	{
 		// Get all Players and hook into count thread
 		//    ONLY IF SOME STUPID KIDS JOINED BEFORE SERVER IS READY >:|
-		Player[] oPlayer = getServer().getOnlinePlayers();
-		if( oPlayer.length > 0 )
+		for (Player p : getServer().getOnlinePlayers())
 		{
-			for( int i = 0; i < oPlayer.length; i++ )
-			{
-				api.onPlayerJoin( oPlayer[i] );
-				playerJoin( oPlayer[i] );
-			}
+			api.onPlayerJoin(p);
+			playerJoin(p);
 		}
 
 		return true;
@@ -1066,13 +1063,12 @@ public class ultravision extends JavaPlugin
 	 */
 	public int ownBroadcast( String message )
 	{
-		Player[] ps = getServer().getOnlinePlayers();
 		int cnt = 0;
-		for( Player p : ps )
+		for (Player p : getServer().getOnlinePlayers())
 		{
-			p.sendMessage( message );
+			p.sendMessage(message);
 			cnt++;
-		}
+		}	
 
 		// Send message to console as well
 		MLog.i( message );

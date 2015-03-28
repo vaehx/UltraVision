@@ -9,19 +9,20 @@ package com.prosicraft.ultravision.dummy;
 import com.prosicraft.ultravision.ultravision;
 import com.prosicraft.ultravision.util.MLog;
 import java.util.UUID;
-import net.minecraft.server.v1_7_R3.EntityPlayer;
-import net.minecraft.server.v1_7_R3.EnumGamemode;
-import net.minecraft.server.v1_7_R3.MinecraftServer;
-import net.minecraft.server.v1_7_R3.PlayerInteractManager;
-import net.minecraft.server.v1_7_R3.WorldServer;
-import net.minecraft.util.com.mojang.authlib.GameProfile;
+import net.minecraft.server.v1_8_R2.EntityPlayer;
+import net.minecraft.server.v1_8_R2.MinecraftServer;
+import net.minecraft.server.v1_8_R2.PlayerInteractManager;
+import net.minecraft.server.v1_8_R2.WorldServer;
+import com.mojang.authlib.GameProfile;
+import net.minecraft.server.v1_8_R2.EnumProtocolDirection;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_7_R3.CraftServer;
-import org.bukkit.craftbukkit.v1_7_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_8_R2.CraftServer;
+import org.bukkit.craftbukkit.v1_8_R2.entity.CraftPlayer;
 import org.bukkit.entity.Player;
-import net.minecraft.server.v1_7_R3.NetworkManager;
-import net.minecraft.server.v1_7_R3.PlayerConnection;
+import net.minecraft.server.v1_8_R2.NetworkManager;
+import net.minecraft.server.v1_8_R2.PlayerConnection;
+import net.minecraft.server.v1_8_R2.WorldSettings;
 
 /**
  *
@@ -59,7 +60,7 @@ public class DebugDummy
 		// now create the dummy player
 		EntityPlayer entityPlayer = new EntityPlayer(minecraftServer, worldServer, dummyGameProfile, playerInteractManager);
 
-		NetworkManager networkManager = new DebugDummyNetworkManager(true);
+		NetworkManager networkManager = new DebugDummyNetworkManager(EnumProtocolDirection.SERVERBOUND);
 
 
 		minecraftServer.getUserCache().a(dummyGameProfile);
@@ -67,14 +68,14 @@ public class DebugDummy
 		entityPlayer.playerInteractManager.a((WorldServer)entityPlayer.world);
 
 		// START PlayerList.a
-		entityPlayer.playerInteractManager.setGameMode(EnumGamemode.CREATIVE);
+		entityPlayer.playerInteractManager.setGameMode(WorldSettings.EnumGamemode.CREATIVE);
 		entityPlayer.playerInteractManager.b(worldServer.getWorldData().getGameType());
 		// END PlayerList.a
 		entityPlayer.playerConnection = new PlayerConnection(minecraftServer, networkManager, entityPlayer);
 
-		minecraftServer.az();
+		minecraftServer.aG();
 
-		minecraftServer.getPlayerList().c(entityPlayer);
+		minecraftServer.getPlayerList().onPlayerJoin(entityPlayer, "UV Dummy player joined!");
 		minecraftServer.getPlayerList().b(entityPlayer, worldServer);
 
 		dummyPlayer = new DebugDummyPlayer(craftServer, entityPlayer);

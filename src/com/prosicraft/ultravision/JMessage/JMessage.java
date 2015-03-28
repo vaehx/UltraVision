@@ -140,7 +140,7 @@ public class JMessage
 			.replaceAll( "%dnm", p.getDisplayName() ) // Display name
 			.replaceAll( "%ol", getOnlinePlayerList( p, false ) ) // Online List (w/o Prefixes)
 			.replaceAll( "%preol", getOnlinePlayerList( p, true ) ) // Online List (with Prefixes)
-			.replaceAll( "%size", Integer.toString( p.getServer().getOnlinePlayers().length ) ) // Current online users
+			.replaceAll( "%size", Integer.toString( p.getServer().getOnlinePlayers().size() ) ) // Current online users
 			.replaceAll( "%max", Integer.toString( p.getServer().getMaxPlayers() ) ) // Max Slots
 			.replaceAll( "%mode", p.getGameMode().name() ) // Gamemode
 			.replaceAll( "%laston", getLastOnlineTime( p ) ) // Last Login time

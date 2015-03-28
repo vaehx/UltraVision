@@ -8,7 +8,8 @@ package com.prosicraft.ultravision.dummy;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import net.minecraft.server.v1_7_R3.NetworkManager;
+import net.minecraft.server.v1_8_R2.EnumProtocolDirection;
+import net.minecraft.server.v1_8_R2.NetworkManager;
 
 /**
  *
@@ -18,9 +19,9 @@ public class DebugDummyNetworkManager extends NetworkManager
 {
 	private SocketAddress socketAddress = null;
 
-	public DebugDummyNetworkManager(boolean flag)
-	{
-		super(flag);
+	public DebugDummyNetworkManager(EnumProtocolDirection protocolDirection)
+	{		
+		super(protocolDirection);
 		socketAddress = new InetSocketAddress(25565);
 	}
 
@@ -31,8 +32,8 @@ public class DebugDummyNetworkManager extends NetworkManager
 	}
 
 	@Override
-	public void g()
+	public void k()
 	{
-		// we simply do nothing here
+		// we simply do nothing here		
 	}
 }

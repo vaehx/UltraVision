@@ -47,14 +47,15 @@ public class clickUnregisterCommand extends extendedCommand
 
 			clickauth.unRegister( thePlayer );
 			clickauth.saveToFile();
-			for( int i = 0; i < getServer().getOnlinePlayers().length; i++ )
+			for (Player onlinePlayer : getServer().getOnlinePlayers())
 			{
-				if( getServer().getOnlinePlayers()[i].getName().equalsIgnoreCase( thePlayer ) )
+				if (onlinePlayer.getName().equalsIgnoreCase(thePlayer))
 				{
-					getServer().getOnlinePlayers()[i].sendMessage( ChatColor.GOLD + "You have been unregistered from ClickAuth." );
-					return suc( p, thePlayer + " has been unregistered." );
+					onlinePlayer.sendMessage(ChatColor.GOLD + "You have been unregistered from ClickAuth.");
+					return suc(p, thePlayer + " has been unregistered.");
 				}
 			}
+			
 			return err( p, "Cannot find this player" );
 		}
 		catch( wrongParentException | wrongPlayerException ex )
