@@ -5,9 +5,9 @@
  *       This Bukkit Plugin provides functionality for every security,
  *              as well as broadcasting and logging purposes on your MC-Server.
  *
- *                              by prosicraft  ,   (c) 2014
+ *                              by prosicraft  ,   (c) 2012-2014
  *
- *          Update 20.6.2014
+ *          Update 16.9.2014
  *
  *  ============================================================================
  */
@@ -15,6 +15,7 @@ package com.prosicraft.ultravision;
 
 import com.prosicraft.ultravision.dummy.DebugDummy;
 import com.prosicraft.ultravision.JMessage.JMessage;
+import com.prosicraft.ultravision.UltraVisionPermissions.PermissionType;
 import com.prosicraft.ultravision.base.PlayerIdent;
 import com.prosicraft.ultravision.base.UVChatListener;
 import com.prosicraft.ultravision.base.UVClickAuth;
@@ -29,6 +30,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +42,7 @@ import net.minecraft.server.v1_7_R3.EntityInsentient;
 import net.minecraft.server.v1_7_R3.GenericAttributes;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -47,8 +51,10 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.craftbukkit.v1_7_R3.entity.CraftLivingEntity;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.RegisteredListener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 //**********************************************************************************************
@@ -86,6 +92,7 @@ public class ultravision extends JavaPlugin
 	public boolean disableIngameOp		= true;	    // Disable ingame op command
 	public UVBRIDGE[] bridges		= new UVBRIDGE[ 5 ];     // Bridge to UltraBox Plugins
 	public List<String> debugPlayers	= new ArrayList<>();
+	public UltraVisionPermissions perms	= null;
 
 	private boolean useDebugDummy		= false;
 	private DebugDummy debugDummy		= null;
@@ -110,6 +117,13 @@ public class ultravision extends JavaPlugin
 			return;
 		}
 
+		// Setup permission information
+		perms = new UltraVisionPermissions();
+		perms.setupPermissionsList();
+		
+		// Register event classes
+		LogSettings.initDefaultEventHandlerClasses();
+		
 		// Load and initialize used Templates
 		loadTemplateSelection();
 		initAuthorizer();
@@ -292,7 +306,7 @@ public class ultravision extends JavaPlugin
 				buildProperties.load( resourceStream );
 				buildVersion = "#b" + MCrypt.prependZeros(buildProperties.getProperty( "BUILD" ));
 
-				MLog.i( "Ultravision is starting (Version " + fPDesc.getVersion() + " " + buildVersion + ") ..." );
+				MLog.i( "Ultravision Enterprise is starting (Version " + fPDesc.getVersion() + " " + buildVersion + ") ..." );
 			}
 			catch( IOException e )
 			{
@@ -303,7 +317,7 @@ public class ultravision extends JavaPlugin
 		catch( java.util.MissingResourceException ex )
 		{
 			buildVersion = "???";
-			MLog.i( "Ultravision is starting (Version " + fPDesc.getVersion() + " #b???) ..." );
+			MLog.i( "Ultravision Enterprise is starting (Version " + fPDesc.getVersion() + " #b???) ..." );
 			MLog.d( "Cannot retrieve Build version due to resource not found." );
 		}
 	}
@@ -795,6 +809,125 @@ public class ultravision extends JavaPlugin
 		printDummyCommandHelp(p);
 		return true;
 	}
+	
+	public void doListEventHandlersCommand(String arg0, CommandSender sender) {
+		if (!hasPermission((Player)sender, PermissionType.ePERM_MAINCMD)) {
+			sender.sendMessage(ChatColor.RED + "You're not allowed to use this command!");
+			return;
+		}
+		
+		if (arg0.isEmpty()) {
+			sender.sendMessage(ChatColor.AQUA + "Lists event Handlers of given event");
+			sender.sendMessage(ChatColor.GRAY + "Usage: /listeventhandlers eventName");			
+			sender.sendMessage(ChatColor.GRAY + "eventName is case insensitive");			
+		}
+		else {
+			// find event
+			for (String k : LogSettings.events.keySet()) {
+				if (k.equalsIgnoreCase(arg0)) {
+					Class eventClass = LogSettings.events.get(k);
+					try {
+						Method getEventHandlersMethod = eventClass.getDeclaredMethod("getHandlerList");
+						Object o = getEventHandlersMethod.invoke(null);
+						if (!(o instanceof HandlerList)) {
+							sender.sendMessage(ChatColor.RED + "Could not get event handlers: invalid return type!");
+							MLog.d("ListEventHandlers invoke command returned " + o + " for event '" + k + "'!");
+							return;
+						}
+						
+						HandlerList hl = (HandlerList)o;
+						sender.sendMessage(ChatColor.AQUA + "Registered event listeners for event " + ChatColor.GOLD + k);
+						for (RegisteredListener rl : hl.getRegisteredListeners()) {
+							sender.sendMessage(ChatColor.GRAY + "- " + rl.getListener().getClass().getCanonicalName());
+						}						
+					} catch (NoSuchMethodException nsmex) {
+						sender.sendMessage(ChatColor.RED + "The entry of this event class is invalid: could not get event handlers!");
+						return;
+					} catch (IllegalAccessException iaex) {
+						sender.sendMessage(ChatColor.RED + "Could not get event handlers: illegal access.");
+						return;
+					} catch (InvocationTargetException itex) {
+						sender.sendMessage(ChatColor.RED + "Could not get event handlers: invocation target exception");
+						return;
+					}
+					
+					return;
+				}
+			}
+			
+			sender.sendMessage(ChatColor.RED + "Could not find this event!");
+		}
+	}
+	
+	public void doFindCommand(String arg0, String arg1, CommandSender sender) {
+		if (!hasPermission(sender, PermissionType.ePERM_FIND)) {
+			sender.sendMessage(ChatColor.RED + "You're not allowed to use this command!");
+			return;
+		}
+		
+		if (arg0.equalsIgnoreCase("player")) {			
+			boolean foundAny = false;
+			sender.sendMessage(ChatColor.AQUA + "Found players like '" + ChatColor.GOLD + arg1 + ChatColor.AQUA + "':");						
+			
+			// by uuid			
+			boolean isUUID = false;
+			try {
+				UUID uuid = UUID.fromString(arg1);
+				OfflinePlayer offp = getServer().getOfflinePlayer(uuid);
+				if (offp != null) {
+					isUUID = true;
+					foundAny = true;
+					sender.sendMessage(ChatColor.GRAY + "- " + offp.getName() + " (" + offp.getUniqueId().toString() + ")");					
+				}
+			} catch (IllegalArgumentException iaex) {				
+			}
+			
+			// by name
+			if (!isUUID) {
+				for (OfflinePlayer checkOffP : getServer().getOfflinePlayers()) {
+					if (!checkOffP.getName().matches("(?i)(.*)" + arg1 + "(.*)"))
+						continue;
+					
+					sender.sendMessage(ChatColor.GRAY + "- " + checkOffP.getName() + " (" + checkOffP.getUniqueId().toString() + ")");
+					foundAny = true;						 
+				}
+			}
+			
+			if (!foundAny) {
+				sender.sendMessage(ChatColor.GRAY + "No results.");
+			}
+		} else if (arg0.equalsIgnoreCase("event")) {
+			sender.sendMessage(ChatColor.AQUA + "Found events like '" + ChatColor.GOLD + arg1 + ChatColor.AQUA + "':");
+			boolean foundAny = false;
+			for (String eventClassName : LogSettings.events.keySet()) {
+				if (!eventClassName.matches("(?i)(.*)" + arg1 + "(.*)"))
+					continue;
+				
+				foundAny = true;
+				sender.sendMessage(ChatColor.GRAY + "- " + eventClassName);
+			}
+			
+			if (!foundAny) {
+				sender.sendMessage(ChatColor.GRAY + "No results.");
+			}
+		} else {
+			sender.sendMessage(ChatColor.AQUA + "UltraVision FIND command usage:");
+			sender.sendMessage(ChatColor.GRAY + "/<command> [player <name | uuid> | event <name>]");
+		}
+	}
+	
+	public void doListPermissionsCommand(CommandSender sender) {
+		if (!hasPermission(sender, PermissionType.ePERM_ADMIN)) {
+			sender.sendMessage(ChatColor.RED + "You're not allowed to use this command.");
+			return;
+		}
+		
+		sender.sendMessage(ChatColor.AQUA + "UltraVision Permissions:");
+		for (PermissionType kTy : UltraVisionPermissions.perms.keySet()) {
+			UltraVisionPermissions.Permission p = UltraVisionPermissions.perms.get(kTy);
+			sender.sendMessage(ChatColor.GRAY + "- " + kTy.name() + " (" + p.permissionNode + "; " + p.description + ")");
+		}
+	}
 
 	//**********************************************************************************************
 	/**
@@ -804,6 +937,7 @@ public class ultravision extends JavaPlugin
 	 * @param cmd
 	 * @param commandLabel
 	 * @param args
+	 * @return whether command has been handled or not
 	 */
 	@Override
 	public boolean onCommand( CommandSender sender, Command cmd, String commandLabel, String[] args )
@@ -813,6 +947,26 @@ public class ultravision extends JavaPlugin
 		if (cmd.getName().equalsIgnoreCase("uvuuidof"))
 		{
 			return doUUIDOFCommand(args, sender);
+		}
+		
+		else if (cmd.getName().equalsIgnoreCase("uvlisteventhandlers")) {
+			doListEventHandlersCommand((args.length > 0) ? args[0] : "", sender);
+			return true;
+		}
+		
+		else if (cmd.getName().equalsIgnoreCase("uvfind")) {
+			if (args.length < 2) {
+				sender.sendMessage(ChatColor.RED + "Too few arguments: " + cmd.getUsage() + "!");				
+			} else {
+				doFindCommand(args[0], args[1], sender);
+			}
+			
+			return true;
+		}
+		
+		else if (cmd.getName().equalsIgnoreCase("uvpermissions")) {
+			doListPermissionsCommand(sender);
+			return true;
 		}
 		
 		// Handle Player Commands
@@ -846,7 +1000,7 @@ public class ultravision extends JavaPlugin
 			if (cmd.getName().equalsIgnoreCase("uvdummy"))
 			{
 				return doDummyCommand(args, p);
-			}
+			}						
 
 
 			// all other commands
@@ -1078,6 +1232,26 @@ public class ultravision extends JavaPlugin
 		MLog.i( message );
 
 		return cnt + 1;
+	}
+	
+	//**********************************************************************************************
+	/**
+	 * Always returns true if the sender is the console. Otherwise checks against the matching permission node.
+	 * @param s The sender. As Player inherits from CommandSender, this function has not to be called within onCommand()
+	 * @param ty Permission type to check against
+	 * @return Whether sender has permission or not
+	 */
+	public boolean hasPermission(CommandSender s, PermissionType ty) {
+		if (s instanceof ConsoleCommandSender)
+			return true;
+		
+		// check against unknown commandsender
+		if (!(s instanceof Player)) {
+			MLog.w("Tried to check permission of unknown CommandSender type! Will be restricted.");
+			return false;
+		}
+		
+		return UltraVisionPermissions.hasPermission((Player)s, ty);
 	}
 
 	//**********************************************************************************************

@@ -1,7 +1,7 @@
 ## ultravision plugin file
 
 name: Ultravision
-version: 2014d-1.7.9-R0.3
+version: 2014e-1.7.9-R0.3
 description: Ultravision is a Player Supervision Plugin for highly improved server frontend business.
 author: prosicraft
 website: http://minecraft.net
@@ -225,3 +225,19 @@ commands:
         usage: /<command>
         permissions: ultravision.admin.spawndummy
         aliases: [dummy]
+    uvlisteventhandlers:
+        description: List registered listener classes for given event
+        usage: /<command> <eventName>
+        aliases: [listeventhandlers, leh]
+    uvfind:
+        description: Finds a player by name or uuid or an event class
+        usage: /<command> [player <name | uuid> | event <name>]
+        aliases: [find]
+    uvviewenderchest:
+        description: Views the enderchest of a given player
+        usage: /<command> [playername]
+        aliases: [viewec]
+    uvpermissions:
+        description: Shows list of UltraVision Plugin permissions
+        usage: /<command>
+        aliases: [uvperms]

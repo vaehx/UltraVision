@@ -36,7 +36,7 @@ public class ultravisionCommand extends extendedCommand
 				return suc( p, "Reloaded Config" );
 			}
 
-			p.sendMessage( ChatColor.DARK_GRAY + "=== " + ChatColor.DARK_AQUA + "Server running " + ChatColor.AQUA + "ULTRAVISION" + ChatColor.GRAY + " version " + ChatColor.AQUA + uv.getfPDesc().getVersion() + ChatColor.DARK_GRAY + " ===" );
+			p.sendMessage( ChatColor.DARK_GRAY + "= " + ChatColor.DARK_AQUA + "Server running " + ChatColor.AQUA + "ULTRAVISION ENTERPRISE" + ChatColor.GRAY + " version " + ChatColor.AQUA + uv.getfPDesc().getVersion() + ChatColor.DARK_GRAY + " =" );
 
 			p.sendMessage( ChatColor.GOLD + "This Bukkit Plugin provides functionality for security, as well as frontend and logging purposes on your MC-Server." );
 

@@ -134,7 +134,7 @@ public class uvPlayerListener implements Listener
 			}
 
 			if( parent.showWelcomeMessage )
-				e.getPlayer().sendMessage( ChatColor.DARK_GRAY + " ==== " + ChatColor.GRAY + "This Server is" + ChatColor.DARK_AQUA + " powered by " + ChatColor.AQUA + "UltraVision" + ChatColor.DARK_GRAY + " ====" );
+				e.getPlayer().sendMessage( ChatColor.DARK_GRAY + " = " + ChatColor.GRAY + "This Server " + ChatColor.DARK_AQUA + "runs " + ChatColor.AQUA + "UltraVision Enterprise" + ChatColor.DARK_GRAY + " =" );
 
 			if( !registered(e.getPlayer()) && parent.IsUsingAuthorizer() )
 			{
